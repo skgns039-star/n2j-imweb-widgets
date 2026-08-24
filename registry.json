@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-08-24T14:40:21.414Z",
+  "updated_at": "2026-08-24T15:11:45.159Z",
   "sites": {
     "sehwa": {
       "enabled": true
@@ -11,7 +11,7 @@
     {
       "widget_id": "hello-badge",
       "version": "0.1.0",
-      "enabled": true,
+      "enabled": false,
       "match": {
         "site": "sehwa",
         "path_glob": [
