@@ -3,7 +3,7 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { p, json } from "../src/release/paths.ts";
+import { p, json, manifest } from "../src/release/paths.ts";
 import { handle, classify, mentionsConnect, mentionsEntity } from "../src/bot/router.ts";
 import { WIZARDS, loadState, cancel, acquireLock, holdsLock, saveState, expire } from "../src/bot/onboarding.ts";
 import { net, browser, type PageFacts } from "../src/bot/scan.ts";
@@ -15,6 +15,8 @@ const ctx = (chat = 9001) => ({
 });
 
 const MANIFEST = readFileSync(p("manifest", "widgets.yaml"), "utf8");
+/** 등록된 첫 사이트를 쓴다 — site_id 를 상수로 박으면 실제 운영값이 바뀔 때 깨진다. */
+const SITE = manifest().sites[0]!.site_id;
 const restoreManifest = () => writeFileSync(p("manifest", "widgets.yaml"), MANIFEST);
 
 /** 렌더 결과를 주입한다. 실제 브라우저·네트워크는 쓰지 않는다. */
@@ -97,7 +99,10 @@ test("PTEST-038 위저드는 비밀값 입력을 요구하는 질문을 만들�
 // ── 진행·중단·재개 (REQ-028)
 
 async function toSiteId(c = ctx()) {
-  await handle("연결", c); await handle("A", c); await handle("A", c); await handle("A2", c);
+  await handle("연결", c); await handle("A", c);
+  const after = await handle("A", c);
+  if (/변경할까요/.test(after)) await handle("예", c);   // 이미 등록된 사이트가 있으면 재확인을 한 번 지난다
+  await handle("A2", c);
 }
 
 test("TEST-040 잘못된 URL은 재질문하고 다음 단계로 넘어가지 않는다", async () => {
@@ -224,11 +229,15 @@ test("TEST-041 로더 미삽입 상태에서 '삽입했어'라고 하면 검증 
 
 test("TEST-053 A3 재연결에서 차이가 없으면 커밋 0건", async () => {
   const c = ctx();
-  await handle("연결", c); await handle("A", c); await handle("A", c); await handle("A3", c);
-  await handle("test-site", c);                   // manifest에 이미 있는 site_id
+  await handle("연결", c); await handle("A", c);
+  const after = await handle("A", c);
+  if (/변경할까요/.test(after)) await handle("예", c);
+  await handle("A3", c);
+  await handle(SITE, c);                   // manifest에 이미 있는 site_id
   await handle("https://x.test", c); await handle("예", c); await handle("/product/1", c);
-  stubFacts({ loaderTags: [LOADER_TAG], loaderRuntime: { version: "1.1.0", site: "test-site", bootAt: 1 },
-    slots: ["header", "content", "footer"] });                 // manifest와 동일 → 차이 없음
+  // manifest에 선언된 슬롯과 똑같이 관측되면 차이가 없어야 한다 (하드코딩하지 않는다)
+  stubFacts({ loaderTags: [LOADER_TAG], loaderRuntime: { version: "1.1.0", site: SITE, bootAt: 1 },
+    slots: manifest().sites.find((s) => s.site_id === SITE)!.slots ?? [] });
   const r = await handle("스캔", c);
   assert.match(r, /변경 없음/);
   assert.equal(readFileSync(p("manifest", "widgets.yaml"), "utf8"), MANIFEST);

@@ -2,7 +2,7 @@
 import { test, beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync, existsSync, rmSync, mkdirSync, readdirSync } from "node:fs";
-import { p } from "../src/release/paths.ts";
+import { p, manifest } from "../src/release/paths.ts";
 import { handle } from "../src/bot/router.ts";
 import { loadState } from "../src/bot/onboarding.ts";
 import { net, browser, scanSite, verdict, sampleNotice, type PageFacts } from "../src/bot/scan.ts";
@@ -15,6 +15,7 @@ const ctx = (chat = 9100) => ({
 });
 const MANIFEST = readFileSync(p("manifest", "widgets.yaml"), "utf8");
 const STAGED = p("src", "widgets", "legacy-banner");
+const SITE = manifest().sites[0]!.site_id;
 
 const facts = (over: Partial<PageFacts> = {}): PageFacts => ({
   path: "/", ok: true, loaderTags: [], loaderRuntime: null, scripts: [], slots: [],
@@ -84,7 +85,10 @@ test("TEST-060 스캔 산출물에 키 문자열이 있으면 secretscan이 검�
 
 test("PTEST-039 A2는 스캔을 건너뛸 수 없다", async () => {
   const c = ctx();
-  await handle("연결", c); await handle("A", c); await handle("A", c); await handle("A2", c);
+  await handle("연결", c); await handle("A", c);
+  const after = await handle("A", c);
+  if (/변경할까요/.test(after)) await handle("예", c);
+  await handle("A2", c);
   await handle("my-site2", c); await handle("https://x.test", c); await handle("예", c);
   await handle("/p", c);
   assert.equal(loadState(c)!.step, "scan", "A2는 경로 입력 후 곧바로 스캔 단계여야 한다");
@@ -100,7 +104,7 @@ test("TEST-050 스냅샷 저장이 실패하면 이관을 착수하지 않는다
   assert.throws(() => snapshotOriginal("s", "console.log(1)"), /디스크 오류/);
 
   const c = ctx();
-  await handle("이관", c); await handle("test-site", c); await handle("legacy-banner", c);
+  await handle("이관", c); await handle(SITE, c); await handle("legacy-banner", c);
   const r = await handle("(function(){ window.__ddak = window.__ddak || {}; })();", c);
   assert.match(r, /D1 스냅샷 저장 실패/);
   assert.match(r, /착수하지 않습니다/);
@@ -114,7 +118,7 @@ test("TEST-051 전역 셀렉터를 쓰는 기존 코드는 린트 실패를 보�
   assert.ok(errs.some((e) => e.includes("전역 셀렉터")), "body 셀렉터를 잡아야 한다");
 
   const c = ctx();
-  await handle("이관", c); await handle("test-site", c); await handle("legacy-banner", c);
+  await handle("이관", c); await handle(SITE, c); await handle("legacy-banner", c);
   const r = await handle(legacy + "// padding to reach minimum length", c);
   assert.match(r, /D3 중단/);
   assert.match(r, /자동으로 고치지 않습니다/);
@@ -126,7 +130,7 @@ test("TEST-051 전역 셀렉터를 쓰는 기존 코드는 린트 실패를 보�
 test("TEST-052 D3에서 중단해도 아임웹 원본은 그대로다", async () => {
   const c = ctx();
   const before = readdirSync(p("state", "imweb_snapshots")).length;
-  await handle("이관", c); await handle("test-site", c); await handle("legacy-banner", c);
+  await handle("이관", c); await handle(SITE, c); await handle("legacy-banner", c);
   await handle("window.bad = 1; // 전역 오염으로 D3에서 멈춘다", c);
   assert.equal(readFileSync(p("manifest", "widgets.yaml"), "utf8"), MANIFEST, "manifest는 변경되지 않는다");
   assert.equal(readdirSync(p("state", "imweb_snapshots")).length, before + 1, "스냅샷은 남아 있어야 한다");
@@ -138,7 +142,7 @@ test("TEST-052 D3에서 중단해도 아임웹 원본은 그대로다", async ()
 
 test("PTEST-040 D4는 enabled:false 로만 등록하고, 승인 없이는 manifest가 바뀌지 않는다", async () => {
   const c = ctx();
-  await handle("이관", c); await handle("test-site", c); await handle("legacy-banner", c);
+  await handle("이관", c); await handle(SITE, c); await handle("legacy-banner", c);
   const ok = await handle("(function(){ var el = document.createElement('div'); el.className = 'ddak-legacy'; })();", c);
   assert.match(ok, /D1~D3 통과/);
   const payload = await handle("승인 요청", c);
@@ -152,4 +156,29 @@ test("D6 원본 제거는 72시간 관찰 전에는 제안되지 않는다 (§24
   const r = requestOriginalRemoval("hello-badge", ctx() as any);
   assert.match(r, /72시간/);
   assert.ok(!r.includes("승인 요청 AP-"), "승인 페이로드를 만들면 안 된다");
+});
+
+/* 수집 코드가 IIFE가 아니면 모든 항목이 빈 값으로 잡혀 "깨끗한 사이트"로 오판한다.
+   실제로 스크립트 109개인 사이트를 0개로 보고한 사고가 있었다. */
+test("수집 코드는 즉시 실행 식이어야 한다", async () => {
+  const { COLLECT_JS } = await import("../src/bot/scan.ts");
+  assert.ok(COLLECT_JS.trimStart().startsWith("(()"), "화살표 함수만 넘기면 호출되지 않는다");
+  assert.ok(COLLECT_JS.trimEnd().endsWith("})()"), "즉시 실행 괄호가 있어야 한다");
+  // 브라우저 없이 셰임 DOM으로 실제 수집 결과를 확인한다.
+  const { runInNewContext } = await import("node:vm");
+  const el = (attrs: Record<string, string> = {}, src = "") => ({
+    src, textContent: "x", classList: [], dataset: {},
+    getAttribute: (k: string) => attrs[k] ?? null,
+  });
+  const nodes = [el({}, "https://host/a.js"), el({}, "https://host/b.js")];
+  const facts: any = runInNewContext(COLLECT_JS, {
+    document: {
+      querySelectorAll: (sel: string) => (sel === "script" ? nodes : []),
+      styleSheets: [],
+    },
+    window: {}, getComputedStyle: () => ({ zIndex: "auto" }),
+    Array, Set, Math, parseInt, isNaN,
+  });
+  assert.equal(facts.scripts.length, 2, "스크립트를 실제로 세야 한다");
+  assert.equal(facts.loaderTags.length, 0);
 });

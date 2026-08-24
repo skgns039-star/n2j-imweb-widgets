@@ -64,8 +64,10 @@ export const browser = {
   },
 };
 
-/** 브라우저 안에서 실행되는 수집 코드. 읽기만 한다. */
-const COLLECT_JS = `() => {
+/** 브라우저 안에서 실행되는 수집 코드. 읽기만 한다.
+ *  **즉시 실행 식(IIFE)이어야 한다.** 문자열로 넘긴 화살표 함수는 호출되지 않고 함수 객체가 반환돼
+ *  모든 항목이 빈 값으로 잡힌다(= 깨끗한 사이트로 오판). 아래 `})()` 를 지우지 말 것. */
+export const COLLECT_JS = `(() => {
   const isLoader = (s) => /loader\\/loader\\.js/.test(s.src || "") || (s.dataset && s.dataset.registry && s.dataset.site);
   const all = Array.from(document.querySelectorAll("script"));
   const loaderTags = all.filter(isLoader).map((s) => ({ src: s.src || "(inline)", site: s.getAttribute("data-site"), registry: s.getAttribute("data-registry") }));
@@ -99,7 +101,7 @@ const COLLECT_JS = `() => {
     loaderRuntime: ns && ns.loader ? { version: ns.loader.version, site: ns.loader.site, bootAt: ns.loader.bootAt } : null,
     libs, hostDdakCss, maxZIndex,
   };
-}`;
+})()`;
 
 export type ScanResult = {
   site_id: string; url: string; paths: string[]; scanned_at: string;

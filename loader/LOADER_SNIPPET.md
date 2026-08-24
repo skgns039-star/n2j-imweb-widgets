@@ -14,7 +14,7 @@
 ```html
 <script
   src="https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@loader-1.1.0/loader/loader.js"
-  data-site="test-site"
+  data-site="sehwa"
   data-registry="https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@main/registry.json"
   defer></script>
 ```

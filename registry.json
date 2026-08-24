@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-08-24T14:10:22.174Z",
+  "updated_at": "2026-08-24T14:22:19.678Z",
   "sites": {
-    "test-site": {
+    "sehwa": {
       "enabled": true
     }
   },
@@ -13,7 +13,7 @@
       "version": "0.1.0",
       "enabled": false,
       "match": {
-        "site": "test-site",
+        "site": "sehwa",
         "path_glob": [
           "/*"
         ]

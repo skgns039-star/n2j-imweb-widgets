@@ -76,7 +76,8 @@ test("TEST-062 setup:check 출력에 비밀값 문자열이 0건이다", async (
 });
 
 test("TEST-066 CDN_OWNER 가 manifest 와 다르면 보고만 하고 고치지 않는다", async () => {
-  writeFileSync(p("manifest", "widgets.yaml"), MANIFEST.replace('owner: "<GH_OWNER>"', 'owner: "real-owner"'));
+  // 실제 owner 값에 의존하지 않는다 — 운영값이 바뀌어도 검사가 깨지면 안 된다.
+  writeFileSync(p("manifest", "widgets.yaml"), MANIFEST.replace(/owner: .*/, 'owner: "real-owner"'));
   try {
     const rows = await checkAll(fullEnv({ CDN_OWNER: "other-owner", CDN_REPO: "r" }), probe());
     const row = rows.find((r) => r.id === "CDN_OWNER")!;

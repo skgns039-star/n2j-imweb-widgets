@@ -20,6 +20,11 @@
 
 | 2026-08-24 | `.env` 에 값을 넣어도 프로세스가 못 읽음 | 로드 경로 부재 | npm 스크립트에 `--env-file-if-exists=.env` 추가 (에이전트 코드는 .env 미열람 유지) | 수정 | 전체 72건 |
 
+| 2026-08-24 | **스캐너가 스크립트 109개 사이트를 0개로 보고** | page.evaluate에 화살표 함수 문자열을 넘겨 호출되지 않음 | 수집 코드를 IIFE로 변경 + 회귀 검사 추가 | 수정 | 전체 73건 |
+| 2026-08-24 | **테스트가 실제 .env 를 삭제** | teardown이 무조건 rmSync | 원문 백업 후 복원하도록 변경 | 수정 | TEST-064/065 |
+| 2026-08-24 | 세화건설(sehwa) 등록 | 신규 사이트 | manifest 등록, API 자격증명은 site 접미사 env로 분리 | 적용 | 스캔 C1 판정 |
+| 2026-08-24 | GitHub public 저장소 연결 | jsDelivr 요구 | skgns039-star/n2j-imweb-widgets, state/ 비공개 제외, .gitattributes로 CRLF 변환 금지(INV-5) | 적용 | loader-1.1.0 CDN 해시 일치 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
 CHK-005 아임웹 요금제 / OPEN-REG-01 registry 호스팅 / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /

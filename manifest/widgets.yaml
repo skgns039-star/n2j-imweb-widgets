@@ -1,18 +1,26 @@
-# IO-003. 사이트 ↔ 위젯 ↔ 버전 바인딩. 미등록 위젯 요청은 거절한다(PIN-003).
 schema_version: 1
 cdn:
   provider: jsdelivr
-  owner: "skgns039-star"     # .env의 GH_OWNER와 일치해야 한다
-  repo: "n2j-imweb-widgets"
+  owner: skgns039-star
+  repo: n2j-imweb-widgets
 sites:
-  - site_id: test-site
+  - site_id: sehwa
     enabled: true
-    label: 테스트 사이트
-    slots: [header, content, footer]   # 최초 1회 삽입한 슬롯 프리셋 (OPEN-REG-02)
+    label: 세화건설
+    url: https://sehwaconstruction.imweb.me
+    test_path: /
+    common_code: unknown
+    slots: []
+    connected_at: 2026-08-24T14:18:47.036Z
+    api_credentials_ref: env:IMWEB_API_KEY_SEHWA / env:IMWEB_API_SECRET_SEHWA
 widgets:
   - widget_id: hello-badge
     version: 0.1.0
-    enabled: false                      # 신규는 항상 false로 먼저 배포 (§18.6)
-    site: test-site
-    match: { path_glob: ["/*"] }
-    mount: { type: slot, slot: content }
+    enabled: false
+    site: sehwa
+    match:
+      path_glob:
+        - /*
+    mount:
+      type: slot
+      slot: content
