@@ -3,7 +3,7 @@
 작업 경로: `C:\Users\cut07\projects\imweb-widget-agent`
 저장소: `https://github.com/skgns039-star/n2j-imweb-widgets` (public)
 
-## 지금 상태 (2026-08-24)
+## 지금 상태 (2026-08-25 갱신)
 
 | 항목 | 상태 |
 |---|---|
@@ -13,34 +13,26 @@
 | 사이트 | `sehwa` (세화건설) `https://sehwaconstruction.imweb.me` |
 | 로더 | v1.1.0 · 4개 페이지 전부 부팅 확인 |
 | 위젯 | `hello-badge@0.1.0` · `mount: none` · `enabled: true` · 태그 `w-hello-badge-0.1.0` 배포됨 (3지점 해시 일치) |
-| registry | `raw.githubusercontent` 로 서빙 (OPEN-REG-01 결정) |
+| registry | `raw.githubusercontent` (OPEN-REG-01 결정) · 반영 실측 **약 200초** |
 
-## ★ 지금 막힌 지점 — 여기부터 시작
+## ★ M0 게이트 — **완료 (2026-08-25)**
 
-**아임웹 스니펫의 `data-registry` 한 줄을 교체해야 위젯이 화면에 뜬다.**
+| 항목 | 결과 |
+|---|---|
+| 로더 1회 삽입 | ✅ v1.1.0, 4개 페이지 전부 부팅 |
+| 서브파일 수정 → 실사이트 반영 | ✅ 뱃지 렌더, 콘솔 에러 0 |
+| 3지점 해시 일치 | ✅ `68ff35cc369a` |
+| **롤백 왕복** | ✅ enabled:false → 뱃지 0개(사이트 정상) → true → 뱃지 복귀 |
 
-현재 아임웹에 박힌 값:
-```
-data-registry="https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@main/registry.json"
-```
-바꿀 값:
-```
-data-registry="https://raw.githubusercontent.com/skgns039-star/n2j-imweb-widgets/main/registry.json"
-```
+실측: registry 반영 **약 200초**(정지 58초 / 재개 201초). 로더는 `cache:no-store` 로 읽으므로
+브라우저 캐시는 개입하지 않고, 지연은 전적으로 raw 의 엣지 캐시(max-age=300)에서 온다.
 
-- 나머지 줄(`src`, `data-site`, `defer`)은 **그대로 둔다.**
-- 교체 전 해당 코드 영역 원문을 복사해 보관한다 (INV-6).
-- 교체 후 확인: `node -e "import('./src/bot/scan.ts')..."` 또는 텔레그램에 `상태`.
+## 다음 작업 후보
 
-**이유:** jsDelivr `@main` 은 브랜치→커밋 해석을 12시간 캐시한다(`s-maxage=43200`).
-purge 가 200 을 줘도 갱신되지 않아 배포·킬스위치가 반영되지 않는다.
-커밋 고정 URL 과 raw 는 최신을 주는 것으로 실측 확인했다.
-
-## 교체 후 할 일
-
-1. 실사이트에서 뱃지(우측 하단 플로팅) 확인 — `window.__ddak.loaded` 에 `hello-badge` 가 잡히면 성공
-2. **M0 게이트 완료 선언** → `RUN_STATE.json` 갱신
-3. 롤백 왕복 1회 검증 (`npm run rollback -- hello-badge off <approval>`)
+1. **실사용 위젯 제작** — hello-badge 는 검증용이다. 실제 팔 위젯을 `src/widgets/` 에 만든다
+2. **슬롯 프리셋** (OPEN-REG-02) — 특정 위치에 붙일 위젯이 필요해지면 아임웹에 슬롯 div 1회 추가
+3. **Cloudflare 이전** — 고객사 확장 시 REQ-022(60초) 충족용
+4. **M1/M2** — 신규 위젯 무수정 추가 검증 / 브라우저 자동 업로드
 
 ## 미해결 (추적 중)
 

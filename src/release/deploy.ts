@@ -27,7 +27,11 @@ async function purge(owner: string, repo: string): Promise<boolean> {
 }
 
 /** purge 후 CDN이 실제로 새 registry를 주는지 확인. 미반영이면 완료로 보고하지 않는다 (§18.5). */
-async function confirmRegistry(_owner: string, _repo: string, expectedUpdatedAt: string, timeoutMs = 60_000): Promise<boolean> {
+/** 반영 대기 상한. 호스트의 캐시 수명에 맞춘다 —
+ *  raw.githubusercontent 는 max-age=300 이고 실측 반영이 약 200초였다. 60초는 거짓 BLOCKED 를 만든다. */
+const CONFIRM_TIMEOUT_MS = 360_000;
+
+async function confirmRegistry(_owner: string, _repo: string, expectedUpdatedAt: string, timeoutMs = CONFIRM_TIMEOUT_MS): Promise<boolean> {
   const url = registryUrl();
   const until = Date.now() + timeoutMs;
   while (Date.now() < until) {

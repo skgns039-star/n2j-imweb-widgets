@@ -18,6 +18,14 @@
 - 미해소 차단 게이트(CHK-001~005 등)에 걸린 동작은 실행하지 않는다.
 - 단일 런타임(TypeScript/Node)을 유지한다. Python·두 번째 스택을 들이지 않는다.
 
+## 상태 기록 (매 작업 필수)
+
+작업이 끝날 때마다 **`RESUME.md` 를 함께 갱신한다.** 이 파일이 다음 세션(오르카 포함)의 유일한 시작점이다.
+- 지금 상태 표(검사 결과·봇·엔진·사이트·로더·위젯·registry)
+- 막힌 지점과 그걸 푸는 정확한 다음 한 걸음
+- 미해결·완화 항목
+갱신 없이 커밋하면 다음 세션이 처음부터 다시 파악해야 한다. 코드만 고치고 RESUME 를 두고 가지 않는다.
+
 ## 경계
 - 쓰기 허용: `src/widgets/** dist/** manifest/widgets.yaml integrity/** state/** logs/** HARNESS_LOOP.md`
 - 읽기 전용: `loader/**` (스니펫 변경은 명시 승인 대상), `contracts/**`, `CODEX_BUILD_SPEC.md`
