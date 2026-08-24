@@ -8,7 +8,7 @@ import { SECRET_PATTERNS } from "../src/release/secrets.ts";
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist"]);
 // state/ 는 원칙적으로 제외하되, 스캔 산출물은 외부 스크립트 URL에 키가 섞일 수 있어 검사 대상이다 (§24.3).
 const SKIP_PATHS = ["state"];
-const INCLUDE_PATHS = [join("state", "site_scans")];
+const INCLUDE_PATHS = [join("state", "site_scans"), "seo"];   // seo/** 전체 (exports 포함) 검사 대상 (SKILL §6)
 const EXEMPT = [join("checks", "secret_scan.ts"), join("src", "release", "secrets.ts")];
 
 const norm = (rel: string) => rel.split(/[\\/]/).join(sep);

@@ -30,9 +30,16 @@
 
 | 2026-08-25 | **M0 게이트 완료** | - | 로더 삽입·1왕복·해시 일치·롤백 왕복 전부 실사이트 검증 | 완료 | 실사이트 렌더 확인 |
 | 2026-08-25 | registry 반영 확인이 60초 타임아웃에 걸려 거짓 BLOCKED | raw 엣지 캐시 실측 약 200초인데 상한이 60초 | `CONFIRM_TIMEOUT_MS = 360초` 로 호스트 캐시 수명에 맞춤 | 수정 | 재개 배포 재실행 |
+| 2026-08-25 | 개발 의존성 최신화 | @types/node 22·typescript 5 가 런타임(Node 24)·최신과 벌어짐 | `@types/node@^24`(실행 런타임에 맞춤) · `typescript@^7` | 적용 | typecheck OK · 74/74 · lint OK · secretscan 0건 |
 | 2026-08-25 | REQ-022 완화 수치 확정 | 추정치였음 | 킬 스위치 반영 **실측 약 200초**(상한 5분). 60초 요구 미충족 유지 | 기록 | Cloudflare 이전 시 해소 |
+
+| 2026-08-25 | 일일 상태 점검 요청 | 배포 후 무결성·registry 서빙이 조용히 깨질 수 있음 | `checks/daily.ts` + Windows 작업 스케줄러 `imweb-widget-daily`(매일 09:00 → `logs/daily.log`). LLM·SDK 미사용이라 CHK-004 무관 | 적용 | 1회 수동 실행 exit 0, 16지점 일치 |
+
+| 2026-08-25 | SEO 스킬 격리 추가 (ENG-046) | EXISTING_CHANGE | .claude/.codex 양쪽 배치(해시 10/10), src/seo/ 격리, STEST 28 + ITEST 4 실구현 | 적용 | 118건 전량 |
+| 2026-08-25 | **지시 [2]와 [3] 충돌** | "src/bot 수정 0줄" ↔ "라우터에 seo 인텐트 추가" | 라우터 진입 8줄만, SEO 로직은 src/seo/ 에만. ITEST-001 로 나머지 경로 diff 0 강제 | 최소 해석(보고함) | ITEST-001 |
+| 2026-08-25 | Codex 호환 결합 1건 | stest_coverage 가 .claude/ 경로 하드코딩 | skillPath() 로 .claude/.codex 양쪽 탐색. CLAUDE.md 는 AGENTS.md 포인터만 | 수정 | REQ-006 검사 추가 |
 
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
-CHK-005 아임웹 요금제 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /
+CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /
 OPEN-BRW-02 2차 인증 / OPEN-BRW-03 OPERATING_APPROVED 발급 / OPEN-PNY-01 Ponytail 설치·훅 / OPEN-HLM-01 Hallmark 컴포넌트 모드

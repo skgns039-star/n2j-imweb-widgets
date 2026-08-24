@@ -35,4 +35,5 @@ PIN-002. 여기 등재된 APPLY 모듈이 누락되면 작업을 중단한다.
 | ENG-044 | Runtime | 연결 락·동시성 | APPLY | `runtime/connect_lock.md` | PTEST-041 |
 | ENG-045 | Patterns | 인텐트 경계 판정 | APPLY | `patterns/routing.md` (확장) | PTEST-042 |
 | ENG-046 | Support | 초기 셋업 지원 | APPLY | `support/setup_policy.md` | PTEST-043 |
+| ENG-046 | Support | 아임웹 SEO 스킬 (M1 진단) | APPLY | `support/imweb_seo_skill.md` | STEST-001~028 |
 | ENG-005/007/010/011/012/024/025/026/028 | - | (제외) | OMIT / DEFER | `N/A` | - |

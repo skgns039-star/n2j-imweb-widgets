@@ -29,7 +29,7 @@ widgets:
       type: none
   - widget_id: cta-contact
     version: 0.1.0
-    enabled: false
+    enabled: true
     site: sehwa
     match:
       path_glob:

@@ -56,3 +56,12 @@ blocking_gates:
   OPEN-BRW-03: { status: OPEN, blocks: [operating_approved_auto_run] }
   OPEN-PNY-01: { status: OPEN, blocks: [] }
   OPEN-HLM-01: { status: OPEN, blocks: [] }
+  # ── SEO 스킬 (ENG-046). 미해소 시 해당 엔진만 PENDING, 나머지는 진행한다 (SKILL §4)
+  SCHK-001: { status: OPEN, blocks: [gsc_api] }
+  SCHK-002: { status: OPEN, blocks: [bing_api] }
+  SCHK-003: { status: OPEN, blocks: [naver_form] }
+  SCHK-004: { status: OPEN, blocks: [daum_form] }
+  SCHK-005: { status: OPEN, blocks: [robots_llms_edit] }
+  SCHK-006: { status: OPEN, blocks: [indexnow] }
+  # SEO 반영(9~11단계)은 M2. 이번 범위는 진단 전용 (SKILL §18.2)
+  SEO-M2: { status: OPEN, blocks: [seo_apply, seo_browser_form] }

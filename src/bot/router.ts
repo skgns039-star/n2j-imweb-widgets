@@ -15,13 +15,14 @@ import {
   WIZARDS, loadState, saveState, clearState, cancel, expire, type State, type Wizard, applyApproved,
 } from "./onboarding.ts";
 import { MIGRATE, requestOriginalRemoval } from "./migrate.ts";
+import { decide as seoDecide, enter as seoEnter, AMBIGUOUS_REPLY } from "../seo/route.ts";
 import type { IntegrityRecord } from "../release/build.ts";
 
 const ALL_WIZARDS: Record<string, Wizard> = { ...WIZARDS, migrate: MIGRATE };
 
 export type Intent =
   | "approve" | "reject" | "kill" | "resume" | "inspect" | "install"
-  | "deploy" | "rollback" | "connect" | "migrate" | "remove_original" | "agent" | "unclear";
+  | "deploy" | "rollback" | "connect" | "migrate" | "remove_original" | "seo" | "agent" | "unclear";
 
 /** §24.8 — "연결"은 다른 문맥에도 나온다. 기존 엔티티가 함께 등장하면 connect로 보내지 않는다.
  *  한국어 조사·어미 때문에 \b 가 오작동한 선례가 있어 토큰·문맥으로 판정한다. */
@@ -49,6 +50,10 @@ export function classify(text: string): { intent: Intent; arg?: string } {
   if (/전체\s*재개|재개해|resume/i.test(t)) return { intent: "resume" };
   if (/원본\s*제거|기존\s*코드\s*제거|인라인\s*제거/.test(t)) return { intent: "remove_original" };
   if (/이관/.test(t)) return { intent: "migrate" };
+
+  const seo = seoDecide(t);
+  if (seo === "seo") return { intent: "seo" };
+  if (seo === "ambiguous") return { intent: "unclear" };
 
   if (mentionsConnect(t)) {
     // 위젯·슬롯·registry 가 함께 나오면 connect가 아니다. 애매하면 되묻는다.
@@ -203,6 +208,7 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
       const a = request("cdn_deploy", "registry(global_enabled=true)", { widget_id: "", site: "전체", rollback: "다시 '전체 중지'" }, ctx.chat_id);
       return "재개는 승인 대상입니다 (정지는 승인 없이, 재개는 승인 필요).\n" + payloadText(a);
     }
+    case "seo": return await seoEnter(text);
     case "remove_original": {
       const w = widgetFromText(text);
       if (!w) return "어느 위젯의 원본을 제거하나요? widget_id를 함께 알려주세요.";
@@ -243,6 +249,7 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
       return res.text;
     }
     default:
+      if (seoDecide(text) === "ambiguous") return AMBIGUOUS_REPLY;
       return mentionsConnect(text) && mentionsEntity(text)
         ? "사이트·엔진 연결 설정을 말씀하시는 건가요, 아니면 위젯을 슬롯에 붙이는 작업인가요? 한 번만 확인하겠습니다."
         : "지시가 불명확합니다. 연결 / 조회 / 수정 / 신규추가 / 배포 / 롤백 / 설치 중 무엇인가요?";
