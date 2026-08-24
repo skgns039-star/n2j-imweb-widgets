@@ -15,7 +15,7 @@
 <script
   src="https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@loader-1.1.0/loader/loader.js"
   data-site="sehwa"
-  data-registry="https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@main/registry.json"
+  data-registry="https://raw.githubusercontent.com/skgns039-star/n2j-imweb-widgets/main/registry.json"
   defer></script>
 ```
 
@@ -37,6 +37,16 @@
 2. 기존 코드는 지우지 않고 **append**한다.
 3. 저장 후 재조회 → 주석 제거 정규화 diff = 0 확인. 아임웹은 저장 시 주석을 제거하므로 바이트 비교를 하지 않는다.
 4. diff ≠ 0이면 스냅샷으로 되돌리고 `BLOCKED` 보고.
+
+## registry 호스팅 (OPEN-REG-01 결정: 2026-08-24)
+
+`registry.json` 만 raw.githubusercontent 로 서빙한다. 모듈 자산(JS/CSS)은 jsDelivr 불변 태그 + SRI 그대로다.
+
+**이유:** jsDelivr 의 `@main` 은 브랜치→커밋 해석을 12시간 캐시한다(`s-maxage=43200`). purge 가 200을 줘도 갱신되지 않아
+REQ-015(배포 즉시 반영)와 REQ-022(60초 내 전 사이트 정지)를 지킬 수 없다. raw 는 `max-age=300`(5분)이다.
+
+**완화 기록:** 이 구성에서 킬 스위치 반영은 **최대 5분**이다. REQ-022 의 60초를 충족하지 못한다.
+고객사 확장 시 Cloudflare Pages(`max-age=60`)로 옮겨 해소한다.
 
 ## 검증
 

@@ -25,7 +25,10 @@
 | 2026-08-24 | 세화건설(sehwa) 등록 | 신규 사이트 | manifest 등록, API 자격증명은 site 접미사 env로 분리 | 적용 | 스캔 C1 판정 |
 | 2026-08-24 | GitHub public 저장소 연결 | jsDelivr 요구 | skgns039-star/n2j-imweb-widgets, state/ 비공개 제외, .gitattributes로 CRLF 변환 금지(INV-5) | 적용 | loader-1.1.0 CDN 해시 일치 |
 
+| 2026-08-24 | **jsDelivr @main 이 12시간 캐시되어 배포·킬스위치가 반영 안 됨** | 브랜치→커밋 해석 캐시(s-maxage=43200)는 purge로 안 지워짐. 커밋 고정 URL·raw 는 최신 확인 | OPEN-REG-01 결정: registry만 raw.githubusercontent(max-age=300)로 분리. 자산은 jsDelivr 불변 태그 유지 | 적용 | 배포 반영 확인, TEST-034 재실행 필요 |
+| 2026-08-24 | **REQ-022 완화 기록** | raw 는 max-age=300 | 킬 스위치 반영이 60초 → **최대 5분**. 고객사 확장 시 Cloudflare Pages(max-age=60)로 해소 | 완화(사용자 승인) | 미해소로 추적 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
-CHK-005 아임웹 요금제 / OPEN-REG-01 registry 호스팅 / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /
+CHK-005 아임웹 요금제 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /
 OPEN-BRW-02 2차 인증 / OPEN-BRW-03 OPERATING_APPROVED 발급 / OPEN-PNY-01 Ponytail 설치·훅 / OPEN-HLM-01 Hallmark 컴포넌트 모드

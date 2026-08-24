@@ -9,7 +9,14 @@ import { emptyReport, writeReport, summarize, type ActionReport } from "./report
 
 const git = (...args: string[]) => execFileSync("git", args, { cwd: p(), encoding: "utf8" }).trim();
 
+/** registry 를 실제로 서빙하는 주소. manifest 가 정본이다 (OPEN-REG-01 결정 반영). */
+export function registryUrl(): string {
+  const m = manifest();
+  return m.cdn.registry_url ?? `https://cdn.jsdelivr.net/gh/${m.cdn.owner}/${m.cdn.repo}@main/registry.json`;
+}
+
 async function purge(owner: string, repo: string): Promise<boolean> {
+  if (manifest().cdn.registry_url) return true;   // jsDelivr 를 안 쓰면 purge 대상이 없다
   const url = `https://purge.jsdelivr.net/gh/${owner}/${repo}@main/registry.json`;
   try {
     const r = await fetch(url, { cache: "no-store" });
@@ -20,8 +27,8 @@ async function purge(owner: string, repo: string): Promise<boolean> {
 }
 
 /** purge 후 CDN이 실제로 새 registry를 주는지 확인. 미반영이면 완료로 보고하지 않는다 (§18.5). */
-async function confirmRegistry(owner: string, repo: string, expectedUpdatedAt: string, timeoutMs = 60_000): Promise<boolean> {
-  const url = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@main/registry.json`;
+async function confirmRegistry(_owner: string, _repo: string, expectedUpdatedAt: string, timeoutMs = 60_000): Promise<boolean> {
+  const url = registryUrl();
   const until = Date.now() + timeoutMs;
   while (Date.now() < until) {
     try {

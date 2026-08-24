@@ -20,7 +20,7 @@ export function json<T = any>(rel: string, fallback?: T): T {
 
 export type Manifest = {
   schema_version: number;
-  cdn: { provider: string; owner: string; repo: string };
+  cdn: { provider: string; owner: string; repo: string; registry_url?: string; registry_note?: string };
   sites: {
     site_id: string; enabled: boolean; label?: string; slots?: string[];
     // 연결 위저드(ENG-041)가 채우는 필드. 비밀값은 들어가지 않는다.

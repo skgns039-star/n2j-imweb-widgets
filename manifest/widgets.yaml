@@ -3,6 +3,9 @@ cdn:
   provider: jsdelivr
   owner: skgns039-star
   repo: n2j-imweb-widgets
+  registry_url: https://raw.githubusercontent.com/skgns039-star/n2j-imweb-widgets/main/registry.json
+  registry_note: "OPEN-REG-01: jsDelivr @main 은 브랜치 해석을 12시간 캐시해 REQ-015/REQ-022를
+    못 지킨다. registry만 raw로 분리(max-age=300). 모듈 자산은 jsDelivr 불변 태그 유지."
 sites:
   - site_id: sehwa
     enabled: true
@@ -16,7 +19,7 @@ sites:
 widgets:
   - widget_id: hello-badge
     version: 0.1.0
-    enabled: false
+    enabled: true
     site: sehwa
     match:
       path_glob:
