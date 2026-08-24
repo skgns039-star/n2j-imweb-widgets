@@ -237,6 +237,7 @@ test("TEST-053 A3 재연결에서 차이가 없으면 커밋 0건", async () => 
   await handle("https://x.test", c); await handle("예", c); await handle("/product/1", c);
   // manifest에 선언된 슬롯과 똑같이 관측되면 차이가 없어야 한다 (하드코딩하지 않는다)
   stubFacts({ loaderTags: [LOADER_TAG], loaderRuntime: { version: "1.1.0", site: SITE, bootAt: 1 },
+    hasDdakNs: true,                                           // 로더가 떠 있으면 __ddak 도 있다
     slots: manifest().sites.find((s) => s.site_id === SITE)!.slots ?? [] });
   const r = await handle("스캔", c);
   assert.match(r, /변경 없음/);

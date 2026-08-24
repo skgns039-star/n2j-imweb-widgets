@@ -152,7 +152,9 @@ test("PTEST-040 D4는 enabled:false 로만 등록하고, 승인 없이는 manife
 });
 
 test("D6 원본 제거는 72시간 관찰 전에는 제안되지 않는다 (§24.9)", () => {
-  assert.equal(hoursSinceDeploy("hello-badge"), null);
+  // 실제 배포 이력이 있든 없든 결론은 같아야 한다 — 72시간을 못 채웠으면 제안하지 않는다.
+  const hrs = hoursSinceDeploy("hello-badge");
+  assert.ok(hrs === null || hrs < 72, "이 검사는 관찰 기간 미달 상태를 전제로 한다");
   const r = requestOriginalRemoval("hello-badge", ctx() as any);
   assert.match(r, /72시간/);
   assert.ok(!r.includes("승인 요청 AP-"), "승인 페이로드를 만들면 안 된다");
