@@ -13,7 +13,8 @@ sites:
     url: https://sehwaconstruction.imweb.me
     test_path: /
     common_code: unknown
-    slots: []
+    slots:
+      - cta-contact
     connected_at: 2026-08-24T14:18:47.036Z
     api_credentials_ref: env:IMWEB_API_KEY_SEHWA / env:IMWEB_API_SECRET_SEHWA
 widgets:
@@ -26,3 +27,13 @@ widgets:
         - /*
     mount:
       type: none
+  - widget_id: cta-contact
+    version: 0.1.0
+    enabled: false
+    site: sehwa
+    match:
+      path_glob:
+        - /
+    mount:
+      type: slot
+      slot: cta-contact

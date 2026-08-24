@@ -1,0 +1,123 @@
+/* cta-contact — 호스트 DNA 상속: 폰트는 inherit, 색 앵커는 사이트 브랜드 블루 rgb(19,19,207).
+   전역 셀렉터·리셋·외부 폰트 금지 (§21.6). z-index 미사용(문서 흐름 안에 있다). */
+
+.ddak-cta {
+  /* 호스트에서 뽑은 토큰. 값을 바꾸려면 여기만 고친다. */
+  --ddak-cta-brand: rgb(19, 19, 207);
+  --ddak-cta-brand-deep: rgb(13, 13, 150);
+  --ddak-cta-on-brand: #fff;
+  --ddak-cta-radius: 2px;          /* 호스트가 2px 샤프 스타일이라 맞춘다 */
+  --ddak-cta-gap: 0.5em;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75em;
+  font: inherit;
+}
+
+.ddak-cta__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ddak-cta-gap);
+
+  /* 원본은 12px·89×39 로 주 CTA 치고 작았다. 탭 타깃을 44px 이상으로 올린다. */
+  min-height: 48px;
+  padding: 0.9em 2em;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+
+  color: var(--ddak-cta-on-brand);
+  background: var(--ddak-cta-brand);
+  border: 1px solid var(--ddak-cta-brand);
+  border-radius: var(--ddak-cta-radius);
+  text-decoration: none;
+  cursor: pointer;
+
+  transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.ddak-cta__arrow {
+  transition: transform 140ms ease;
+}
+
+.ddak-cta__note {
+  margin: 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* ── 8-state (Hallmark, 축소 금지 — P-11) ───────────────────────── */
+
+/* hover */
+.ddak-cta__btn:hover {
+  background: var(--ddak-cta-brand-deep);
+  border-color: var(--ddak-cta-brand-deep);
+  box-shadow: 0 2px 12px rgba(19, 19, 207, 0.28);
+}
+.ddak-cta__btn:hover .ddak-cta__arrow { transform: translateX(3px); }
+
+/* focus-visible — 키보드 사용자에게 반드시 보여야 한다 */
+.ddak-cta__btn:focus-visible {
+  outline: 3px solid var(--ddak-cta-brand);
+  outline-offset: 3px;
+}
+
+/* active */
+.ddak-cta__btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* disabled */
+.ddak-cta[data-ddak-state="disabled"] .ddak-cta__btn {
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* loading — 클릭 후 이동 대기. 중복 클릭을 막는다 */
+.ddak-cta[data-ddak-state="loading"] .ddak-cta__btn {
+  pointer-events: none;
+  background: var(--ddak-cta-brand-deep);
+  border-color: var(--ddak-cta-brand-deep);
+}
+.ddak-cta[data-ddak-state="loading"] .ddak-cta__arrow {
+  animation: ddak-cta-pulse 700ms ease-in-out infinite;
+}
+
+/* error */
+.ddak-cta[data-ddak-state="error"] .ddak-cta__btn {
+  background: transparent;
+  color: var(--ddak-cta-brand);
+  border-style: dashed;
+}
+
+/* success */
+.ddak-cta[data-ddak-state="success"] .ddak-cta__btn {
+  background: var(--ddak-cta-brand-deep);
+  border-color: var(--ddak-cta-brand-deep);
+}
+
+@keyframes ddak-cta-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* 모션 최소화 설정을 존중한다 */
+@media (prefers-reduced-motion: reduce) {
+  .ddak-cta__btn,
+  .ddak-cta__arrow { transition: none; }
+  .ddak-cta[data-ddak-state="loading"] .ddak-cta__arrow { animation: none; }
+}
+
+/* 좁은 화면에서는 가로폭을 채운다 */
+@media (max-width: 480px) {
+  .ddak-cta__btn { width: 100%; }
+}

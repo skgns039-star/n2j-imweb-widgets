@@ -50,3 +50,15 @@ test("CSS 스코프 린터가 전역 오염을 잡는다", () => {
   assert.ok(lintJs("window.foo = 1", "x.js").length > 0);
   assert.equal(lintJs("window.__ddak = {}", "x.js").length, 0);
 });
+
+/* @keyframes 스텝(0%/50%/from/to)을 셀렉터로 오인해 정상 위젯 빌드를 막은 적이 있다. */
+test("린터가 @keyframes 스텝을 셀렉터로 오인하지 않는다", () => {
+  const css = ".ddak-a { animation: ddak-p 1s } @keyframes ddak-p { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }";
+  assert.deepEqual(lintCss(css, "x.css"), []);
+  assert.deepEqual(lintCss("@keyframes ddak-q { from { top: 0 } to { top: 9px } }", "x.css"), []);
+  // 진짜 전역 셀렉터는 여전히 잡아야 한다 — @media 안쪽도 검사 대상이다
+  assert.ok(lintCss("@media (min-width: 40em) { body { margin: 0 } }", "x.css").length > 0,
+    "@media 안의 전역 셀렉터가 빠져나가면 안 된다");
+  assert.ok(lintCss("@supports (display: grid) { html { color: red } }", "x.css").length > 0);
+  assert.deepEqual(lintCss("@media (max-width: 480px) { .ddak-a { width: 100% } }", "x.css"), []);
+});

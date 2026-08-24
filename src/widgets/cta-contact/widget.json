@@ -1,0 +1,9 @@
+{
+  "widget_id": "cta-contact",
+  "title": "문의하기 CTA",
+  "purpose": "메인 하단 전환 CTA. 아임웹 원본 '문의하기'(/18)를 대체하고 Git에서 관리한다.",
+  "replaces": "아임웹 코드: <a href=\"/18\">문의하기</a> (btn btn_3a42880b4364a)",
+  "link": "/18 — 원본과 동일. 목적지를 바꾸지 않는다.",
+  "collects_personal_data": false,
+  "network": "없음 (CDN 자산 로드 외 요청 0건)"
+}

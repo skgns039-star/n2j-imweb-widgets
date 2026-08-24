@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-08-24T15:13:11.550Z",
+  "updated_at": "2026-08-24T15:26:56.356Z",
   "sites": {
     "sehwa": {
       "enabled": true
@@ -31,6 +31,33 @@
           "type": "css",
           "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-hello-badge-0.1.0/dist/hello-badge/0.1.0/style.css",
           "integrity": "sha384-hCkGR3JIn5boqFeO6ZK9skU0Z+P40s+SMbZHAnI2hL1fDde8FZ958G1k8syyhidT"
+        }
+      ]
+    },
+    {
+      "widget_id": "cta-contact",
+      "version": "0.1.0",
+      "enabled": false,
+      "match": {
+        "site": "sehwa",
+        "path_glob": [
+          "/"
+        ]
+      },
+      "mount": {
+        "type": "slot",
+        "slot": "cta-contact"
+      },
+      "assets": [
+        {
+          "type": "js",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-cta-contact-0.1.0/dist/cta-contact/0.1.0/index.js",
+          "integrity": "sha384-tQUvzLYbreKQUZyi+RQPvCSQVtinQQZsRNUet+bgTdGCv6hUqsMLWrStmsOq7cIj"
+        },
+        {
+          "type": "css",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-cta-contact-0.1.0/dist/cta-contact/0.1.0/style.css",
+          "integrity": "sha384-9PRp/BFNny52k9gQyvihVZpY1sstPH4yK8cA6JiZ0jNCrVy4p8NR9YK1Dlte2XPF"
         }
       ]
     }

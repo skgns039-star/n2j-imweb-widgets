@@ -5,15 +5,24 @@ import { p } from "./paths.ts";
 
 const FORBIDDEN_AT = /@import\b|@font-face\b/;
 const GLOBAL_SEL = /^(\*|html|body|:root)\b/;
+/** @keyframes 안의 0% / 50% / from / to 는 셀렉터가 아니다. 이걸 셀렉터로 세면 정상 위젯 빌드가 막힌다. */
+const KEYFRAME_STEP = /^(from|to|\d+(\.\d+)?%)$/i;
 
 export function lintCss(css: string, file: string): string[] {
   const errs: string[] = [];
   if (FORBIDDEN_AT.test(css)) errs.push(`${file}: @import / @font-face 금지 (외부 폰트·리셋 주입 금지)`);
-  const body = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  // @keyframes 는 통째로 걷어낸다 (0%/from/to 는 셀렉터가 아니다).
+  // @media·@supports 는 **여는 줄만** 걷어내 안쪽 셀렉터가 검사에 걸리게 한다 —
+  // 예전에는 @media 안의 body{} 가 통째로 빠져나갔다.
+  const body = css
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "")
+    .replace(/@(media|supports|layer|container|scope)[^{]*\{/g, "");
   for (const block of body.split("}")) {
     const sel = block.split("{")[0]?.trim();
     if (!sel || sel.startsWith("@")) continue;
     for (const one of sel.split(",").map((s) => s.trim()).filter(Boolean)) {
+      if (KEYFRAME_STEP.test(one)) continue;   // @keyframes 안의 0%/50%/from/to 는 셀렉터가 아니다
       if (GLOBAL_SEL.test(one)) errs.push(`${file}: 전역 셀렉터 금지 → "${one}"`);
       else if (!/\.ddak-|--ddak-|\[data-ddak/.test(one)) errs.push(`${file}: ddak- 네임스페이스 없음 → "${one}"`);
     }

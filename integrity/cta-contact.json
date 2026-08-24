@@ -1,0 +1,23 @@
+{
+  "widget_id": "cta-contact",
+  "version": "0.1.0",
+  "built_at": "2026-08-24T15:26:56.350Z",
+  "files": [
+    {
+      "name": "index.js",
+      "bytes": 2815,
+      "gzip": 1298,
+      "source_sha256": "fd090af364f5267a6c0103c7f5d7f680ff73916cbef55594564714d25f215290",
+      "dist_sha256": "fd090af364f5267a6c0103c7f5d7f680ff73916cbef55594564714d25f215290",
+      "sri": "sha384-tQUvzLYbreKQUZyi+RQPvCSQVtinQQZsRNUet+bgTdGCv6hUqsMLWrStmsOq7cIj"
+    },
+    {
+      "name": "style.css",
+      "bytes": 3348,
+      "gzip": 1429,
+      "source_sha256": "6ecdaf2cc8a6e8157834d0cfc1488a398f59f91364db8747c0fa5de35d3e3e4c",
+      "dist_sha256": "6ecdaf2cc8a6e8157834d0cfc1488a398f59f91364db8747c0fa5de35d3e3e4c",
+      "sri": "sha384-9PRp/BFNny52k9gQyvihVZpY1sstPH4yK8cA6JiZ0jNCrVy4p8NR9YK1Dlte2XPF"
+    }
+  ]
+}
