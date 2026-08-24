@@ -1,23 +1,23 @@
 {
   "widget_id": "hello-badge",
   "version": "0.1.0",
-  "built_at": "2026-08-24T14:22:19.670Z",
+  "built_at": "2026-08-24T14:39:40.205Z",
   "files": [
     {
       "name": "index.js",
-      "bytes": 1520,
-      "gzip": 811,
-      "source_sha256": "1c8ff620e10c350da9ee7200899c31cd1c3646227ffbadf783eef478fa0d5085",
-      "dist_sha256": "1c8ff620e10c350da9ee7200899c31cd1c3646227ffbadf783eef478fa0d5085",
-      "sri": "sha384-Yv2pUMK1IEXbEf0Mc97LLBWHKB4ojW7yfF08wFf5OJW3K61Lop0in3zyxx4BqsBI"
+      "bytes": 1939,
+      "gzip": 1010,
+      "source_sha256": "68ff35cc369a79d6115642c4a36e659e1b49f8ffa08d78e35415cf6015345f37",
+      "dist_sha256": "68ff35cc369a79d6115642c4a36e659e1b49f8ffa08d78e35415cf6015345f37",
+      "sri": "sha384-PJZsinKJUMBoSBgVJkbxFq8UwACF5JZjC//CmLwbFCz4IHqPcPYQ2WZkCfWq/VNp"
     },
     {
       "name": "style.css",
-      "bytes": 1234,
-      "gzip": 655,
-      "source_sha256": "f67858f1a3a4e30fcb894f6bb410c2f39301b55b81e636b4940bfee17db08a8a",
-      "dist_sha256": "f67858f1a3a4e30fcb894f6bb410c2f39301b55b81e636b4940bfee17db08a8a",
-      "sri": "sha384-JwUc0VjTVIlgtOxahoioP0+37ZaF2wcrLAL2qfSTcWrNZYjkVH9vPGz48BeRTjBb"
+      "bytes": 1693,
+      "gzip": 902,
+      "source_sha256": "e56e716cdbbe8d1affc8eb602138097547380bff3ae8f494da0938024fb47b43",
+      "dist_sha256": "e56e716cdbbe8d1affc8eb602138097547380bff3ae8f494da0938024fb47b43",
+      "sri": "sha384-hCkGR3JIn5boqFeO6ZK9skU0Z+P40s+SMbZHAnI2hL1fDde8FZ958G1k8syyhidT"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-08-24T14:22:19.678Z",
+  "updated_at": "2026-08-24T14:39:40.213Z",
   "sites": {
     "sehwa": {
       "enabled": true
@@ -19,19 +19,18 @@
         ]
       },
       "mount": {
-        "type": "slot",
-        "slot": "content"
+        "type": "none"
       },
       "assets": [
         {
           "type": "js",
           "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-hello-badge-0.1.0/dist/hello-badge/0.1.0/index.js",
-          "integrity": "sha384-Yv2pUMK1IEXbEf0Mc97LLBWHKB4ojW7yfF08wFf5OJW3K61Lop0in3zyxx4BqsBI"
+          "integrity": "sha384-PJZsinKJUMBoSBgVJkbxFq8UwACF5JZjC//CmLwbFCz4IHqPcPYQ2WZkCfWq/VNp"
         },
         {
           "type": "css",
           "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-hello-badge-0.1.0/dist/hello-badge/0.1.0/style.css",
-          "integrity": "sha384-JwUc0VjTVIlgtOxahoioP0+37ZaF2wcrLAL2qfSTcWrNZYjkVH9vPGz48BeRTjBb"
+          "integrity": "sha384-hCkGR3JIn5boqFeO6ZK9skU0Z+P40s+SMbZHAnI2hL1fDde8FZ958G1k8syyhidT"
         }
       ]
     }

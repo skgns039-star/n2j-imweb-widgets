@@ -33,3 +33,16 @@
 @media (prefers-reduced-motion: reduce) {
   .ddak-badge__btn { transition: none; }
 }
+
+/* mount:none 경로 — 슬롯이 없을 때 스스로 자리를 잡는다.
+   z-index 상한 9000 (§21.6). 호스트가 그보다 높은 요소를 쓰면 가려질 수 있고, 그건 육안 확인 항목이다. */
+.ddak-badge--float {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 9000;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  backdrop-filter: blur(2px);
+  border-radius: var(--ddak-radius);
+  padding: 0.25rem;
+}

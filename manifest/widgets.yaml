@@ -22,5 +22,4 @@ widgets:
       path_glob:
         - /*
     mount:
-      type: slot
-      slot: content
+      type: none
