@@ -1,0 +1,27 @@
+# ENG-016 / REQ-007. runtime_engine 값만 바꾸면 엔진이 전환된다.
+# 두 엔진을 동시에 같은 봇 업데이트에 붙이지 않는다.
+agents:
+  - agent_id: imweb-widget-agent
+    runtime_engine: claude_agent_sdk  # dry_run | codex_sdk | claude_agent_sdk
+    prompt_path: prompts/AGENT_SYSTEM.md
+    workspace: C:\Users\cut07\projects\imweb-widget-agent
+    permission_profile: imweb-widget
+    engines:
+      codex_sdk:
+        auth_ref: env:CODEX_AUTH
+        package: "@openai/codex-sdk"
+        status: PENDING_CHK-004
+      claude_agent_sdk:
+        auth_ref: env:CLAUDE_AUTH
+        package: "@anthropic-ai/claude-agent-sdk"
+        status: ACTIVE  # 설치·CLI 인증 확인 2026-08-24. 사람 트리거(텔레그램)만 — 무인 스케줄 실행은 CHK-004 미해소로 계속 금지
+      dry_run:
+        status: ACTIVE
+        note: 엔진 인증(CHK-004) 해소 전 기본값. 라우팅·승인·무결성 경로만 실행한다.
+
+permission_profiles:
+  imweb-widget:
+    read:  [src/, dist/, manifest/, integrity/, engineering/, state/, loader/, config/]
+    write: [src/widgets/, dist/, manifest/widgets.yaml, integrity/, state/, logs/, HARNESS_LOOP.md]
+    approval_required: [cdn_deploy, git_tag_push, rollback, imweb_write, loader_snippet_change]
+    denied: [imweb_admin_overwrite, secret_output]

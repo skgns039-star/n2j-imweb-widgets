@@ -1,0 +1,6 @@
+# ENG-017 / REQ-005. 여기 없는 chat_id는 무응답 + 거절 로그.
+# chat_id는 텔레그램에서 봇에 아무 메시지나 보낸 뒤 logs/ 거절 기록에서 확인한다.
+allowed:
+  - chat_id: 0            # ← 본인 chat_id로 교체 (0은 아무도 통과시키지 않음)
+    user_id: 0            # 0이면 user_id 검사 생략
+    label: owner

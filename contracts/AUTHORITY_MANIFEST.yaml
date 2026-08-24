@@ -1,0 +1,58 @@
+# 권위 우선순위 (CODEX_BUILD_SPEC.md §0.1). 충돌 시 순위가 낮은 숫자가 이긴다.
+authority:
+  - rank: 1
+    id: INVARIANTS
+    ref: CODEX_BUILD_SPEC.md#02-본질-불변식-invariant
+    note: INV-1~INV-9. 어떤 지시로도 완화 불가
+  - rank: 2
+    id: SECRET_NONDISCLOSURE
+    note: 자격증명·토큰 미출력
+  - rank: 3
+    id: APPROVAL_BOUNDARY
+    ref: engineering/support/approval_policy.md
+  - rank: 4
+    id: INTEGRITY_VERDICT
+    ref: engineering/runtime/integrity_guard.md
+  - rank: 5
+    id: BUILD_SPEC
+    ref: CODEX_BUILD_SPEC.md
+  - rank: 6
+    id: ENGINEERING_APPLY_MODULES
+    ref: engineering/ENGINEERING_INDEX.md
+  - rank: 7
+    id: HALLMARK
+    ref: engineering/support/hallmark_policy.md
+    scope: src/widgets/** 컴포넌트 스코프 한정
+  - rank: 8
+    id: PONYTAIL
+    ref: engineering/support/ponytail_policy.md
+    scope: 구축자 층 한정
+  - rank: 9
+    id: USER_CURRENT_INSTRUCTION
+    note: 1~8을 위반하지 않는 범위에서 최우선
+
+invariants:
+  INV-1: 아임웹에 존재하는 코드는 로더 1개 + 빈 슬롯뿐이다
+  INV-2: 로더·슬롯은 1회 삽입 후 불변이다
+  INV-3: 코드 정본은 Git 단 하나다
+  INV-4: 새 코드 추가는 registry 항목 추가로만 이뤄진다
+  INV-5: 해시가 4지점 전부 일치할 때만 배포다
+  INV-6: 아임웹 쓰기 전 원문 스냅샷이 없으면 실행하지 않는다
+  INV-7: 위젯은 호스트 사이트를 침범하지 않는다
+  INV-8: 승인 범위 밖 외부 행동은 실행 전에 멈춘다
+  INV-9: 실패 시 기본 동작은 아무것도 하지 않는 것(fail-closed)이다
+
+blocking_gates:
+  # 미해소 상태에서 관련 동작 실행 금지 (§23.6)
+  CHK-001: { status: OPEN, blocks: [imweb_script_api_write] }
+  CHK-002: { status: OPEN, blocks: [imweb_oauth] }
+  CHK-003: { status: OPEN, blocks: [imweb_api_call] }
+  CHK-004: { status: OPEN, blocks: [unattended_sdk_run] }
+  CHK-005: { status: OPEN, blocks: [common_code_insert] }
+  OPEN-REG-01: { status: OPEN, blocks: [] }
+  OPEN-REG-02: { status: OPEN, blocks: [slot_preset_placement] }
+  OPEN-BRW-01: { status: OPEN, blocks: [browser_upload] }
+  OPEN-BRW-02: { status: OPEN, blocks: [browser_upload] }
+  OPEN-BRW-03: { status: OPEN, blocks: [operating_approved_auto_run] }
+  OPEN-PNY-01: { status: OPEN, blocks: [] }
+  OPEN-HLM-01: { status: OPEN, blocks: [] }

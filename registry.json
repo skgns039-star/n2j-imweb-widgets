@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "global_enabled": true,
+  "updated_at": "2026-08-24T14:10:22.174Z",
+  "sites": {
+    "test-site": {
+      "enabled": true
+    }
+  },
+  "modules": [
+    {
+      "widget_id": "hello-badge",
+      "version": "0.1.0",
+      "enabled": false,
+      "match": {
+        "site": "test-site",
+        "path_glob": [
+          "/*"
+        ]
+      },
+      "mount": {
+        "type": "slot",
+        "slot": "content"
+      },
+      "assets": [
+        {
+          "type": "js",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-hello-badge-0.1.0/dist/hello-badge/0.1.0/index.js",
+          "integrity": "sha384-Yv2pUMK1IEXbEf0Mc97LLBWHKB4ojW7yfF08wFf5OJW3K61Lop0in3zyxx4BqsBI"
+        },
+        {
+          "type": "css",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-hello-badge-0.1.0/dist/hello-badge/0.1.0/style.css",
+          "integrity": "sha384-JwUc0VjTVIlgtOxahoioP0+37ZaF2wcrLAL2qfSTcWrNZYjkVH9vPGz48BeRTjBb"
+        }
+      ]
+    }
+  ]
+}

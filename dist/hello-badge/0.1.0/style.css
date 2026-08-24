@@ -1,0 +1,35 @@
+/* 모든 클래스·변수는 ddak- 접두사. 전역 셀렉터·리셋·외부 폰트 금지 (§21.6).
+   색·폰트는 호스트에서 상속한다 (REQ-021). */
+.ddak-badge {
+  --ddak-gap: 0.5rem;
+  --ddak-radius: 6px;
+  --ddak-fg: currentColor;
+  display: inline-flex;
+  gap: var(--ddak-gap);
+  font: inherit;
+  z-index: 1;
+}
+
+.ddak-badge__btn {
+  font: inherit;
+  color: var(--ddak-fg);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--ddak-radius);
+  padding: 0.5em 1em;
+  cursor: pointer;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+/* 8-state (Hallmark, 축소 금지 — P-11) */
+.ddak-badge__btn:hover { opacity: 0.85; }
+.ddak-badge__btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.ddak-badge__btn:active { transform: translateY(1px); }
+.ddak-badge__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ddak-badge[data-ddak-state="loading"] .ddak-badge__btn { opacity: 0.6; pointer-events: none; }
+.ddak-badge[data-ddak-state="error"] .ddak-badge__btn { border-style: dashed; }
+.ddak-badge[data-ddak-state="success"] .ddak-badge__btn { border-width: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ddak-badge__btn { transition: none; }
+}

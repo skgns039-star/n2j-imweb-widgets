@@ -1,0 +1,7 @@
+{
+  "widget_id": "hello-badge",
+  "title": "인사 뱃지",
+  "purpose": "M0 게이트 검증용 최소 위젯. 정본 수정 → 빌드 → 배포 → 실사이트 반영 1왕복을 증명한다.",
+  "collects_personal_data": false,
+  "network": "CDN 정적 자산 GET만"
+}

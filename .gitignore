@@ -1,0 +1,8 @@
+node_modules/
+.env
+# state/ 전체를 공개 저장소에서 제외한다.
+# 아임웹 원문 스냅샷과 사이트 스캔 결과는 고객 사이트 내부 정보다 — 공개되면 안 된다.
+state/
+logs/
+.hallmark/
+RUN_STATE.json

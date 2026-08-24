@@ -1,0 +1,31 @@
+{
+  "name": "imweb-widget-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/bot/index.ts",
+    "build": "node src/release/build.ts",
+    "deploy": "node --env-file-if-exists=.env src/release/deploy.ts",
+    "rollback": "node --env-file-if-exists=.env src/release/rollback.ts",
+    "verify:integrity": "node src/release/verify.ts",
+    "lint": "node src/release/css_scope_lint.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.ts\"",
+    "secretscan": "node checks/secret_scan.ts",
+    "setup:check": "node --env-file-if-exists=.env checks/setup_check.ts",
+    "whoami": "node --env-file-if-exists=.env checks/whoami.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.241",
+    "playwright": "^1.62.1",
+    "yaml": "^2.6.1"
+  }
+}

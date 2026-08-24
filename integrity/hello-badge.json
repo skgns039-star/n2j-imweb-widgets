@@ -1,0 +1,23 @@
+{
+  "widget_id": "hello-badge",
+  "version": "0.1.0",
+  "built_at": "2026-08-24T14:10:22.164Z",
+  "files": [
+    {
+      "name": "index.js",
+      "bytes": 1520,
+      "gzip": 811,
+      "source_sha256": "1c8ff620e10c350da9ee7200899c31cd1c3646227ffbadf783eef478fa0d5085",
+      "dist_sha256": "1c8ff620e10c350da9ee7200899c31cd1c3646227ffbadf783eef478fa0d5085",
+      "sri": "sha384-Yv2pUMK1IEXbEf0Mc97LLBWHKB4ojW7yfF08wFf5OJW3K61Lop0in3zyxx4BqsBI"
+    },
+    {
+      "name": "style.css",
+      "bytes": 1234,
+      "gzip": 655,
+      "source_sha256": "f67858f1a3a4e30fcb894f6bb410c2f39301b55b81e636b4940bfee17db08a8a",
+      "dist_sha256": "f67858f1a3a4e30fcb894f6bb410c2f39301b55b81e636b4940bfee17db08a8a",
+      "sri": "sha384-JwUc0VjTVIlgtOxahoioP0+37ZaF2wcrLAL2qfSTcWrNZYjkVH9vPGz48BeRTjBb"
+    }
+  ]
+}
