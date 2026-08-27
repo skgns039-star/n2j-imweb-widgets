@@ -7,14 +7,14 @@
 
 | 항목 | 상태 |
 |---|---|
-| 검사 | **74/74 통과** · typecheck OK · lint OK · secretscan 유출 0건 |
+| 검사 | **118/118 통과** · typecheck OK · lint OK · secretscan 유출 0건 |
 | 텔레그램 봇 | `@n2j_IMWEB_WIDGET_bot` · chat_id `8995797720` · polling |
 | 실행 엔진 | `claude_agent_sdk` (어댑터 왕복 실측 통과) |
 | 사이트 | `sehwa` (세화건설) `https://sehwaconstruction.imweb.me` |
 | 로더 | v1.1.0 · 4개 페이지 전부 부팅 확인 |
 | 위젯 | `hello-badge@0.1.0` · `mount: none` · `enabled: true` · 태그 `w-hello-badge-0.1.0` 배포됨 (3지점 해시 일치) |
 | registry | `raw.githubusercontent` (OPEN-REG-01 결정) · 반영 실측 **약 200초** |
-| 의존성 | 2026-08-25 최신화 — `@types/node@^24`(Node 24 런타임에 맞춤) · `typescript@^7`. 런타임 3종(claude-agent-sdk·playwright·yaml)은 이미 최신 |
+| 의존성 | 2026-08-25 최신화 — `@types/node@^24`(Node 24 런타임에 맞춤) · `typescript@^7` · `claude-agent-sdk@0.3.243`. playwright·yaml 최신. `@types/node` 는 26 이 나와 있어도 24 유지 |
 
 ## ★ M0 게이트 — **완료 (2026-08-25)**
 
@@ -59,6 +59,20 @@ Unregister-ScheduledTask imweb-widget-daily # 해제
 ```
 
 **Claude/Codex 에이전트를 스케줄에 걸지 않았다** — CHK-004(구독 SDK 무인 실행)가 OPEN 이라 사람 트리거만 허용된다. 이 작업은 LLM 을 호출하지 않는 순수 검사다.
+
+## 텔레그램 대화 개선 (2026-08-25)
+
+증상: "안녕", "어제 요청사항 진행 다 됐어?", 위저드 선택지 "b" 가 전부 `지시가 불명확합니다` 로 회신됐다.
+
+| 원인 | 조치 |
+|---|---|
+| `classify()` fallthrough 가 `unclear` — 키워드에 안 걸리면 엔진까지 가지 못함 | fallthrough 를 `agent` 로. 승인·킬스위치·배포 등 결정적 경로만 위에서 가로챈다 |
+| 위저드 15분 만료 후 도착한 "b" 가 일반 fallthrough 로 떨어짐 | 만료 안내로 회신 |
+| 엔진이 터미널 작업 이력을 모름 | `prompts/AGENT_SYSTEM.md` 에 RESUME→HARNESS_LOOP→RUN_STATE→git log 선행 열람 규칙 |
+| 4096자 초과·빈 응답 전송 실패 | `send()` 3900자 분할 + 빈 응답 대체 |
+
+대화 맥락은 `state/threads.sqlite3` 의 `conversation_key`(chat+topic)별 SDK 세션 resume 으로 이어진다.
+봇 재기동해야 반영된다: `npm start` (기존 프로세스 종료 후, `state/bot.lock` 확인).
 
 ## 미해결 (추적 중)
 

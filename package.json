@@ -18,7 +18,9 @@
     "secretscan": "node checks/secret_scan.ts",
     "setup:check": "node --env-file-if-exists=.env checks/setup_check.ts",
     "whoami": "node --env-file-if-exists=.env checks/whoami.ts",
-    "stest:coverage": "node checks/stest_coverage.ts"
+    "stest:coverage": "node checks/stest_coverage.ts",
+    "posttest": "node checks/purge_fixtures.ts",
+    "imweb:login": "node --env-file-if-exists=.env src/browser/session.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

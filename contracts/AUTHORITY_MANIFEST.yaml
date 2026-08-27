@@ -51,8 +51,11 @@ blocking_gates:
   CHK-005: { status: OPEN, blocks: [common_code_insert] }
   OPEN-REG-01: { status: OPEN, blocks: [] }
   OPEN-REG-02: { status: OPEN, blocks: [slot_preset_placement] }
-  OPEN-BRW-01: { status: OPEN, blocks: [browser_upload] }
-  OPEN-BRW-02: { status: OPEN, blocks: [browser_upload] }
+  # 2026-08-28 약관 원문 확인: 금지 대상은 "불법 자동화(매크로)로 속도지연·안전성 문제 유발".
+  # 본인 소유 사이트 + 저빈도(사이트당 1~2회)는 해당하지 않는다. 고객사 위임 확장 시 재판정.
+  OPEN-BRW-01: { status: RESOLVED_CONDITIONAL, blocks: [] }
+  # 2026-08-28 사용자 확인: 아임웹 관리자 2차 인증 미사용 → 세션 재사용 경로 성립
+  OPEN-BRW-02: { status: RESOLVED, blocks: [] }
   OPEN-BRW-03: { status: OPEN, blocks: [operating_approved_auto_run] }
   OPEN-PNY-01: { status: OPEN, blocks: [] }
   OPEN-HLM-01: { status: OPEN, blocks: [] }

@@ -145,28 +145,39 @@ export const MIGRATE: Wizard = {
   },
 };
 
+export const OBSERVE_HOURS = 72;
+
+/** D6 선행조건 판정. **순수 함수** — 시계·파일에 의존하지 않아 모든 경우를 검사할 수 있다.
+ *  (실제 시각에 기대는 검사는 72시간이 지나면 저절로 깨진다. 실제로 한 번 깨졌다.) */
+export function removalVerdict(a: { hours: number | null; enabled: boolean; snapshots: number }):
+  { allowed: boolean; reason: string } {
+  if (a.hours === null) return { allowed: false, reason: `성공 배포 기록이 없습니다. 배포 후 ${OBSERVE_HOURS}시간 관찰이 끝나야 원본 제거를 제안할 수 있습니다.` };
+  if (a.hours < OBSERVE_HOURS) return { allowed: false, reason: `아직 ${Math.floor(a.hours)}시간 경과 — ${OBSERVE_HOURS}시간 관찰이 끝나지 않았습니다. 원본을 제거하지 않습니다 (§24.9).` };
+  if (!a.enabled) return { allowed: false, reason: "enabled:false 입니다. 신 위젯이 실제로 동작하는 상태에서만 원본 제거를 제안합니다." };
+  if (a.snapshots === 0) return { allowed: false, reason: "원문 스냅샷을 찾지 못했습니다. 스냅샷 없이는 제거를 진행하지 않습니다 (INV-6)." };
+  return { allowed: true, reason: `관찰 ${Math.floor(a.hours)}시간 경과` };
+}
+
 /** D6. 72시간 관찰 전에는 제거를 제안하지도, 승인 페이로드를 만들지도 않는다 (§24.9). */
 export function requestOriginalRemoval(widget_id: string, ctx: Ctx): string {
   const w = manifest().widgets.find((x) => x.widget_id === widget_id);
   if (!w) return `manifest에 없는 위젯입니다 (${widget_id}).`;
   const hrs = hoursSinceDeploy(widget_id);
-  if (hrs === null) return `${widget_id} 의 성공 배포 기록이 없습니다. 배포 후 72시간 관찰이 끝나야 원본 제거를 제안할 수 있습니다.`;
-  if (hrs < 72) return `아직 ${Math.floor(hrs)}시간 경과 — 72시간 관찰이 끝나지 않았습니다. 원본을 제거하지 않습니다 (§24.9).`;
-  if (!w.enabled) return `${widget_id} 가 enabled:false 입니다. 신 위젯이 실제로 동작하는 상태에서만 원본 제거를 제안합니다.`;
-
   const snaps = existsSync(p("state", "imweb_snapshots"))
     ? readdirSync(p("state", "imweb_snapshots")).filter((f) => f.startsWith(w.site + "_"))
     : [];
-  if (!snaps.length) return `원문 스냅샷을 찾지 못했습니다. 스냅샷 없이는 제거를 진행하지 않습니다 (INV-6).`;
+
+  const v = removalVerdict({ hours: hrs, enabled: w.enabled, snapshots: snaps.length });
+  if (!v.allowed) return `${widget_id}: ${v.reason}`;
 
   const ap = request("imweb_remove_inline", `${w.site} 원본 인라인 코드 제거`, {
     widget_id, site: w.site, snapshot: snaps[snaps.length - 1],
-    observed_hours: Math.floor(hrs),
+    observed_hours: Math.floor(hrs!),
     rollback: "스냅샷 원문으로 복원",
   }, ctx.chat_id);
   return [
     payloadText(ap), "",
-    `관찰 ${Math.floor(hrs)}시간 경과. 제거는 사람이 직접 수행합니다 — 에이전트는 아임웹에 쓰지 않습니다.`,
+    `${v.reason}. 제거는 사람이 직접 수행합니다 — 에이전트는 아임웹에 쓰지 않습니다.`,
     "제거 전 스냅샷을 다시 확인하고, 제거 후 정규화 diff로 검증하세요. 실패하면 스냅샷으로 복원합니다.",
   ].join("\n");
 }

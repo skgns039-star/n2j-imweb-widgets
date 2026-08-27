@@ -39,7 +39,22 @@
 | 2026-08-25 | **지시 [2]와 [3] 충돌** | "src/bot 수정 0줄" ↔ "라우터에 seo 인텐트 추가" | 라우터 진입 8줄만, SEO 로직은 src/seo/ 에만. ITEST-001 로 나머지 경로 diff 0 강제 | 최소 해석(보고함) | ITEST-001 |
 | 2026-08-25 | Codex 호환 결합 1건 | stest_coverage 가 .claude/ 경로 하드코딩 | skillPath() 로 .claude/.codex 양쪽 탐색. CLAUDE.md 는 AGENTS.md 포인터만 | 수정 | REQ-006 검사 추가 |
 
+| 2026-08-25 | 런타임 의존성 최신화 | claude-agent-sdk 0.3.241 → 0.3.243 (패치) | `npm update` 로 반영. playwright·yaml 은 이미 최신. `@types/node` 는 24 유지(Node 24 런타임 일치, 26은 없는 API를 통과시킴) | 적용 | typecheck OK · 118/118 · lint OK · secretscan 0건 · daily.ts 정상 |
+
+| 2026-08-25 | 봇이 "안녕"·"어제 요청사항 진행 다 됐어?" 에 전부 "지시가 불명확합니다" | classify 의 fallthrough 가 unclear 였다 — 결정적 키워드에 안 걸리면 엔진까지 가지 못했다 | fallthrough 를 agent 로 변경. 자유 지시는 엔진이 받고 스레드로 맥락 유지 | 수정 | 전체 118건, classify 회귀 |
+| 2026-08-25 | 위저드 선택지에 "b" 로 답했는데 "불명확" | 15분 TTL 만료 후 loadState 가 조용히 null 을 주고 일반 fallthrough 로 떨어짐 | 상태 없이 도착한 단일 선택지 답변은 "만료됐습니다 — 다시 연결" 로 안내 | 수정 | TEST 회귀 |
+| 2026-08-25 | 엔진이 터미널 작업 이력을 모름 | 텔레그램 스레드에만 맥락이 있고 터미널 작업은 파일에만 남음 | AGENT_SYSTEM.md 에 "RESUME → HARNESS_LOOP → RUN_STATE → git log 를 먼저 읽는다" 절 추가, 읽기 경로 확대 | 적용 | 실왕복 스모크: 미완 2건을 근거와 함께 보고 |
+| 2026-08-25 | 긴/빈 응답이 전송 실패 | 텔레그램 4096자 상한, 빈 text 는 API 오류 | send() 를 3900자 분할 + 빈 응답 자리표시자로 변경 | 수정 | 전체 118건 |
+
+| 2026-08-28 | 자연어 우선 라우팅 (A안) | 단어 포함만으로 판정해 "전체 중지 안 해도 돼"가 킬스위치를 당김 | 결정적 경로를 안전·흐름진입만 남기고 나머지는 엔진. 부정어 가드 추가 | 적용 | 129건 |
+| 2026-08-28 | SEO 위저드 무한 반복 | 상태 없이 매번 재진입 판정 | 연결 위저드와 같은 상태 기계로 전환 (analytics→keyword→diagnose) | 수정 | 회귀 2건 추가 |
+| 2026-08-28 | 승인 파일 384건 누적 | 테스트가 매번 생성하고 정리 안 함 | `checks/purge_fixtures.ts` + posttest. 실제 배포 감사기록 3건은 대상 이름으로 보호 | 수정 | 정리 검사 추가 |
+| 2026-08-28 | **D6 검사가 시계 때문에 깨짐** | 72시간이 실제로 지나 전제가 무너짐 | 판정을 순수 함수 `removalVerdict()` 로 분리해 모든 경우 검사 | 수정 | 129/129 |
+| 2026-08-28 | **OPEN-BRW-01 해소** | 약관 원문 미확인 | 원문 실측: 금지 대상은 "불법 자동화로 속도지연·안전성 유발". 본인 사이트·저빈도는 비해당 | RESOLVED_CONDITIONAL | 고객사 확장 시 재판정 |
+| 2026-08-28 | **OPEN-BRW-02 해소** | 2차 인증 여부 미확인 | 사용자 확인: 미사용 → 세션 재사용 경로 성립 | RESOLVED | - |
+| 2026-08-28 | M2 세션 모듈 착수 | browser_upload 게이트 개방 | `src/browser/session.ts` + 셀렉터 외부화. 자격증명 미취급 검사로 강제 | 적용 | 세션 계약 7건 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
-CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01 약관 자동화 조항 /
+CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01(해소) / OPEN-BRW-02(해소) /
 OPEN-BRW-02 2차 인증 / OPEN-BRW-03 OPERATING_APPROVED 발급 / OPEN-PNY-01 Ponytail 설치·훅 / OPEN-HLM-01 Hallmark 컴포넌트 모드

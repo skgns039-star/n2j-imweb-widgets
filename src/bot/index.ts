@@ -1,7 +1,7 @@
 /* ENG-017. update 단일 소유자 polling 프로세스. 여기 말고 다른 consumer를 붙이지 않는다. */
 import { existsSync, writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { p } from "../release/paths.ts";
-import { assertSingleOwner, getUpdates, send, isAllowed, logReject } from "./telegram.ts";
+import { assertSingleOwner, getUpdates, send, sendTyping, isAllowed, logReject } from "./telegram.ts";
 import { getOffset, setOffset, markSeen } from "./threads.ts";
 import { handle } from "./router.ts";
 import { checkAll, missing, render, bootBlockers } from "../../checks/setup_check.ts";
@@ -81,10 +81,19 @@ async function main() {
         agent_id: "imweb-widget-agent", channel: "telegram", bot_account_id: "imweb-widget-bot",
         chat_id, topic_id: msg.message_thread_id,
       };
+      // NFR-001: 1차 응답 10초 이내. 엔진 경로는 2분까지 걸리므로 먼저 신호를 준다.
+      await sendTyping(chat_id);
+      const ack = setTimeout(() => {
+        send(chat_id, "처리 중입니다. 잠시만 기다려 주세요.", msg.message_thread_id).catch(() => {});
+      }, 8000);
+      const keepTyping = setInterval(() => { void sendTyping(chat_id); }, 5000);
+
       try {
         const reply = await withTimeout(handle(msg.text, ctx), TASK_TIMEOUT_MS);
+        clearTimeout(ack); clearInterval(keepTyping);
         await send(chat_id, reply, msg.message_thread_id); // 원래 대화로만 회신 (REQ-005)
       } catch (e) {
+        clearTimeout(ack); clearInterval(keepTyping);
         await send(chat_id, `실패: ${(e as Error).message}`, msg.message_thread_id);
       }
     }

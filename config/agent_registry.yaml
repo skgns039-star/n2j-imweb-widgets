@@ -21,7 +21,7 @@ agents:
 
 permission_profiles:
   imweb-widget:
-    read:  [src/, dist/, manifest/, integrity/, engineering/, state/, loader/, config/]
+    read:  [src/, dist/, manifest/, integrity/, engineering/, state/, loader/, config/, prompts/, checks/, tests/, logs/, RESUME.md, HARNESS_LOOP.md, RUN_STATE.json, AGENTS.md, registry.json]
     write: [src/widgets/, dist/, manifest/widgets.yaml, integrity/, state/, logs/, HARNESS_LOOP.md]
     approval_required: [cdn_deploy, git_tag_push, rollback, imweb_write, loader_snippet_change]
     denied: [imweb_admin_overwrite, secret_output]

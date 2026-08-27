@@ -200,3 +200,34 @@ test("엔진 취급이 한쪽으로 기울지 않는다 (REQ-006)", () => {
   assert.match(claudeMd, /AGENTS\.md/);
   assert.ok(claudeMd.length < 600, "CLAUDE.md 에 규칙을 복제하면 REQ-006 이 깨진다");
 });
+
+/* 회귀: SEO 응답에 "메타키워드"가 들어 있어 다시 SEO 진입으로 분류되며 같은 질문이 무한 반복됐다.
+   상태가 없어서 생긴 문제였다. 위저드 상태를 두면 답변은 단계로 들어간다. */
+test("SEO 답변이 진입 질문을 반복하지 않는다 (상태 유지)", async () => {
+  const { db } = await import("../../src/bot/threads.ts");
+  const { loadState } = await import("../../src/bot/onboarding.ts");
+  const c = { ...ctx, chat_id: 9301 };
+  db.exec("DELETE FROM onboarding");
+
+  const first = await handle("SEO", c);
+  assert.match(first, /Q-A1/);
+  assert.equal(loadState(c)!.wizard_type, "seo", "진입 시 상태가 시작돼야 한다");
+
+  const second = await handle("1. c\n2. 추적불필요\n3. 메타키워드 : 국내 건설 회사 순위", c);
+  assert.ok(!/Q-A1/.test(second), "같은 질문이 반복되면 안 된다");
+  assert.match(second, /메타 키워드: 국내 건설 회사 순위/);
+  assert.equal(loadState(c)!.step, "diagnose", "다음 단계로 넘어가야 한다");
+  db.exec("DELETE FROM onboarding");
+});
+
+test("SEO 위저드는 A~D 없이 넘어가지 않는다", async () => {
+  const { db } = await import("../../src/bot/threads.ts");
+  const { loadState } = await import("../../src/bot/onboarding.ts");
+  const c = { ...ctx, chat_id: 9302 };
+  db.exec("DELETE FROM onboarding");
+  await handle("SEO", c);
+  const r = await handle("음 잘 모르겠는데", c);
+  assert.match(r, /A \/ B \/ C \/ D/);
+  assert.equal(loadState(c)!.step, "analytics", "선택 전에는 단계가 진행되면 안 된다");
+  db.exec("DELETE FROM onboarding");
+});

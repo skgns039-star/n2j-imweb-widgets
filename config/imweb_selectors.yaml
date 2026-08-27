@@ -1,0 +1,46 @@
+# ENG-033 셀렉터 외부화 (§19.4).
+# 아임웹 UI가 바뀌면 **코드가 아니라 이 파일만** 고친다.
+# 각 앵커는 primary / fallback 2단. 헬스체크에서 하나라도 못 찾으면 추측하지 않고 중단한다.
+
+site:
+  # 관리자 진입 경로. 사이트마다 다를 수 있어 site_id 별로 덮어쓸 수 있다.
+  admin_url: "https://{host}/admin"
+  login_url: "https://imweb.me/login"
+
+# 로그인 상태 판정 — 이 중 하나라도 보이면 로그인된 것으로 본다.
+login_markers:
+  primary: '[class*="admin"], #admin_wrap, .admin-header'
+  fallback: 'a[href*="logout"]'
+
+# 로그인 화면 판정 — 보이면 세션이 만료된 것이다.
+logout_markers:
+  primary: 'input[type="password"]'
+  fallback: 'form[action*="login"]'
+
+# 공통 코드 삽입 (환경설정 > SEO > 공통 코드 삽입)
+common_code:
+  page_url: "https://{host}/admin/config/seo"
+  header_textarea:
+    primary: 'textarea[name*="header"]'
+    fallback: '#header_code, [data-code-area="header"]'
+  body_textarea:
+    primary: 'textarea[name*="body"]'
+    fallback: '#body_code, [data-code-area="body"]'
+  footer_textarea:
+    primary: 'textarea[name*="footer"]'
+    fallback: '#footer_code, [data-code-area="footer"]'
+  save_button:
+    primary: 'button[type="submit"], .btn-save'
+    fallback: 'a:has-text("저장")'
+  save_done_marker:
+    primary: '.toast, .alert-success, [class*="success"]'
+    fallback: 'text=저장'
+
+# 미확인 항목 — 실제 관리자 화면을 열어 확인한 뒤 채운다.
+# 확인 전에는 guard 가 "UI 변경 감지"로 중단한다. 추측해서 채우지 않는다.
+verified: false
+verified_at: null
+note: |
+  이 파일의 셀렉터는 아임웹 관리자 화면을 실제로 열어보기 전의 **추정값**이다.
+  verified: false 인 동안 upload 는 실행되지 않는다 (guard 가 막는다).
+  최초 로그인 후 `npm run imweb:probe` 로 실측해 채운 뒤 verified: true 로 바꾼다.

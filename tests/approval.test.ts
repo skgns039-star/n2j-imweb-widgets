@@ -39,3 +39,24 @@ test("거절된 승인은 실행되지 않는다", () => {
   decide(a.id, "REJECTED");
   assert.throws(() => assertApproved(a.id, "cdn_deploy"), /BLOCKED: 승인 상태 REJECTED/);
 });
+
+/* 테스트가 만든 승인이 쌓여 실제 승인 대기 목록을 오염시킨 적이 있다 (384건 누적).
+   검사가 끝나면 자기 흔적을 지운다. */
+import { after } from "node:test";
+import { purgeFixtures } from "../checks/purge_fixtures.ts";
+import { rmSync } from "node:fs";
+
+after(() => { purgeFixtures(); });
+
+test("검사 픽스처 승인은 정리되고 실제 배포 기록은 보존된다", () => {
+  const a = request("cdn_deploy", "t@0.0.1", { widget_id: "t" }, 9001);
+  assert.ok(load(a.id), "생성 확인");
+  assert.ok(purgeFixtures().removed >= 1, "검사 픽스처는 정리된다");
+  assert.equal(load(a.id), null, "정리 후에는 남지 않는다");
+  // 실제 배포 감사기록은 대상 이름으로 보호된다.
+  // 이 검사가 만든 것도 보호 규칙에 걸리므로, 확인 후 직접 지운다 (흔적을 남기지 않는다).
+  const real = request("cdn_deploy", "hello-badge@0.1.0", { widget_id: "hello-badge" });
+  purgeFixtures();
+  assert.ok(load(real.id), "실제 위젯 승인은 지워지면 안 된다");
+  rmSync(p("logs", "approvals", `${real.id}.json`), { force: true });
+});

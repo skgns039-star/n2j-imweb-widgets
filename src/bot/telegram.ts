@@ -25,8 +25,20 @@ export async function call<T = any>(method: string, body: Record<string, unknown
   return j.result as T;
 }
 
-export const send = (chat_id: number, text: string, topic_id?: number) =>
-  call("sendMessage", { chat_id, text, ...(topic_id ? { message_thread_id: topic_id } : {}) });
+/** 텔레그램 상한 4096자. 넘으면 나눠 보내고, 빈 응답은 자리표시자로 대체한다 (빈 text 는 API 오류). */
+export async function send(chat_id: number, text: string, topic_id?: number) {
+  const body = (text ?? "").trim() || "(응답이 비어 있습니다)";
+  let last: any;
+  for (let i = 0; i < body.length; i += 3900) {
+    const part = body.slice(i, i + 3900);
+    last = await call("sendMessage", { chat_id, text: part, ...(topic_id ? { message_thread_id: topic_id } : {}) });
+  }
+  return last;
+}
+
+/** 입력 중 표시. 실패해도 본 작업을 막지 않는다. */
+export const sendTyping = (chat_id: number) =>
+  call("sendChatAction", { chat_id, action: "typing" }).catch(() => null);
 
 export const getUpdates = (offset: number) =>
   call<Update[]>("getUpdates", { offset, timeout: 30, allowed_updates: ["message"] });

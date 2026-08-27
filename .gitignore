@@ -4,5 +4,7 @@ node_modules/
 # 아임웹 원문 스냅샷과 사이트 스캔 결과는 고객 사이트 내부 정보다 — 공개되면 안 된다.
 state/
 logs/
+# SEO 진단 산출물도 같은 이유로 제외한다 — 고객 도메인·애널리틱스 상태가 들어간다.
+seo/
 .hallmark/
 RUN_STATE.json

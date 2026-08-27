@@ -15,10 +15,10 @@ import {
   WIZARDS, loadState, saveState, clearState, cancel, expire, type State, type Wizard, applyApproved,
 } from "./onboarding.ts";
 import { MIGRATE, requestOriginalRemoval } from "./migrate.ts";
-import { decide as seoDecide, enter as seoEnter, AMBIGUOUS_REPLY } from "../seo/route.ts";
+import { decide as seoDecide, start as seoStart, SEO_WIZARD, AMBIGUOUS_REPLY } from "../seo/route.ts";
 import type { IntegrityRecord } from "../release/build.ts";
 
-const ALL_WIZARDS: Record<string, Wizard> = { ...WIZARDS, migrate: MIGRATE };
+const ALL_WIZARDS: Record<string, Wizard> = { ...WIZARDS, migrate: MIGRATE, seo: SEO_WIZARD };
 
 export type Intent =
   | "approve" | "reject" | "kill" | "resume" | "inspect" | "install"
@@ -39,6 +39,12 @@ export function mentionsEntity(text: string): boolean {
   return ENTITY_WORDS.some((w) => t.includes(w)) || ids.some((id) => t.includes(id));
 }
 
+/** 부정·유보 표현. "전체 중지 안 해도 돼" 가 킬 스위치를 당기면 안 된다. */
+export const negated = (t: string) =>
+  /(안\s*해도|안\s*할|하지\s*마|필요\s*없|말고|아닌|아니야|아니다|아니고|나중에|보류)/.test(t);
+
+/** 결정적으로 남기는 것은 **안전 경계**와 **상태 흐름 진입**뿐이다.
+ *  나머지 의도 판정은 엔진이 한다 (자연어 우선). 승인·무결성 게이트는 실행 시점에 그대로 작동한다. */
 export function classify(text: string): { intent: Intent; arg?: string } {
   const t = text.trim();
   const ap = t.match(/\b(AP-[0-9a-f]{8})\b/i)?.[1];
@@ -46,27 +52,24 @@ export function classify(text: string): { intent: Intent; arg?: string } {
   // 한국어 뒤에는 \b가 성립하지 않는다 — 경계 대신 문자열 시작을 본다.
   if (/^\s*(승인|approve\b)/i.test(t)) return { intent: "approve", arg: ap };
   if (/^\s*(거절|취소|reject\b)/i.test(t)) return { intent: "reject", arg: ap };
-  if (/전체\s*중지|전부\s*중지|모두\s*중지|킬\s*스위치|kill\s*switch/i.test(t)) return { intent: "kill" };
-  if (/전체\s*재개|재개해|resume/i.test(t)) return { intent: "resume" };
-  if (/원본\s*제거|기존\s*코드\s*제거|인라인\s*제거/.test(t)) return { intent: "remove_original" };
-  if (/이관/.test(t)) return { intent: "migrate" };
+  // 사고 대응은 즉시여야 한다 — 엔진 응답 2분을 기다릴 수 없다. 단, 부정문에는 걸리지 않는다.
+  if (/전체\s*중지|전부\s*중지|모두\s*중지|킬\s*스위치|kill\s*switch/i.test(t) && !negated(t)) return { intent: "kill" };
 
+  // 단계형 흐름 진입 — 엔진이 위저드를 대신 돌 수 없어서 여기서 잡는다.
+  if (/이관/.test(t) && !negated(t)) return { intent: "migrate" };
+
+  // §24.8 — 알려진 애매 조합(흐름 진입어 + 기존 엔티티)은 임의 분기하지 않고 한 번 되묻는다.
+  // 이건 엔진에 맡기지 않는다. 규칙으로 강제해야 매번 같은 판정이 나온다.
   const seo = seoDecide(t);
-  if (seo === "seo") return { intent: "seo" };
   if (seo === "ambiguous") return { intent: "unclear" };
-
-  if (mentionsConnect(t)) {
-    // 위젯·슬롯·registry 가 함께 나오면 connect가 아니다. 애매하면 되묻는다.
-    if (!mentionsEntity(t)) return { intent: "connect" };
-    return { intent: "unclear" };
+  if (seo === "seo" && !negated(t)) return { intent: "seo" };
+  if (mentionsConnect(t) && !negated(t)) {
+    return mentionsEntity(t) ? { intent: "unclear" } : { intent: "connect" };
   }
 
-  if (/되돌려|롤백|rollback|이전\s*버전/i.test(t)) return { intent: "rollback" };
-  if (/배포|deploy|반영해/i.test(t)) return { intent: "deploy" };
-  if (/설치|로더|스니펫|install|loader/i.test(t)) return { intent: "install" };
-  if (/상태|조회|확인해|목록|해시|integrity|status/i.test(t)) return { intent: "inspect" };
-  if (/바꿔|수정|고쳐|추가|만들어|변경/.test(t)) return { intent: "agent" };
-  return { intent: "unclear" };
+  // 그 밖의 모든 자연어는 엔진이 받는다. 배포·롤백·조회·설치·재개도 여기로 간다 —
+  // 실행은 승인 게이트를 그대로 지나가므로 의도를 잘못 읽어도 사고로 이어지지 않는다.
+  return { intent: "agent" };
 }
 
 const widgetFromText = (t: string): string | null => {
@@ -181,6 +184,11 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
     if (!st) return "이어서 진행할 연결이 없습니다. 15분이 지나 만료됐을 수 있습니다. '연결'로 다시 시작하세요.";
     return askOf(st, ctx);
   }
+  // 위저드가 15분 만료된 뒤 도착한 선택지 답변("b", "예")은 불명확이 아니라 만료다
+  const one = text.trim();
+  if (!st && (one.length === 1 && "abcdABCD".includes(one) || one === "예" || one === "아니오")) {
+    return "진행 중이던 연결이 만료됐습니다 (15분 무응답). '연결'로 다시 시작하세요.";
+  }
   if (/전체\s*중지|킬\s*스위치/.test(text)) return await setKill(true);   // 사고 대응은 위저드보다 우선
 
   const { intent, arg } = classify(text);
@@ -208,7 +216,13 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
       const a = request("cdn_deploy", "registry(global_enabled=true)", { widget_id: "", site: "전체", rollback: "다시 '전체 중지'" }, ctx.chat_id);
       return "재개는 승인 대상입니다 (정지는 승인 없이, 재개는 승인 필요).\n" + payloadText(a);
     }
-    case "seo": return await seoEnter(text);
+    case "seo": {
+      // 상태를 시작한다 — 이후 답변은 위저드 단계로 들어간다. 상태가 없으면 같은 질문이 반복된다.
+      const started = await seoStart(text, ctx);
+      if (typeof started === "string") return started;
+      saveState(ctx, { wizard_type: "seo", step: SEO_WIZARD.first, answers: started.answers });
+      return started.intro;
+    }
     case "remove_original": {
       const w = widgetFromText(text);
       if (!w) return "어느 위젯의 원본을 제거하나요? widget_id를 함께 알려주세요.";

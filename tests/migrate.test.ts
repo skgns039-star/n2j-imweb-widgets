@@ -6,7 +6,7 @@ import { p, manifest } from "../src/release/paths.ts";
 import { handle } from "../src/bot/router.ts";
 import { loadState } from "../src/bot/onboarding.ts";
 import { net, browser, scanSite, verdict, sampleNotice, type PageFacts } from "../src/bot/scan.ts";
-import { io, snapshotOriginal, lintStaged, hoursSinceDeploy, requestOriginalRemoval } from "../src/bot/migrate.ts";
+import { io, snapshotOriginal, lintStaged, hoursSinceDeploy, requestOriginalRemoval, removalVerdict, OBSERVE_HOURS } from "../src/bot/migrate.ts";
 import { scanRepo, leaks } from "../checks/secret_scan.ts";
 import { db } from "../src/bot/threads.ts";
 
@@ -151,13 +151,27 @@ test("PTEST-040 D4는 enabled:false 로만 등록하고, 승인 없이는 manife
   assert.equal(readFileSync(p("manifest", "widgets.yaml"), "utf8"), MANIFEST, "승인 전에는 manifest 무변경");
 });
 
-test("D6 원본 제거는 72시간 관찰 전에는 제안되지 않는다 (§24.9)", () => {
-  // 실제 배포 이력이 있든 없든 결론은 같아야 한다 — 72시간을 못 채웠으면 제안하지 않는다.
-  const hrs = hoursSinceDeploy("hello-badge");
-  assert.ok(hrs === null || hrs < 72, "이 검사는 관찰 기간 미달 상태를 전제로 한다");
-  const r = requestOriginalRemoval("hello-badge", ctx() as any);
-  assert.match(r, /72시간/);
+test("D6 원본 제거 선행조건 — 시계와 무관하게 모든 경우를 판정한다 (§24.9)", () => {
+  const ok = { hours: 100, enabled: true, snapshots: 1 };
+  // 관찰 기간
+  assert.equal(removalVerdict({ ...ok, hours: null }).allowed, false, "배포 기록 없음");
+  assert.equal(removalVerdict({ ...ok, hours: 0 }).allowed, false, "배포 직후");
+  assert.equal(removalVerdict({ ...ok, hours: OBSERVE_HOURS - 1 }).allowed, false, "1시간 모자람");
+  assert.equal(removalVerdict({ ...ok, hours: OBSERVE_HOURS }).allowed, true, "정확히 72시간");
+  // 나머지 선행조건
+  assert.equal(removalVerdict({ ...ok, enabled: false }).allowed, false, "위젯이 꺼져 있음");
+  assert.equal(removalVerdict({ ...ok, snapshots: 0 }).allowed, false, "스냅샷 없음 (INV-6)");
+  assert.equal(removalVerdict(ok).allowed, true, "전부 충족");
+  // 거부 사유에는 근거가 붙는다
+  assert.match(removalVerdict({ ...ok, hours: 10 }).reason, new RegExp(String(OBSERVE_HOURS)));
+  assert.match(removalVerdict({ ...ok, snapshots: 0 }).reason, /INV-6/);
+});
+
+test("D6 미충족 위젯에는 승인 페이로드를 만들지 않는다", () => {
+  // manifest 에 없는 위젯 = 배포 기록도 없음 → 어떤 경우에도 승인이 생기면 안 된다
+  const r = requestOriginalRemoval("존재하지-않는-위젯", ctx() as any);
   assert.ok(!r.includes("승인 요청 AP-"), "승인 페이로드를 만들면 안 된다");
+  assert.equal(typeof hoursSinceDeploy("존재하지-않는-위젯"), "object");
 });
 
 /* 수집 코드가 IIFE가 아니면 모든 항목이 빈 값으로 잡혀 "깨끗한 사이트"로 오판한다.
