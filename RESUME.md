@@ -67,6 +67,28 @@ npm run daum:apply / naver:index / bing:setup
 
 **아직 확인 안 된 것:** 각 콘솔에서 소유확인·색인 요청이 실제로 수락됐는지의 최종 상태. 등록 결과 보고가 남았다.
 
+## 색인 상태 실측 (2026-08-29)
+
+정본 도메인은 **`https://세화건설산업.kr`** 이다 (imweb.me 는 같은 문서를 200으로 주지만 canonical·og:url·sitemap 전부 .kr 을 가리킨다).
+
+| 검색엔진 | 소유확인 | 사이트맵 | 색인 |
+|---|---|---|---|
+| Google | ✅ siteOwner | ✅ 8/28 제출, 오류 0 | **홈 "Submitted and indexed"** (크롤 8/28). 하위 페이지는 아직 `URL is unknown` — 크롤 대기 |
+| Naver | ✅ | ✅ 8/28 등록 | ✅ 수집 요청 **8/8** (8/29) |
+| Bing | ✅ 확인됨 | ✅ 재제출 | ✅ 8URL 요청, 남은 한도 84/일 |
+| Daum | 해당 없음(심사 폼) | - | ❌ **미신청** — 분류·소개를 사람이 적어야 해서 스크립트가 제출 직전에 멈춘다 |
+
+라이브 `<head>` 실측: `google-site-verification` · `naver-site-verification` · `msvalidate.01` 3종 모두 `DDAK-SEO` 마커 안에 존재, 저장 토큰과 문자열 일치. robots.txt·sitemap.xml 200. JSON-LD 2블록(우리 `@graph`/GeneralContractor + 아임웹 기본 OnlineStore) 모두 정상.
+
+**남은 것:** ① 구글 하위 페이지 크롤 대기(할 수 있는 조치 없음, 사이트맵이 정답) ② 다음 심사 신청은 사람이 폼 작성
+
+## cta-contact 미노출 (2026-08-29 확인)
+
+registry `enabled:true` 인데 화면에 안 붙는다. `mount.slot: cta-contact` 가 찾는
+`[data-ddak-slot="cta-contact"]` 가 실사이트에 없어서 로더가 조용히 skip 한다 (`loader.js:42-44`).
+헤드리스 확인: `__ddak.loaded = ["hello-badge"]`, 슬롯 0개, 콘솔 에러 0.
+→ 아임웹에 슬롯 div 1줄 추가(승인 대상, OPEN-REG-02) **또는** `enabled:false` 로 정리. 아직 미조치.
+
 ## 다음 작업 후보
 
 1. **실사용 위젯 제작** — hello-badge 는 검증용이다. 실제 팔 위젯을 `src/widgets/` 에 만든다

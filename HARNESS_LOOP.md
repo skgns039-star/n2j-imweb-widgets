@@ -58,6 +58,9 @@
 
 | 2026-08-28 | **`.gitignore` 의 `seo/` 가 `src/seo/` 를 통째로 무시** | 루트 SEO 산출물 디렉터리를 막으려던 패턴이 경로 어디서든 매칭돼, 신규 소스 8개와 검사 1개가 커밋 대상에서 조용히 빠져 있었다 | 루트 고정 `/seo/` 로 변경 | 수정 | `git status` 에 9개 파일 복귀, 151/151 |
 
+| 2026-08-29 | 색인 적용 실측 | 코드·토큰은 있는데 실제 수락 여부 기록이 없었다 | 라이브 HTML·GSC API·Bing API·네이버 콘솔로 4곳 대조. 네이버 수집 8/8·Bing 사이트맵+8URL 재제출 | 확인 | 아래 표 |
+| 2026-08-29 | `cta-contact` 가 registry 에만 있고 화면에 없음 | `mount.slot: cta-contact` 가 요구하는 `[data-ddak-slot="cta-contact"]` 가 실사이트에 없다. 로더는 슬롯 미발견 시 조용히 skip (loader.js:42-44) | 슬롯 1줄 추가(승인 대상) 또는 enabled:false. **미조치** | 대기 | 헤드리스 렌더 확인 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
 CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01(해소) / OPEN-BRW-02(해소) /
