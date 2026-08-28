@@ -82,7 +82,26 @@ npm run daum:apply / naver:index / bing:setup
 
 **남은 것:** ① 구글 하위 페이지 크롤 대기(할 수 있는 조치 없음, 사이트맵이 정답) ② 다음 심사 신청은 사람이 폼 작성
 
-## cta-contact 미노출 (2026-08-29 확인)
+## cta-contact 슬롯 배치 (2026-08-29 완료)
+
+승인 `AP-7908616a` 로 아임웹 **Body Code** 칸에 한 줄 삽입:
+
+```html
+<!-- DDAK-SEO:START type=widget-slot v=1 -->
+<div data-ddak-slot="cta-contact" style="display:none"></div>
+<!-- DDAK-SEO:END -->
+```
+
+라이브 확인: 슬롯 1개(중복 0) · `__ddak.loaded = ["hello-badge","cta-contact"]` · 슬롯 안에
+`.ddak-cta` 실제 렌더 · **화면 노출 false**. 즉 **마운트는 되고 눈에는 안 보이는** 상태다.
+
+- **보이게 하려면:** 같은 줄에서 `style="display:none"` 만 지우면 된다 (아임웹 쓰기 1회, 승인 대상)
+- **로더 칸(Header Code 상단)과 SEO 칸(Header Code)은 건드리지 않았다.** Body Code 는 비어 있던 칸이다
+- 위젯용 마커 체계를 따로 만들지 않고 기존 `DDAK-SEO` 삽입 경로를 재사용했다 (type=widget-slot).
+  Body Code 는 SEO 가 쓰지 않는 칸이라 충돌하지 않는다
+- 스냅샷은 `seo/sehwa/snapshots/` 에 저장됨 (INV-6)
+
+## (이전) cta-contact 미노출 — 위에서 해소
 
 registry `enabled:true` 인데 화면에 안 붙는다. `mount.slot: cta-contact` 가 찾는
 `[data-ddak-slot="cta-contact"]` 가 실사이트에 없어서 로더가 조용히 skip 한다 (`loader.js:42-44`).

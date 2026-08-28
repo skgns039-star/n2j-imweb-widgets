@@ -60,6 +60,9 @@ blocking_gates:
   # "Header Code 상단" 에는 이미 우리 로더가 들어가 있다. 요금제 지원 확인됨.
   CHK-005: { status: RESOLVED, blocks: [] }
   OPEN-REG-01: { status: OPEN, blocks: [] }
+  # 2026-08-29 사용자 결정(부분): cta-contact 슬롯 1개를 Body Code 최상단에 숨김 상태로 배치.
+  # 프리셋 3종(header/content/footer)의 위치는 여전히 미정 — Body Code 는 body 최상단이라
+  # "content/footer" 를 여기에 두면 이름과 실제 위치가 어긋난다. 게이트는 열어둔다.
   OPEN-REG-02: { status: OPEN, blocks: [slot_preset_placement] }
   # 2026-08-28 약관 원문 확인: 금지 대상은 "불법 자동화(매크로)로 속도지연·안전성 문제 유발".
   # 본인 소유 사이트 + 저빈도(사이트당 1~2회)는 해당하지 않는다. 고객사 위임 확장 시 재판정.

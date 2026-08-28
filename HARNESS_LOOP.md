@@ -61,6 +61,9 @@
 | 2026-08-29 | 색인 적용 실측 | 코드·토큰은 있는데 실제 수락 여부 기록이 없었다 | 라이브 HTML·GSC API·Bing API·네이버 콘솔로 4곳 대조. 네이버 수집 8/8·Bing 사이트맵+8URL 재제출 | 확인 | 아래 표 |
 | 2026-08-29 | `cta-contact` 가 registry 에만 있고 화면에 없음 | `mount.slot: cta-contact` 가 요구하는 `[data-ddak-slot="cta-contact"]` 가 실사이트에 없다. 로더는 슬롯 미발견 시 조용히 skip (loader.js:42-44) | 슬롯 1줄 추가(승인 대상) 또는 enabled:false. **미조치** | 대기 | 헤드리스 렌더 확인 |
 
+| 2026-08-29 | cta-contact 슬롯 배치 (사용자 승인 AP-7908616a) | 슬롯이 없어 로더가 조용히 skip 하던 상태 | 아임웹 **Body Code** 에 `<div data-ddak-slot="cta-contact" style="display:none">` 1줄. 로더 칸(Header Code 상단)·SEO 칸(Header Code)은 손대지 않음 | 적용 | 라이브: 슬롯 1개·`loaded`에 cta-contact·화면 노출 false |
+| 2026-08-29 | 위젯 슬롯을 DDAK-SEO 마커로 감쌈 | 마커 네임스페이스가 하나뿐이라 위젯용 마커가 없다 | 별도 마커 체계를 새로 만들지 않고 기존 삽입 경로 재사용. Body Code 는 SEO 가 쓰지 않는 칸이라 충돌 없음 | 절충 | 마커쌍 2/2, 중복 0 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
 CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01(해소) / OPEN-BRW-02(해소) /
