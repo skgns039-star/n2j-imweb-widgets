@@ -1,10 +1,11 @@
+import { forbiddenPhrases } from "./references.ts";
+
 /* SKILL §18.6 산출물 품질 게이트 + INV-13.
    기준 초과는 **경고**, 금지 표현·placeholder 는 **차단**이다. 둘을 섞지 않는다. */
 
-/** vocabulary §2 금지 표현 사전. 근거 미확인 상태에서 산출물에 들어가면 차단한다. */
-export const FORBIDDEN = [
-  "1위", "최고", "최상", "보장", "100%", "완치", "부작용 없음", "업계 유일", "국내 최초", "공식 인증",
-];
+/** vocabulary §2 금지 표현 사전. **참조 파일이 정본이다** — 코드에 베껴 쓰지 않는다 (§17).
+ *  예전에는 여기 하드코딩돼 있어 문서와 코드가 갈라질 수 있었다. */
+export const FORBIDDEN: string[] = forbiddenPhrases();
 
 /** 병원·의원 유형에서 추가로 차단하는 효과 표현 (의료광고 규제). */
 export const MEDICAL_FORBIDDEN = ["효과 보장", "완벽", "부작용 없이", "즉시 개선", "영구적"];

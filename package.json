@@ -20,7 +20,15 @@
     "whoami": "node --env-file-if-exists=.env checks/whoami.ts",
     "stest:coverage": "node checks/stest_coverage.ts",
     "posttest": "node checks/purge_fixtures.ts",
-    "imweb:login": "node --env-file-if-exists=.env src/browser/session.ts"
+    "imweb:login": "node --env-file-if-exists=.env src/browser/session.ts",
+    "console:login": "node --env-file-if-exists=.env src/browser/console_session.ts",
+    "seo:register": "node --env-file-if-exists=.env src/browser/register.ts",
+    "seo:verify": "node --env-file-if-exists=.env src/browser/naver_verify.ts",
+    "google:auth": "node --env-file-if-exists=.env src/google/oauth.ts",
+    "google:gsc": "node --env-file-if-exists=.env src/google/gsc.ts",
+    "daum:apply": "node --env-file-if-exists=.env src/browser/daum_register.ts",
+    "naver:index": "node --env-file-if-exists=.env src/browser/naver_index.ts",
+    "bing:setup": "node --env-file-if-exists=.env src/bing/api.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

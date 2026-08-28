@@ -100,6 +100,26 @@ async function detectAnalytics(site: { url?: string; test_path?: string }) {
   return { ga4: first.analytics.ga4, gtm: first.analytics.gtm };
 }
 
+/** Q-A2(설치 위치) · Q-A3(전자상거래 추적) 답변인지 판정. 키워드 단계가 이걸 삼키면 안 된다.
+ *  키워드가 함께 온 경우("추적불필요, 메타키워드: X")는 키워드가 우선이므로 null 을 돌려준다. */
+export function lateAnalyticsAnswer(text: string):
+  { ecommerce?: string; place?: string; note: string } | null {
+  const t = text.trim();
+  if (KEYWORD_LINE.test(t)) return null;
+
+  const ec = /전자상거래|추적/.test(t)
+    ? (/불필요|안\s*해도|필요\s*없|아니/.test(t) ? "불필요" : /필요|응|네|예/.test(t) ? "필요" : undefined)
+    : undefined;
+  const place = /아임웹\s*데이터|데이터\s*연결/.test(t) ? "아임웹 데이터 연결"
+    : /gtm/i.test(t) ? "GTM"
+    : /header\s*code|헤더\s*코드/i.test(t) ? "Header Code"
+    : undefined;
+  if (!ec && !place) return null;
+
+  const parts = [ec && `전자상거래 추적: ${ec}`, place && `설치 위치: ${place}`].filter(Boolean);
+  return { ecommerce: ec, place, note: `${parts.join(" · ")} 로 기록했습니다.` };
+}
+
 export const SEO_WIZARD: Wizard = {
   type: "seo",
   first: "analytics",
@@ -126,6 +146,16 @@ export const SEO_WIZARD: Wizard = {
       run: async (text: string, a: Answers) => {
         const reject = rejectIdInChat(text);
         if (reject) return { ok: false, msg: reject };
+
+        // Q-A2/Q-A3 답변이 뒤늦게 도착한 것 — 키워드로 삼키면 안 된다.
+        // (실제로 "추적불필요" 가 메타 키워드로 저장된 적이 있다.)
+        const late = lateAnalyticsAnswer(text);
+        if (late) {
+          if (late.ecommerce) a.ecommerce = late.ecommerce;
+          if (late.place) a.ga_place = late.place;
+          return { ok: false, msg: `${late.note}\n메타 키워드 1개를 알려주세요. (예: 조립식 건축)` };
+        }
+
         const kw = (text.match(KEYWORD_LINE)?.[1] ?? text).trim();
         if (kw.length < 2) return { ok: false, msg: "키워드가 너무 짧습니다. 다시 알려주세요." };
         a.keyword = kw;
@@ -147,9 +177,17 @@ export const SEO_WIZARD: Wizard = {
 };
 
 /** SEO 진입 — 첫 질문을 만들고 **상태를 시작한다.** 이후 답변은 단계로 들어간다. */
+/** 진단을 시작하지 않고 현황만 묻는 경우 — "SEO 상태", "세화 SEO 어디까지" */
+export const asksStatus = (t: string) => /현황|상태|어디까지|목록|진행|리스트/.test(t);
+
 export async function start(text: string, _ctx: Ctx): Promise<{ answers: Answers; intro: string } | string> {
   const idReject = rejectIdInChat(text);
   if (idReject) return idReject;
+
+  if (asksStatus(text)) {
+    const { seoStatus } = await import("./artifacts.ts");
+    return seoStatus();
+  }
 
   const sites = manifest().sites;
   if (!sites.length) return "등록된 사이트가 없습니다. 먼저 '연결'로 사이트를 등록하세요.";

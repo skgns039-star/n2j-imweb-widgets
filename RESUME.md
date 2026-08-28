@@ -3,18 +3,18 @@
 작업 경로: `C:\Users\cut07\projects\imweb-widget-agent`
 저장소: `https://github.com/skgns039-star/n2j-imweb-widgets` (public)
 
-## 지금 상태 (2026-08-25 갱신)
+## 지금 상태 (2026-08-28 갱신)
 
 | 항목 | 상태 |
 |---|---|
-| 검사 | **118/118 통과** · typecheck OK · lint OK · secretscan 유출 0건 |
-| 텔레그램 봇 | `@n2j_IMWEB_WIDGET_bot` · chat_id `8995797720` · polling |
+| 검사 | **151/151 통과** · typecheck OK · lint OK · secretscan 유출 0건 |
+| 텔레그램 봇 | `@n2j_IMWEB_WIDGET_bot` · chat_id `8995797720` · polling · 세션과 분리된 프로세스로 상주 (pid 는 `state/bot.lock`) |
 | 실행 엔진 | `claude_agent_sdk` (어댑터 왕복 실측 통과) |
 | 사이트 | `sehwa` (세화건설) `https://sehwaconstruction.imweb.me` |
 | 로더 | v1.1.0 · 4개 페이지 전부 부팅 확인 |
-| 위젯 | `hello-badge@0.1.0` · `mount: none` · `enabled: true` · 태그 `w-hello-badge-0.1.0` 배포됨 (3지점 해시 일치) |
+| 위젯 | `hello-badge@0.1.0`(mount:none) · `cta-contact@0.1.0`(mount:slot) — 둘 다 `enabled: true`, 태그 배포 완료 |
 | registry | `raw.githubusercontent` (OPEN-REG-01 결정) · 반영 실측 **약 200초** |
-| 의존성 | 2026-08-25 최신화 — `@types/node@^24`(Node 24 런타임에 맞춤) · `typescript@^7` · `claude-agent-sdk@0.3.243`. playwright·yaml 최신. `@types/node` 는 26 이 나와 있어도 24 유지 |
+| 의존성 | `claude-agent-sdk@0.3.247`(8/28) · `typescript@^7` · playwright·yaml 최신. `@types/node` 는 26 이 나와 있어도 **24 유지** — 런타임이 Node 24 다 |
 
 ## ★ M0 게이트 — **완료 (2026-08-25)**
 
@@ -39,6 +39,33 @@
 | 검사 | STEST-001~028 전량 + ITEST-001~004. `npm run stest:coverage` 가 미구현 1건도 허용 안 함 |
 
 **다음 SEO 작업:** 텔레그램에 `SEO` → 애널리틱스 사전 질문(Q-A1) 답변 → 메타 키워드 1개 → 진단 보고서.
+
+## M2 · 검색엔진 등록 (2026-08-28 진행 중)
+
+게이트가 열려서 브라우저 자동화가 실제로 돌기 시작했다.
+
+| 게이트 | 판정 |
+|---|---|
+| OPEN-BRW-01 약관 | **RESOLVED_CONDITIONAL** — 원문상 금지 대상은 "불법 자동화로 속도지연·안전성 유발". 본인 사이트·저빈도는 비해당. 고객사 확장 시 재판정 |
+| OPEN-BRW-02 2차 인증 | **RESOLVED** — 미사용 확인, 세션 재사용 경로 성립 |
+| CHK-003 무료 호출 범위 / CHK-005 요금제 / SEO-M2 | **RESOLVED** |
+
+실행 흔적 (모두 `state/` — 커밋되지 않는다):
+- 사이트 검증 토큰 3종 확보: `state/seo/sehwa.verification.json` (naver · gsc · bing)
+- 콘솔 세션: 아임웹 · 네이버 · 다음 (`state/browser/*.storage.json`)
+- 구글 OAuth 토큰: `state/google/token.json`
+- 메뉴·SEO 관측: `sehwa.menus.json` · `sehwa.menu-seo.json` · `sehwa.probe.json`
+
+새 명령:
+```
+npm run console:login   # 검색엔진 콘솔 로그인 (사람이 직접)
+npm run seo:register    # 사이트 등록
+npm run seo:verify      # 네이버 소유확인
+npm run google:auth / google:gsc
+npm run daum:apply / naver:index / bing:setup
+```
+
+**아직 확인 안 된 것:** 각 콘솔에서 소유확인·색인 요청이 실제로 수락됐는지의 최종 상태. 등록 결과 보고가 남았다.
 
 ## 다음 작업 후보
 
@@ -72,7 +99,13 @@ Unregister-ScheduledTask imweb-widget-daily # 해제
 | 4096자 초과·빈 응답 전송 실패 | `send()` 3900자 분할 + 빈 응답 대체 |
 
 대화 맥락은 `state/threads.sqlite3` 의 `conversation_key`(chat+topic)별 SDK 세션 resume 으로 이어진다.
-봇 재기동해야 반영된다: `npm start` (기존 프로세스 종료 후, `state/bot.lock` 확인).
+봇 재기동해야 반영된다. 세션과 분리해서 띄우려면:
+```
+Stop-Process -Id (Get-Content stateot.lock) -Force
+Start-Process node -ArgumentList '--env-file-if-exists=.env','src/bot/index.ts' `
+  -WorkingDirectory C:Userscut07projectsimweb-widget-agent -WindowStyle Hidden `
+  -RedirectStandardOutput logsot.out -RedirectStandardError logsot.err
+```
 
 ## 미해결 (추적 중)
 
@@ -80,8 +113,10 @@ Unregister-ScheduledTask imweb-widget-daily # 해제
 |---|---|
 | **REQ-022 완화** | 킬 스위치 반영이 60초 → **최대 5분** (raw 의 `max-age=300`). 고객사 확장 시 Cloudflare Pages(`max-age=60`)로 해소 |
 | OPEN-REG-02 | 슬롯 프리셋 위치 미정. 현재 `mount: none` 이라 불필요 |
-| CHK-001~003 | 아임웹 Open API. 키는 `.env` 에 `_SEHWA` 접미사로 보관, **호출은 gateBlock 이 차단 중** |
-| OPEN-BRW-01~03 | 브라우저 자동 업로드 = M2. 미착수 |
+| OPEN-BRW-03 | `OPERATING_APPROVED` 발급. BRW-01·02 는 8/28 해소 |
+| CHK-001·002 | 아임웹 Script API 쓰기 · 비공개 앱 OAuth. 여전히 OPEN |
+| CHK-004 | 구독 SDK 무인 실행. **사람 트리거만** — 일일 점검이 LLM 을 안 쓰는 이유다 |
+| OPEN-PNY-01 / OPEN-HLM-01 | Ponytail 훅 · Hallmark 컴포넌트 모드. 미착수 |
 | CHK-005 | **해소됨** — 공통 코드 삽입이 4개 페이지 전부 적용됨을 실측 |
 
 ## 되살리기
@@ -90,7 +125,7 @@ Unregister-ScheduledTask imweb-widget-daily # 해제
 cd C:\Users\cut07\projects\imweb-widget-agent
 npm ci
 npm run setup:check     # 전 항목 OK 여야 한다
-npm test                # 73/73
+npm test                # 151/151
 npm start               # 텔레그램 봇 기동
 ```
 

@@ -44,11 +44,21 @@ invariants:
 
 blocking_gates:
   # 미해소 상태에서 관련 동작 실행 금지 (§23.6)
+  # 2026-08-28 실측. 레거시 api.imweb.me/v2 는 인증되지만 스크립트 엔드포인트가 없다(쇼핑 전용).
+  # 신규 openapi.imweb.me/script 는 실재하나 grantType 이 authorization_code|refresh_token 뿐이라
+  # 개발자센터 앱 등록 + 사용자 동의 없이는 도달 불가. => API 쓰기 경로는 성립하지 않는다.
+  # 대체: 브라우저로 공통 코드 삽입 (src/browser/common_code.ts).
+  # 경로가 없다는 것이 확인된 것이므로 **계속 막아둔다** — 열면 없는 문을 두드리게 된다.
   CHK-001: { status: OPEN, blocks: [imweb_script_api_write] }
+  # 2026-08-28: OAuth 자체는 가능하나 앱 등록·동의가 선행되어야 한다. 미등록 상태 유지.
   CHK-002: { status: OPEN, blocks: [imweb_oauth] }
-  CHK-003: { status: OPEN, blocks: [imweb_api_call] }
+  # 2026-08-28 실측: /v2/auth 200, request_count 가 응답에 포함된다(호출량 추적 가능).
+  # 읽기 호출 확인 완료. 쓰기 경로가 없으므로 자동 호출 계획 자체가 없다.
+  CHK-003: { status: RESOLVED, blocks: [] }
   CHK-004: { status: OPEN, blocks: [unattended_sdk_run] }
-  CHK-005: { status: OPEN, blocks: [common_code_insert] }
+  # 2026-08-28 실측: 관리자 SEO > 고급설정에 공통 코드 삽입 6칸이 존재하고,
+  # "Header Code 상단" 에는 이미 우리 로더가 들어가 있다. 요금제 지원 확인됨.
+  CHK-005: { status: RESOLVED, blocks: [] }
   OPEN-REG-01: { status: OPEN, blocks: [] }
   OPEN-REG-02: { status: OPEN, blocks: [slot_preset_placement] }
   # 2026-08-28 약관 원문 확인: 금지 대상은 "불법 자동화(매크로)로 속도지연·안전성 문제 유발".
@@ -67,4 +77,10 @@ blocking_gates:
   SCHK-005: { status: OPEN, blocks: [robots_llms_edit] }
   SCHK-006: { status: OPEN, blocks: [indexnow] }
   # SEO 반영(9~11단계)은 M2. 이번 범위는 진단 전용 (SKILL §18.2)
-  SEO-M2: { status: OPEN, blocks: [seo_apply, seo_browser_form] }
+  # 2026-08-28 사용자 승인("열어"). 선행조건이 모두 충족된 뒤에 열었다:
+  #   - 관리자 SEO 화면 실측 완료 (입력 칸이 iframe /_/config-seo 안에 있음을 확인)
+  #   - config/imweb_selectors.yaml verified: true
+  #   - 세션 유효 (state/browser/sehwa.storage.json)
+  # 반영 전 현재 값 스냅샷을 남기고, 반영 후 공개 페이지 재진단으로 확인한다.
+  # 디자인모드 본문·이미지·레이아웃·메뉴명은 이 승인에 포함되지 않는다 (INV-11 유지).
+  SEO-M2: { status: RESOLVED, blocks: [] }

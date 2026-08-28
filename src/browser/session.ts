@@ -65,21 +65,30 @@ export async function loginInteractive(site_id: string, timeoutMs = 600_000): Pr
   if (blocked) return { ok: false, reason: `BLOCKED: ${blocked}`, needsLogin: false };
 
   const sel = selectors();
+  const admin = adminUrl(site_id);
   const b = await launch(false);                       // headed — 사람이 직접 로그인한다
   try {
     const ctx = await b.newContext();
     const page = await ctx.newPage();
-    await page.goto(sel.site.login_url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    // 목표는 "그 사이트 관리자에 들어갈 수 있는 세션"이다. 그래서 처음부터 그 주소로 간다 —
+    // 로그인이 필요하면 아임웹이 로그인 화면으로 돌리고, 끝나면 여기로 돌아온다.
+    await page.goto(admin, { waitUntil: "domcontentloaded", timeout: 60_000 }).catch(() => {});
 
     const until = Date.now() + timeoutMs;
     while (Date.now() < until) {
-      if (await anyVisible(page, sel.login_markers)) {
+      await page.waitForTimeout(3000);
+      if (await anyVisible(page, sel.logout_markers)) continue;   // 아직 로그인 화면
+
+      // 로그인 화면이 아니면 실제로 관리자에 닿는지 확인한다 — 그게 성공 판정이다.
+      try {
+        await page.goto(admin, { waitUntil: "domcontentloaded", timeout: 30_000 });
+        await page.waitForTimeout(2000);
+        if (await anyVisible(page, sel.logout_markers)) continue; // 되돌려보냄 = 아직 아님
         await ctx.storageState({ path: statePath(site_id) });
         return { ok: true, site_id, savedAt: new Date().toISOString() };
-      }
-      await page.waitForTimeout(3000);
+      } catch { /* 이동 실패 시 다음 회차 */ }
     }
-    return { ok: false, reason: "10분 안에 로그인이 확인되지 않아 취소했다", needsLogin: true };
+    return { ok: false, reason: "10분 안에 관리자 접근이 확인되지 않아 취소했다", needsLogin: true };
   } finally {
     try { await b.close(); } catch { /* ignore */ }
   }

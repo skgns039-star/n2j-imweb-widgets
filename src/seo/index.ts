@@ -4,7 +4,7 @@ import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { p, manifest } from "../release/paths.ts";
 import { looksSecret } from "../release/secrets.ts";
 import { resolveSiteId, engineStatusText, assertApplyAllowed } from "./gates.ts";
-import { observe, infer, questionsFor, maskAnalytics, markerTypesFound, type PageSeo } from "./observe.ts";
+import { observe, siteFiles, MAX_PAGES, infer, questionsFor, weakPoints, maskAnalytics, markerTypesFound, type PageSeo } from "./observe.ts";
 import { checkField, cannibalization, gate, type Finding } from "./quality.ts";
 
 export const SEO_DIRS = [
@@ -34,7 +34,7 @@ export function writeReport(site_id: string, file: string, body: string): string
 /** §16 첫 실행 출력 형식. 첫 작업은 항상 OBSERVE 다. */
 export function startupReport(a: {
   site_id: string; keyword: string; url: string;
-  inferred: { field: string; value: string; inferred: boolean }[];
+  inferred: import("./observe.ts").Inferred[];
   questions: string[]; pages: PageSeo[];
 }): string {
   const tag = (i: { value: string; inferred: boolean }) => (i.inferred && i.value ? `${i.value} [추론]` : i.value || "확인 필요");
@@ -56,6 +56,9 @@ export function startupReport(a: {
     "",
     "수정 금지 (고정):  디자인모드 본문·이미지·레이아웃·메뉴명·상품명",
     `입력 필요 (최대 4): ${a.questions.join(", ") || "없음"}`,
+    ...(weakPoints(a.inferred).length
+      ? ["", "확인 필요 — 근거가 약해 그대로 진행하지 않습니다:", ...weakPoints(a.inferred).map((w) => "  · " + w)]
+      : []),
     "차단 게이트:       SEO 반영(9~11단계)은 M2. 이번 범위는 진단까지입니다.",
     "다음 단계:         1 공개 페이지 진단 → 2 sitemap/robots/llms → 6 초안",
   ].join("\n");
@@ -76,11 +79,15 @@ export function auditFindings(pages: PageSeo[], siteType = "일반"): Finding[] 
 }
 
 /** 진단 1회 실행. 아임웹에 아무것도 쓰지 않는다. */
-export async function runDiagnosis(site_id: string, keyword: string, paths: string[] = []): Promise<string> {
+export async function runDiagnosis(site_id: string, keyword: string, paths: string[] = [], brandFirst = false): Promise<string> {
   const site = manifest().sites.find((s) => s.site_id === site_id);
   if (!site?.url) return `${site_id} 에 url 이 없습니다. '연결' 위저드로 사이트 정보를 먼저 등록하세요.`;
 
-  const pages = await observe(site.url, paths.length ? paths : [site.test_path ?? "/"]);
+  // SKILL 2단계 — sitemap/robots/llms 를 먼저 본다. 경로를 손으로 안 주면 사이트맵에서 발견한다.
+  const sf = await siteFiles(site.url);
+  const targets = paths.length ? paths : (sf.paths.length ? sf.paths : [site.test_path ?? "/"]);
+  const pages = await observe(site.url, targets);
+  const truncated = Math.max(0, new Set(["/", ...targets]).size - MAX_PAGES);
   const inferred = infer(pages);
   const questions = questionsFor(inferred);
   const head = startupReport({ site_id, keyword, url: site.url, inferred, questions, pages });
@@ -88,7 +95,14 @@ export async function runDiagnosis(site_id: string, keyword: string, paths: stri
   const findings = auditFindings(pages);
   const g = gate(findings);
   const body = [
-    head, "", "── 진단 결과 ──",
+    head, "",
+    "── 2단계 sitemap / robots / llms ──",
+    `  sitemap.xml : ${sf.sitemap ? `있음 — 경로 ${sf.paths.length}개 발견` : "없음"}`,
+    `  robots.txt  : ${sf.robots ? "있음" : "없음"}`,
+    `  llms.txt    : ${sf.llms ? "있음" : "없음"}`,
+    sf.sitemapHost ? `  사이트맵 도메인 : ${sf.sitemapHost}` : "",
+    truncated ? `  ⚠ 상한 ${MAX_PAGES}개 초과 — ${truncated}개 미진단 (전수 아님)` : "",
+    "", "── 진단 결과 ──",
     ...g.warn.map((f) => `  [조정 후보] ${f.field}: ${f.reason}`),
     ...g.blocked.map((f) => `  [차단] ${f.field}: ${f.reason}`),
     g.warn.length + g.blocked.length ? "" : "  지적사항 없음",
@@ -96,8 +110,23 @@ export async function runDiagnosis(site_id: string, keyword: string, paths: stri
     `애널리틱스(마스킹): ${JSON.stringify(maskAnalytics(pages.find((x) => x.ok)?.analytics ?? { ga4: [], gtm: [], hasGtag: false, hasDataLayer: false }))}`,
   ].join("\n");
 
-  writeReport(site_id, "03_public-audit.md", body + "\n");
-  return body;
+  // §6 산출물 전량을 남긴다. 예전에는 03 하나만 만들고 나머지가 비어 있었다.
+  const { buildAll } = await import("./artifacts.ts");
+  const val = (f: string) => inferred.find((x) => x.field === f)?.value ?? "";
+  const first = pages.find((x) => x.ok);
+  const files = buildAll({
+    site_id, label: site.label ?? site_id, url: site.url,
+    keyword, brand: val("브랜드명"), domain: val("정식 도메인"),
+    siteType: val("쇼핑몰 여부") === "예" ? "쇼핑몰" : "일반",
+    brandFirst,
+    // 확인된 것만 쓴다. 메타 디스크립션이 비면 **렌더된 본문**을 근거로 삼는다 (§4-1 "실제 페이지 내용 기준").
+    // 둘 다 없으면 빈 값 → 문구를 지어내지 않는다 (INV-13).
+    summary: (first?.description || first?.bodyText || "").trim(),
+    pages, findings,
+  });
+
+  return [body, "", `산출물 ${files.length}개 → seo/${site_id}/`,
+    files.map((f) => "  " + f.file).join("\n")].join("\n");
 }
 
 /** §1.4 애널리틱스 사전 질문. 감지 없이 묻지 않고, 질문 없이 설치하지 않는다. */

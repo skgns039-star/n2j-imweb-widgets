@@ -5,6 +5,6 @@ node_modules/
 state/
 logs/
 # SEO 진단 산출물도 같은 이유로 제외한다 — 고객 도메인·애널리틱스 상태가 들어간다.
-seo/
+/seo/
 .hallmark/
 RUN_STATE.json

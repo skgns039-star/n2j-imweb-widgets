@@ -1,7 +1,7 @@
 /* ENG-017. update 단일 소유자 polling 프로세스. 여기 말고 다른 consumer를 붙이지 않는다. */
 import { existsSync, writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { p } from "../release/paths.ts";
-import { assertSingleOwner, getUpdates, send, sendTyping, isAllowed, logReject } from "./telegram.ts";
+import { assertSingleOwner, getUpdates, send, sendTyping, isAllowed, logReject, inbound, downloadImage } from "./telegram.ts";
 import { getOffset, setOffset, markSeen } from "./threads.ts";
 import { handle } from "./router.ts";
 import { checkAll, missing, render, bootBlockers } from "../../checks/setup_check.ts";
@@ -64,15 +64,18 @@ async function main() {
     for (const u of updates) {
       setOffset(u.update_id + 1);
       const msg = u.message;
-      if (!msg?.text) continue;
+      if (!msg) continue;
+      // 사진은 text 가 없다. text 유무로 거르면 사진 메시지가 통째로 버려진다.
+      const { body, image } = inbound(msg);
+      if (!body && !image) continue;
       if (!markSeen(u.update_id)) continue; // 멱등성
 
       const chat_id = msg.chat.id;
       const user_id = msg.from?.id;
-      if (!isAllowed(chat_id, user_id)) { logReject(chat_id, user_id, msg.text); continue; } // 무응답
+      if (!isAllowed(chat_id, user_id)) { logReject(chat_id, user_id, body); continue; } // 무응답
 
       // config/kill_switch 가 있으면 새 작업을 받지 않는다 (§19.6 중단 방법)
-      if (existsSync(p("config", "kill_switch")) && !/재개|resume|상태|조회/.test(msg.text)) {
+      if (existsSync(p("config", "kill_switch")) && !/재개|resume|상태|조회/.test(body)) {
         await send(chat_id, "킬 스위치가 걸려 있다. 새 작업을 받지 않는다. 재개하려면 '전체 재개'.", msg.message_thread_id);
         continue;
       }
@@ -89,7 +92,14 @@ async function main() {
       const keepTyping = setInterval(() => { void sendTyping(chat_id); }, 5000);
 
       try {
-        const reply = await withTimeout(handle(msg.text, ctx), TASK_TIMEOUT_MS);
+        let text = body;
+        if (image) {
+          // 내려받아 경로를 넘긴다. 엔진은 state/ 를 읽을 수 있으므로 직접 열어 본다.
+          const file = await downloadImage(image.file_id);
+          text = `${body || "(설명 없는 이미지)"}\n\n[첨부 이미지] ${file}\n` +
+            "이 경로의 이미지를 Read 로 열어 내용을 확인한 뒤 답하라.";
+        }
+        const reply = await withTimeout(handle(text, ctx), TASK_TIMEOUT_MS);
         clearTimeout(ack); clearInterval(keepTyping);
         await send(chat_id, reply, msg.message_thread_id); // 원래 대화로만 회신 (REQ-005)
       } catch (e) {

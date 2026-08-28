@@ -1,14 +1,32 @@
 /* ENG-017 Channel Router 하부. update 단일 소유자 계약을 여기서 강제한다. */
-import { appendFileSync, mkdirSync, existsSync } from "node:fs";
+import { appendFileSync, mkdirSync, existsSync, writeFileSync } from "node:fs";
 import { p, yaml } from "../release/paths.ts";
 
 const TOKEN = process.env.IMWEB_WIDGET_BOT_TOKEN ?? "";
 const api = (m: string) => `https://api.telegram.org/bot${TOKEN}/${m}`;
 
-export type Update = {
-  update_id: number;
-  message?: { chat: { id: number }; from?: { id: number }; message_thread_id?: number; text?: string };
+export type Attachment = { file_id: string; mime_type?: string; file_name?: string };
+
+export type Message = {
+  chat: { id: number }; from?: { id: number }; message_thread_id?: number;
+  text?: string;
+  /** 사진은 text 가 없다. 설명은 caption 에 온다. */
+  caption?: string;
+  /** 해상도별 배열. 마지막이 가장 크다. */
+  photo?: Attachment[];
+  /** "파일로 보내기" 로 올린 스크린샷. 이미지 mime 만 받는다. */
+  document?: Attachment;
 };
+
+export type Update = { update_id: number; message?: Message };
+
+/** 메시지에서 본문과 이미지 첨부를 뽑는다.
+ *  사진 메시지를 text 유무로 거르면 통째로 버려진다 — 그게 이 함수가 있는 이유다. */
+export function inbound(msg: Message): { body: string; image: Attachment | null } {
+  const body = msg.text ?? msg.caption ?? "";
+  const doc = msg.document?.mime_type?.startsWith("image/") ? msg.document : null;
+  return { body, image: msg.photo?.at(-1) ?? doc ?? null };
+}
 
 function mask(s: string) {
   return TOKEN ? s.split(TOKEN).join("<TOKEN>") : s;
@@ -42,6 +60,20 @@ export const sendTyping = (chat_id: number) =>
 
 export const getUpdates = (offset: number) =>
   call<Update[]>("getUpdates", { offset, timeout: 30, allowed_updates: ["message"] });
+
+/** 첨부 이미지를 state/inbox/ 에 내려받고 경로를 돌려준다.
+ *  내려받기 URL 에는 봇 토큰이 박혀 있다 — 오류 문구는 반드시 mask() 를 지난다. */
+export async function downloadImage(file_id: string): Promise<string> {
+  const f = await call<{ file_path: string }>("getFile", { file_id });
+  const r = await fetch(`https://api.telegram.org/file/bot${TOKEN}/${f.file_path}`);
+  if (!r.ok) throw new Error(mask(`이미지 내려받기 실패: HTTP ${r.status}`));
+  const dir = p("state", "inbox");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const ext = f.file_path.split(".").pop()?.toLowerCase() || "jpg";
+  const out = p("state", "inbox", `${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`);
+  writeFileSync(out, Buffer.from(await r.arrayBuffer()));
+  return out;
+}
 
 /** PTEST-012. webhook이 걸려 있으면 polling을 기동하지 않는다. 동시 consumer 금지. */
 export async function assertSingleOwner() {

@@ -17,9 +17,32 @@ logout_markers:
   primary: 'input[type="password"]'
   fallback: 'form[action*="login"]'
 
-# 공통 코드 삽입 (환경설정 > SEO > 공통 코드 삽입)
+# SEO 설정 (관리자 > 환경설정 > SEO).
+# **핵심: 입력 칸은 메인 문서가 아니라 iframe 안에 있다.** 2026-08-28 실측.
+# 메인 프레임에는 보이는 input 이 0개다 — 추정 셀렉터가 전부 빗나갔던 이유다.
+seo_settings:
+  page_url: "https://{host}/admin/config/seo"
+  frame_url_contains: "/_/config-seo"
+  site_title:
+    primary: 'input[name="basic.siteName"]'
+    fallback: 'input[placeholder*="메타 타이틀"]'
+  site_description:
+    primary: 'textarea[name="basic.siteDescription"]'
+    fallback: 'textarea[placeholder*="메타 디스크립션"]'
+  # 키워드는 name 이 없다. 엔터로 태그를 하나씩 만드는 칩 입력이라 다루는 법이 다르다.
+  # **칩이 하나라도 생기면 placeholder 가 사라진다** — 그래서 placeholder 로 잡으면
+  # 두 번째 키워드부터 못 찾는다. 실측으로 확인. 안정적인 건 폭 클래스뿐이다.
+  site_keyword:
+    primary: 'input.w-\[230px\]'
+    fallback: 'input[placeholder*="키워드를 생성"]'
+  save_button:
+    primary: 'button[type="submit"]'
+    fallback: 'button:has-text("저장")'
+
+# 공통 코드 삽입 (환경설정 > SEO > 공통 코드 삽입) — 같은 iframe 안에 있다.
 common_code:
   page_url: "https://{host}/admin/config/seo"
+  frame_url_contains: "/_/config-seo"
   header_textarea:
     primary: 'textarea[name*="header"]'
     fallback: '#header_code, [data-code-area="header"]'
@@ -38,9 +61,13 @@ common_code:
 
 # 미확인 항목 — 실제 관리자 화면을 열어 확인한 뒤 채운다.
 # 확인 전에는 guard 가 "UI 변경 감지"로 중단한다. 추측해서 채우지 않는다.
-verified: false
-verified_at: null
+verified: true
+verified_at: "2026-08-28"
 note: |
-  이 파일의 셀렉터는 아임웹 관리자 화면을 실제로 열어보기 전의 **추정값**이다.
-  verified: false 인 동안 upload 는 실행되지 않는다 (guard 가 막는다).
-  최초 로그인 후 `npm run imweb:probe` 로 실측해 채운 뒤 verified: true 로 바꾼다.
+  seo_settings 는 2026-08-28 세화 관리자 화면에서 실측했다 (`npm run imweb:probe`).
+  실측 당시 사이트 제목 = "세화건설산업", 사이트 설명 = 비어 있음.
+
+  아직 실측하지 않은 것:
+  - common_code 의 textarea 3종 (Header/Body/Footer) — 라벨은 같은 화면에 있으나 셀렉터 미확인
+  - 디자인모드 메뉴 SEO / ALT
+  이들을 쓰기 전에 다시 probe 해서 채운다. 추측해서 채우지 않는다.

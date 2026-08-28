@@ -43,7 +43,16 @@ test("셀렉터는 외부 파일에 있고 미검증 상태가 표시된다 (§1
   }
   assert.ok("primary" in s.login_markers && "fallback" in s.login_markers, "2단 셀렉터여야 한다");
   assert.equal(typeof s.verified, "boolean");
-  assert.equal(s.verified, false, "실측 전에는 verified:false 여야 한다");
+  // verified:true 는 "실제로 열어봤다" 는 주장이다. 근거 없이 켜지 못하게 막는다.
+  if (s.verified) {
+    assert.ok((s as any).verified_at, "verified:true 면 실측 날짜가 있어야 한다");
+    const seo = (s as any).seo_settings;
+    assert.ok(seo, "실측했다면 seo_settings 가 채워져 있어야 한다");
+    assert.ok(seo.frame_url_contains, "입력 칸이 iframe 안에 있다는 사실이 기록돼야 한다");
+    for (const k of ["site_title", "site_description", "save_button"]) {
+      assert.ok(seo[k]?.primary, `${k} primary 셀렉터 누락`);
+    }
+  }
 });
 
 test("admin_url 은 manifest 의 사이트 호스트로 치환된다", () => {
@@ -53,9 +62,9 @@ test("admin_url 은 manifest 의 사이트 호스트로 치환된다", () => {
   assert.throws(() => adminUrl("없는사이트"), /BLOCKED/);
 });
 
-test("세션 파일은 저장소에 추적되지 않는다", () => {
+test("세션 파일은 저장소에 추적되지 않는다", async () => {
   if (!existsSync(statePath(SITE))) return;                 // 아직 로그인 전이면 통과
-  const { execFileSync } = require("node:child_process");
+  const { execFileSync } = await import("node:child_process");
   const tracked = execFileSync("git", ["ls-files", "state/browser/"], { cwd: p(), encoding: "utf8" });
   assert.equal(tracked.trim(), "", "세션 파일이 git 에 추적되면 안 된다");
 });

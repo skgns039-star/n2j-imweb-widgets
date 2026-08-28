@@ -3,7 +3,8 @@ import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { ROOT, p, manifest } from "../../src/release/paths.ts";
+import { ROOT, p, manifest, gateBlock } from "../../src/release/paths.ts";
+import { selectors } from "../../src/browser/session.ts";
 import { decide, mentionsSeo, mentionsSeoConflict, enter, AMBIGUOUS_REPLY } from "../../src/seo/route.ts";
 import { engineStatus, assertBrowserFormAllowed, assertApplyAllowed, resolveSiteId } from "../../src/seo/gates.ts";
 import { collector, infer, questionsFor, type PageSeo } from "../../src/seo/observe.ts";
@@ -15,7 +16,7 @@ const SITE = manifest().sites[0]!.site_id;
 
 const page = (over: Partial<PageSeo> = {}): PageSeo => ({
   path: "/", ok: true, title: "세화건설 조립식 건축", description: "가".repeat(100), canonical: "https://sehwaconstruction.imweb.me/",
-  og: {}, h1: ["세화가 짓습니다"], h2Count: 3, imgTotal: 10, imgNoAlt: 2, jsonLdTypes: ["Organization"],
+  og: {}, h1: ["세화가 짓습니다"], h2Count: 3, bodyText: "군산 조립식 건축 시공", imgTotal: 10, imgNoAlt: 2, jsonLdTypes: ["Organization"],
   ownerVerification: { google: false, naver: false, bing: false, daum: false },
   seoMarkers: [], analytics: { ga4: [], gtm: [], hasGtag: false, hasDataLayer: false }, ...over,
 });
@@ -60,13 +61,21 @@ test("STEST-012 Naver/Daum 최종 제출은 승인 이전에 클릭 0건 — 게
   assert.throws(() => assertBrowserFormAllowed("daum"), /BLOCKED/);
 });
 
-test("STEST-021 OPEN-BRW-* 미해소 상태에서 폼 자동입력은 차단되고 안내로 강등된다", () => {
-  assert.throws(() => assertBrowserFormAllowed("naver"), /M2|브라우저 쓰기/);
+test("STEST-021 미해소 게이트가 있으면 폼 자동입력은 차단되고 안내로 강등된다", () => {
+  // 네이버는 SCHK-003(naver_form) 이 미해소다. 게이트 이름을 박지 않고 **차단된다는 사실**을 본다.
+  assert.throws(() => assertBrowserFormAllowed("naver"), /BLOCKED/);
   assert.match(engineStatus().find((e) => e.engine === "naver")!.fallback, /안내 카드/);
 });
 
-test("SEO 반영(9~11단계)은 M2 게이트가 막는다 — 이번 범위는 진단까지", () => {
-  assert.throws(() => assertApplyAllowed(), /M2 범위/);
+test("SEO 반영 허용 여부는 매니페스트를 따른다 — 코드가 임의로 정하지 않는다", () => {
+  // 게이트가 열렸는지 닫혔는지를 테스트가 정하면, 매니페스트를 고쳐도 테스트가 거짓말한다.
+  const blocked = gateBlock("seo_apply");
+  if (blocked) assert.throws(() => assertApplyAllowed(), /BLOCKED/);
+  else assert.doesNotThrow(() => assertApplyAllowed(), "게이트가 열렸으면 통과해야 한다");
+
+  // 열렸더라도 브라우저 쓰기는 셀렉터 실측이 끝나야 한다 (추측으로 쓰지 않는다).
+  const sel = selectors() as any;
+  if (!blocked) assert.equal(sel.verified, true, "반영이 열렸는데 셀렉터가 미실측이면 안 된다");
 });
 
 test("STEST-022 manifest 에 없는 site_id 로 시작하면 거부하고 연결 위저드를 안내한다", () => {
@@ -160,7 +169,8 @@ test("ITEST-001 기존 위젯 경로에 변경이 없다", () => {
     .split("\n").map((s) => s.trim()).filter(Boolean);
   const widgetPaths = changed.filter((f) =>
     f.startsWith("src/widgets/") || f.startsWith("dist/") || f.startsWith("loader/") ||
-    f === "registry.json" || f.startsWith("src/release/") || f.startsWith("src/browser/"));
+    // src/browser 는 M2(브라우저 업로드) 영역이라 위젯 경로가 아니다 — tests/browser 가 따로 지킨다.
+    f === "registry.json" || f.startsWith("src/release/"));
   assert.deepEqual(widgetPaths, [], `위젯 경로가 변경됐다: ${widgetPaths.join(", ")}`);
 });
 

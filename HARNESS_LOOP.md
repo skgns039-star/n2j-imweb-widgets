@@ -54,6 +54,10 @@
 | 2026-08-28 | **OPEN-BRW-02 해소** | 2차 인증 여부 미확인 | 사용자 확인: 미사용 → 세션 재사용 경로 성립 | RESOLVED | - |
 | 2026-08-28 | M2 세션 모듈 착수 | browser_upload 게이트 개방 | `src/browser/session.ts` + 셀렉터 외부화. 자격증명 미취급 검사로 강제 | 적용 | 세션 계약 7건 |
 
+| 2026-08-28 | 정기 업데이트 확인 | claude-agent-sdk 0.3.243 → 0.3.247 | `npm update` 반영. `@types/node` 는 24 유지(런타임 Node 24), playwright·yaml·typescript 최신 | 적용 | typecheck OK · 140/140 · daily.ts 정상 · 일일 점검 4회 연속 exit 0 |
+
+| 2026-08-28 | **`.gitignore` 의 `seo/` 가 `src/seo/` 를 통째로 무시** | 루트 SEO 산출물 디렉터리를 막으려던 패턴이 경로 어디서든 매칭돼, 신규 소스 8개와 검사 1개가 커밋 대상에서 조용히 빠져 있었다 | 루트 고정 `/seo/` 로 변경 | 수정 | `git status` 에 9개 파일 복귀, 151/151 |
+
 ## 미해소 차단 게이트 (해소되면 여기에 근거·확인일과 함께 기록)
 CHK-001 Script API 쓰기 / CHK-002 비공개 앱 OAuth / CHK-003 무료 호출 범위 / CHK-004 구독 SDK 무인 실행 /
 CHK-005 아임웹 요금제(해소) / SCHK-001~006 SEO 검색엔진 / SEO-M2 반영단계 / OPEN-REG-01 registry 호스팅 (2026-08-24 raw로 임시 해소, Cloudflare 이전 대기) / OPEN-REG-02 슬롯 프리셋 위치 / OPEN-BRW-01(해소) / OPEN-BRW-02(해소) /
