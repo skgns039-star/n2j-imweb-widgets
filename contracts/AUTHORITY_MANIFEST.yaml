@@ -42,7 +42,24 @@ invariants:
   INV-8: 승인 범위 밖 외부 행동은 실행 전에 멈춘다
   INV-9: 실패 시 기본 동작은 아무것도 하지 않는 것(fail-closed)이다
 
+# SKILL.md 는 원문 그대로 둔다. 프로젝트 차원의 결정은 여기에만 적는다.
+# SKILL 과 여기가 다르면 **여기가 이긴다** — 어느 쪽이 정본인지 헷갈리면 안 된다.
+overrides:
+  INV-11:
+    skill_says: 디자인모드 본문·이미지·레이아웃·메뉴명·상품명은 승인이 있어도 수정하지 않는다
+    decision: RETIRED
+    at: "2026-08-31"
+    by: 사용자 명시 지시 ("터미널에서 본문수정 및 디자인모드 전부다 되게 해줘" → 선택지 (가) 전면 개방)
+    note: |
+      읽기 전용 제한을 푼다. 대신 되돌릴 수 있게 하는 조건은 유지한다:
+      - 쓰기 전 원문 스냅샷 필수 (INV-6 은 그대로 살아 있다)
+      - 게시하기는 **디자인 전체**를 내보내고 실행 취소가 불가하다. 게시 전에 무엇이 나가는지 확인한다.
+      - 되돌리기 방법을 기록하지 않은 반영은 실패로 처리한다 (STEST-024)
+
 blocking_gates:
+  # 디자인모드 쓰기. INV-11 을 폐기했으므로 열어둔다.
+  # 다시 잠그려면 status 를 OPEN 으로 바꾸면 코드가 그대로 막는다.
+  DESIGN-WRITE: { status: RESOLVED, blocks: [design_mode_write] }
   # 미해소 상태에서 관련 동작 실행 금지 (§23.6)
   # 2026-08-28 실측. 레거시 api.imweb.me/v2 는 인증되지만 스크립트 엔드포인트가 없다(쇼핑 전용).
   # 신규 openapi.imweb.me/script 는 실재하나 grantType 이 authorization_code|refresh_token 뿐이라
@@ -75,9 +92,20 @@ blocking_gates:
   # ── SEO 스킬 (ENG-046). 미해소 시 해당 엔진만 PENDING, 나머지는 진행한다 (SKILL §4)
   SCHK-001: { status: OPEN, blocks: [gsc_api] }
   SCHK-002: { status: OPEN, blocks: [bing_api] }
-  SCHK-003: { status: OPEN, blocks: [naver_form] }
-  SCHK-004: { status: OPEN, blocks: [daum_form] }
-  SCHK-005: { status: OPEN, blocks: [robots_llms_edit] }
+  # 2026-09-27 사용자 명시 지시("자동제출해 규제풀어")로 해소. 근거는 OPEN-BRW-01 과 같다:
+  # 본인 소유 사이트(n2jtriniweb.co.kr)·본인 네이버 계정·저빈도(사이트당 수집 요청 수 건, 1회) 는
+  # 약관의 금지 대상("속도지연·안전성 문제를 유발하는 매크로")에 해당하지 않는다. 고객사 위임 확장 시 재판정.
+  # 게이트만 해소한다. 제출마다 naver_index 1회 승인·결과 화면 확인은 그대로 유지한다.
+  # 변경 전 원문: state/seo-observations/n2jtrini-recheck/authority-before-schk003-2026-09-27.yaml
+  SCHK-003: { status: RESOLVED, blocks: [] }
+  # 2026-09-18 공식 현행 등록변경 경로 확인: https://register.search.daum.net/searchForm.daum?act=update
+  # 이 게이트는 경로 확인만 해소한다. 대상/내용 승인·스냅샷·제출 결과 검증은 유지한다.
+  SCHK-004: { status: RESOLVED, blocks: [] }
+  # 2026-09-27 실측(n2jtrini): 관리자 SEO > 고급 설정에 "robots.txt 사용"·"llms.txt 사용" 편집 칸이 있고,
+  # robots 칸 원문(Markdown Sitemap 줄 포함)이 공개 /robots.txt 에 그대로 나온다 → 직접 편집 지원 확인.
+  # 사용자 "너스스로알아서햐"·"진행해"로 해소. 쓰기는 여전히 1회 승인·스냅샷·재조회를 따른다.
+  # 변경 전 원문: state/seo-observations/n2jtrini-recheck/authority-before-schk005-2026-09-27.yaml
+  SCHK-005: { status: RESOLVED, blocks: [] }
   SCHK-006: { status: OPEN, blocks: [indexnow] }
   # SEO 반영(9~11단계)은 M2. 이번 범위는 진단 전용 (SKILL §18.2)
   # 2026-08-28 사용자 승인("열어"). 선행조건이 모두 충족된 뒤에 열었다:
@@ -85,5 +113,5 @@ blocking_gates:
   #   - config/imweb_selectors.yaml verified: true
   #   - 세션 유효 (state/browser/sehwa.storage.json)
   # 반영 전 현재 값 스냅샷을 남기고, 반영 후 공개 페이지 재진단으로 확인한다.
-  # 디자인모드 본문·이미지·레이아웃·메뉴명은 이 승인에 포함되지 않는다 (INV-11 유지).
+  # 2026-08-31: INV-11 폐기(overrides 참조). 디자인모드 쓰기는 DESIGN-WRITE 가 관장한다.
   SEO-M2: { status: RESOLVED, blocks: [] }
