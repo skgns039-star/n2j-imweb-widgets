@@ -1,5 +1,9 @@
 # RESUME — 다음 세션에서 이어가는 지점
 
+## 2026-09-28 최신 — 작업 파일 51개 정리·커밋, push 사용자 대기
+
+커밋 안 된 수정 42·신규 9 파일을 비밀값·개인정보 검사(0건, RESUME 본문 이메일 1건 제거) 후 4개 커밋(352d9cd·10efe33·41e7be4·1f93353)으로 정리. 테스트 198/198·typecheck·lint·secretscan·STEST 28/28·무결성 16/16. 로컬 ahead 10·behind 0, 작업 트리 깨끗. 에이전트의 일반 `git push`는 권한 설정이 거부(Permission denied) → 우회하지 않음. **다음 한 걸음: 사용자가 `! git -C /Volumes/T7/NJ2_AGENT/N2J_projects/imweb-widget-agent push origin main` 실행 → Claude가 ahead 0·가드 통과·공개 registry 불변 확인.** 정정: 9/27 registry 게시 스크립트는 스크립트 안 push와 자체 승인 처리를 했다(넘겨받은 세션이 폐기 처리). 보고서 `state/reports/2026-09-28_공통_작업저장소-정리-커밋-결과보고.md`.
+
 ## ★ 작업 시작·종료 때 먼저 볼 것 (사용자 지시 2026-09-27 "추후 작업시 누락없도록 md에 정리")
 
 - 공통 점검표: `state/reports/공통_작업_점검표.md` (⚠ = 실제로 놓쳤던 항목)
