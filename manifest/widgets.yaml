@@ -20,7 +20,7 @@ sites:
 widgets:
   - widget_id: hello-badge
     version: 0.1.0
-    enabled: true
+    enabled: false
     site: sehwa
     match:
       path_glob:
