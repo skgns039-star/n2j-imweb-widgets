@@ -17,12 +17,15 @@ import {
 import { MIGRATE, requestOriginalRemoval } from "./migrate.ts";
 import { decide as seoDecide, start as seoStart, SEO_WIZARD, AMBIGUOUS_REPLY } from "../seo/route.ts";
 import type { IntegrityRecord } from "../release/build.ts";
+import { runWidgetChange } from "../widget_pipeline/index.ts";
+import type { Generator } from "../widget_pipeline/generate.ts";
 
 const ALL_WIZARDS: Record<string, Wizard> = { ...WIZARDS, migrate: MIGRATE, seo: SEO_WIZARD };
 
 export type Intent =
   | "approve" | "reject" | "kill" | "resume" | "inspect" | "install"
-  | "deploy" | "rollback" | "connect" | "migrate" | "remove_original" | "seo" | "agent" | "unclear";
+  | "deploy" | "rollback" | "connect" | "migrate" | "remove_original" | "seo" | "agent" | "unclear"
+  | "widget_edit" | "widget_new";
 
 /** §24.8 — "연결"은 다른 문맥에도 나온다. 기존 엔티티가 함께 등장하면 connect로 보내지 않는다.
  *  한국어 조사·어미 때문에 \b 가 오작동한 선례가 있어 토큰·문맥으로 판정한다. */
@@ -87,12 +90,33 @@ export function classify(text: string): { intent: Intent; arg?: string } {
   // SEO 를 언급했어도 **진단 시작이 아니라 작업 지시**면 위저드로 끌고 가지 않는다.
   // "세화 메뉴 SEO 나머지 채워줘" 같은 말이 진단 위저드에 빨려들면 사람이 답답해진다.
   if (seo === "seo" && !negated(t) && !seoWorkOrder(t)) return { intent: "seo" };
+  // 2026-09-28: 코드 위젯 수정·신규 생성은 자동 파이프라인으로 바로 간다(관문·승인은 파이프라인이 강제).
+  // 배포·롤백·켜기/끄기·조회는 여기로 오지 않는다 — 코드를 바꾸는 요청만.
+  const widget = widgetIntent(t);
+  if (widget) return widget;
   if (mentionsConnect(t) && !negated(t)) {
     return mentionsEntity(t) ? { intent: "unclear" } : { intent: "connect" };
   }
 
   // 그 밖의 자연어는 작업 큐로 접수한다. 실제 실행은 터미널에서 승인·게이트를 확인한다.
   return { intent: "agent" };
+}
+
+const NON_CODE_WORDS = /배포|롤백|되돌려|켜\s*줘|꺼\s*줘|켜기|끄기|중지|활성화|비활성화|상태|조회|목록|알려|보여|어때|했어|됐어|확인해/;
+const EDIT_WORDS = /수정|바꿔|바꾸|변경|고쳐|고치|교체|추가해|넣어|빼|삭제해|키워|줄여|늘려|색을|색상|문구|글자/;
+const NEW_WORDS = /(새|신규|새로운)\s*(코드\s*)?위젯|위젯[^\n]{0,24}(만들어|생성|추가해|제작)|(만들어|생성해|제작해)[^\n]{0,16}위젯/;
+
+/** 코드를 바꾸는 위젯 요청만 잡는다. 대상이 불분명하면 arg 없이 돌려 handle 에서 한 번 묻는다. */
+export function widgetIntent(t: string): { intent: Intent; arg?: string } | null {
+  if (negated(t) || NON_CODE_WORDS.test(t)) return null;
+  const ids = manifest().widgets.map((w) => w.widget_id);
+  if (NEW_WORDS.test(t)) {
+    const id = t.match(/\b[a-z][a-z0-9-]{2,39}\b/g)?.find((x) => !ids.includes(x));
+    return { intent: "widget_new", arg: id };
+  }
+  const named = ids.find((id) => t.includes(id));
+  if ((named || /위젯/.test(t)) && EDIT_WORDS.test(t)) return { intent: "widget_edit", arg: named };
+  return null;
 }
 
 const widgetFromText = (t: string): string | null => {
@@ -279,6 +303,20 @@ export async function handle(text: string, ctx: Ctx, queue = inbox, signal?: Abo
       }, ctx.chat_id);
       return payloadText(a);
     }
+    case "widget_edit":
+    case "widget_new": {
+      const mode = intent === "widget_new" ? "new" : "edit";
+      const internal = (id: string) => { try { return JSON.parse(readFileSync(p("src", "widgets", id, "widget.json"), "utf8")).internal === true; } catch { return false; } };
+      const editable = manifest().widgets.map((w) => w.widget_id).filter((id) => !internal(id));
+      const id = arg ?? (mode === "edit" && editable.length === 1 ? editable[0] : undefined);
+      if (!id) {
+        return mode === "new"
+          ? "새 위젯 ID를 영문으로 정해 주세요. 예: '새 위젯 promo-banner 만들어줘: 할인 안내 문구와 버튼'"
+          : `어느 위젯인가요? 수정 가능한 위젯: ${editable.join(", ") || "없음"}`;
+      }
+      const r = await runWidgetChange({ mode, widget_id: id, request: text, chat_id: ctx.chat_id }, { generator: widgetGenerator, signal });
+      return r.report;
+    }
     case "agent": {
       const { add, listText } = queue;
       // 작업 목록 조회는 즉답한다. 큐에 쌓을 일이 아니다.
@@ -298,3 +336,7 @@ export async function handle(text: string, ctx: Ctx, queue = inbox, signal?: Abo
 }
 
 export { expire };
+
+/** 테스트가 LLM 대신 각본 생성기를 끼운다. 운영에서는 undefined → Claude 생성기. */
+let widgetGenerator: Generator | undefined;
+export function setWidgetGenerator(g: Generator | undefined) { widgetGenerator = g; }

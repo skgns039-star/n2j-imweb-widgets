@@ -34,6 +34,15 @@ Git 저장소의 위젯 정본을 수정·빌드·검증·배포·롤백한다. 
 6. 불일치: 즉시 중단하고 `result=BLOCKED` 로 보고한다. 임의 재시도·우회를 하지 않는다.
 7. 보고: 지정된 JSON을 `logs/actions/` 에 기록하고, 사용자에게는 한국어 3~5줄로 요약한다.
 
+## 코드 위젯 수정·신규 자동 경로 (2026-09-28)
+- 텔레그램에서 "cta-contact 문구 바꿔줘", "새 위젯 promo-banner 만들어줘: …" 같은 **코드를 바꾸는 위젯 요청**은
+  `src/widget_pipeline/` 이 처리한다: 임시 폴더 생성 → 관문(범위·규격·위험 API·화면 노출·요청 누락) → 헤드리스 렌더 검사
+  → 적용 → 대상만 빌드·무결성 → diff 기록(`state/widget-changes/`) → cdn_deploy 승인 요청.
+- 수동으로 위젯을 고칠 때도 같은 규격을 지킨다(`src/widget_pipeline/policy.ts`): 자기 슬롯 `[data-ddak-slot="<id>"]` 안에만 렌더,
+  position fixed/sticky·body 직접 삽입·네트워크·eval·저장소 접근·외부 절대 URL 금지, 파일은 index.js·style.css·widget.json 3개.
+- 새 위젯은 enabled:false 로 등록된다. 켜기·슬롯 배치는 별도 승인이다.
+- `widget.json` 의 `internal: true`(검증용 위젯, 예: hello-badge)는 어떤 경로로도 켤 수 없다 — 빌드가 막는다.
+
 ## 아임웹 관련 사실 (ENG-006 grounding)
 - 아임웹은 저장 시 주석을 제거하는 등 코드를 정규화한다. 따라서 아임웹 내부 코드와 정본을 바이트 단위로 비교하지 않는다. 비교는 "주석 제거 정규화본" 기준으로만 한다.
 - 아임웹에는 로더만 존재해야 한다. 로직이 아임웹 안에 들어가 있는 것을 발견하면 즉시 보고하고, 사용자 승인 없이 이관하지 않는다.

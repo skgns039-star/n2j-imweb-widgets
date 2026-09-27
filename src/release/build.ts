@@ -22,7 +22,8 @@ function walk(dir: string, base = dir): string[] {
   });
 }
 
-export function build(): IntegrityRecord[] {
+/** only: 그 위젯만 다시 빌드한다. 다른 위젯의 dist·무결성 기록은 건드리지 않는다(예산 합산은 기존 기록으로). */
+export function build(opts: { only?: string } = {}): IntegrityRecord[] {
   const m = manifest();
   const errs: string[] = [];
   const records: IntegrityRecord[] = [];
@@ -40,6 +41,16 @@ export function build(): IntegrityRecord[] {
   for (const w of m.widgets) {
     const srcDir = p("src", "widgets", w.widget_id);
     if (!existsSync(srcDir)) { errs.push(`${w.widget_id}: 정본 디렉터리 없음`); continue; }
+    // 검증·테스트용 위젯(internal)은 켤 수 없다 — 방문자 화면에 관리용 요소가 보이는 사고를 빌드에서 막는다.
+    const metaPath = join(srcDir, "widget.json");
+    if (w.enabled && existsSync(metaPath) && JSON.parse(readFileSync(metaPath, "utf8")).internal === true) {
+      errs.push(`${w.widget_id}: internal(검증용) 위젯은 enabled: true 로 둘 수 없다`);
+    }
+    if (opts.only && opts.only !== w.widget_id) {
+      const prev = p("integrity", `${w.widget_id}.json`);
+      if (w.enabled && existsSync(prev)) total += (JSON.parse(readFileSync(prev, "utf8")) as IntegrityRecord).files.reduce((n, f) => n + f.gzip, 0);
+      continue;
+    }
     const outDir = p("dist", w.widget_id, w.version);
     rmSync(outDir, { recursive: true, force: true });
     mkdirSync(outDir, { recursive: true });
@@ -74,6 +85,7 @@ export function build(): IntegrityRecord[] {
     writeFileSync(p("integrity", `${w.widget_id}.json`), JSON.stringify(rec, null, 2) + "\n");
   }
 
+  if (opts.only && !m.widgets.some((w) => w.widget_id === opts.only)) errs.push(`${opts.only}: manifest 미등록 위젯`);
   if (total > BUDGET.total) errs.push(`사이트 총합 gzip ${total}B > ${BUDGET.total}B`);
   if (errs.length) throw new BuildFailed(errs);
   return records;

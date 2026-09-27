@@ -19,10 +19,22 @@ test("의도 분류", () => {
   assert.equal(classify("배포해줘").intent, "agent");
   assert.equal(classify("로더 스니펫 줘").intent, "agent");
   assert.equal(classify("상태 알려줘").intent, "agent");
-  assert.equal(classify("위젯 문구를 X로 바꿔줘").intent, "agent");
+  // 2026-09-28: 코드 위젯 수정·신규 생성은 자동 파이프라인으로 간다(관문·승인은 파이프라인이 강제)
+  assert.equal(classify("위젯 문구를 X로 바꿔줘").intent, "widget_edit");
   // 결정적 경로에 안 걸리는 자연어는 엔진이 받는다 (되묻지 않는다)
   assert.equal(classify("날씨 어때").intent, "agent");
   assert.equal(classify("어제 요청사항 진행 다 됐어?").intent, "agent");
+});
+
+test("코드 위젯 수정·신규 요청만 파이프라인으로 보내고, 배포·조회·켜기는 보내지 않는다", () => {
+  assert.deepEqual(classify("cta-contact 버튼 문구를 '견적 문의하기'로 바꿔줘"), { intent: "widget_edit", arg: "cta-contact" });
+  assert.equal(classify("위젯 버튼 색상 좀 진하게 수정해줘").intent, "widget_edit");
+  assert.deepEqual(classify("새 위젯 promo-banner 만들어줘: 할인 안내 문구와 버튼"), { intent: "widget_new", arg: "promo-banner" });
+  assert.deepEqual(classify("위젯 하나 새로 만들어줘"), { intent: "widget_new", arg: undefined });
+  for (const t of ["cta-contact 배포해줘", "cta-contact 롤백해줘", "cta-contact 켜줘", "cta-contact 상태 알려줘",
+    "위젯 수정은 아직 하지 마", "위젯 목록 보여줘", "위젯 바꾼 거 배포됐어?"]) {
+    assert.ok(!["widget_edit", "widget_new"].includes(classify(t).intent), t);
+  }
 });
 
 test("승인 회신에서 승인 ID를 뽑는다", () => {
