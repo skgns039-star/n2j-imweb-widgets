@@ -1,3 +1,5 @@
+import { assertBrowserFormAllowed } from "../seo/gates.ts";
+import { consumeApproval } from "../release/approval.ts";
 /* 네이버 서치어드바이저 소유확인 마무리.
 
    여기까지는 자동으로 온다: 사이트 등록 → HTML 태그 방식 선택 → 메타 태그를 아임웹에 삽입.
@@ -33,7 +35,9 @@ async function verified(page: any, site: string): Promise<boolean> {
   }, host);
 }
 
-export async function assist(site: string, timeoutMs = 900_000): Promise<{ ok: boolean; report: string }> {
+export async function assist(site: string, timeoutMs = 900_000, approvalId?: string): Promise<{ ok: boolean; report: string }> {
+  assertBrowserFormAllowed("naver");
+  consumeApproval(approvalId, "naver_verify", { site });
   if (!sessionStatus("naver").ok) return { ok: false, report: "네이버 세션이 없다. npm run console:login naver 부터." };
 
   const pw = await import("playwright");

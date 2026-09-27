@@ -1,3 +1,5 @@
+import { assertApproved, canonical } from "../release/approval.ts";
+import { verifiedWrite, writePayload } from "./verified_write.ts";
 /* 디자인모드 메뉴별 SEO 필드 (SKILL §3).
    **건드리는 것은 페이지 제목·페이지 설명 둘뿐이다.**
    메뉴명·서브메뉴명·메뉴 주소는 불가침이라 읽기만 한다 (INV-11).
@@ -12,7 +14,7 @@
      숨은 쪽을 집는다. 그래서 **모달 안에서** 찾는다.
    - 에디터가 무거워 로드 직후 클릭하면 핸들러가 아직 없어 조용히 무시된다.
    - 모달은 Escape 로 안 닫힌다. × 버튼을 눌러야 한다. */
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { p, manifest, gateBlock } from "../release/paths.ts";
 import { sessionStatus, statePath, reloginNotice } from "./session.ts";
 
@@ -38,14 +40,17 @@ async function open(site_id: string, headless: boolean) {
   if (!sessionStatus(site_id).ok) throw new Error(reloginNotice(site_id, "저장된 세션 없음"));
   const pw = await import("playwright");
   const b = await pw.chromium.launch({ headless });
+  try {
   const ctx = await b.newContext({ storageState: statePath(site_id), viewport: { width: 1600, height: 1000 } });
   const page = await ctx.newPage();
   await page.goto(`https://${new URL(site.url).host}/admin/design`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  if (await page.locator('input[type="password"]').count()) throw new Error("BLOCKED: 관리자 세션 만료 — 재로그인 필요");
   await page.waitForSelector(".dd-item[data-code]", { timeout: 60_000 });
   await page.waitForTimeout(BOOT_MS);
   await page.addStyleTag({ content: "#menu_list_slide{transform:none !important;}" });
   await page.waitForTimeout(1500);
   return { b, page };
+  } catch (e) { await b.close().catch(() => {}); throw e; }
 }
 
 async function openMenuDialog(page: any, code: string) {
@@ -96,7 +101,7 @@ export async function readAll(site_id: string): Promise<{ ok: boolean; report: s
     writeFileSync(p("state", "browser", `${site_id}.menu-seo.json`), JSON.stringify(rows, null, 2));
     await b.close();
     return {
-      ok: rows.some((r) => !r.name.startsWith("(열지 못함)")),
+      ok: rows.length > 0 && rows.every((r) => !r.name.startsWith("(열지 못함)")),
       rows,
       report: [`[메뉴별 SEO 현황] ${rows.length}개`,
         ...rows.map((r) => `  ${r.name.padEnd(16)} url=${(r.url || "-").padEnd(12)}` +
@@ -111,67 +116,68 @@ export async function readAll(site_id: string): Promise<{ ok: boolean; report: s
 }
 
 /** 메뉴별 페이지 제목·설명을 반영한다. 메뉴명·URL 은 손대지 않는다. */
-export async function applyAll(site_id: string, plans: Plan[]): Promise<{ ok: boolean; report: string }> {
+export async function applyAll(site_id: string, plans: Plan[], approvalId?: string, dryRun = false): Promise<{ ok: boolean; report: string; approvalPayload?: Record<string, unknown> }> {
   const blocked = gateBlock("seo_apply");
   if (blocked) return { ok: false, report: `BLOCKED: ${blocked}` };
-
-  const before = await readAll(site_id);
-  if (!before.ok) return { ok: false, report: before.report };
-  mkdirSync(p("seo", site_id, "snapshots"), { recursive: true });
-  writeFileSync(p("seo", site_id, "snapshots", `menu-seo-${new Date().toISOString().replace(/[:.]/g, "-")}.json`),
-    JSON.stringify(before.rows, null, 2));
-
-  const { b, page } = await open(site_id, false);   // 사람이 보는 앞에서만 쓴다
-  const log: string[] = ["스냅샷 저장 완료", ""];
-  let done = 0;
-  try {
-    for (const plan of plans) {
-      const was = before.rows.find((r) => r.code === plan.code);
-      const who = was?.name || plan.code;
-      try {
-        await openMenuDialog(page, plan.code);
-        const t = page.locator(F.title).first();
-        if (await t.isDisabled()) { log.push(`  ${who}: 건너뜀 — 아임웹이 개별 설정을 막은 메뉴`); await closeDialog(page); continue; }
-        // 메뉴명·URL 은 열어만 두고 만지지 않는다. 이 두 줄이 INV-11 경계다.
-        // 모달에 저장 버튼이 없다. 입력하면 초안에 바로 들어가고, 공개는 `게시하기` 로 한다.
-        // 없는 저장 버튼을 누르려다 매 항목이 타임아웃 났었다.
-        await t.fill(plan.title);
-        await t.blur();
-        await page.waitForTimeout(500);
-        const d = page.locator(F.description).first();
-        await d.fill(plan.description);
-        await d.blur();
-        await page.waitForTimeout(500);
-        await closeDialog(page);
-        done++;
-        log.push(`  ${who}: "${plan.title}"`);
-      } catch (e) {
-        log.push(`  ${who}: 실패 — ${(e as Error).message.split("\n")[0].slice(0, 60)}`);
-        await closeDialog(page).catch(() => {});
-      }
-    }
-    // 메뉴 설정 모달에는 저장 버튼이 없다. 값은 `게시하기` 로만 공개된다.
-    // **게시하기는 디자인 전체를 게시한다** — SEO 필드만 나가는 게 아니다.
-    // 헤더는 <design-mode-magnet> 커스텀 엘리먼트(shadow DOM)라 일반 DOM 조회로는 안 잡힌다.
-    if (done > 0) {
-      await page.locator("design-mode-magnet").getByText("게시하기", { exact: true }).click({ timeout: 30_000 });
-      await page.waitForTimeout(3000);
-      // "디자인을 게시하시겠습니까?" 확인 창이 뜬다. 이걸 안 누르면 **아무것도 게시되지 않는다.**
-      // 첫 시도에서 헤더 버튼만 누르고 끝내서, 관리자에는 저장됐는데 공개 페이지는 그대로였다.
-      // 창 안내: "게시한 뒤에는 실행 취소가 불가"
-      const confirm = page.getByRole("button", { name: "게시하기", exact: true })
-        .or(page.locator('button:has-text("게시하기")')).last();
-      await confirm.click({ timeout: 20_000 });
-      await page.waitForTimeout(10_000);
-      log.push("", "게시하기 → 확인창 승인 — 디자인 전체 게시 (되돌리기 불가)");
-    }
-
-    await b.close();
-    return { ok: done > 0, report: [...log, "", `${done}/${plans.length}개 반영`].join("\n") };
-  } catch (e) {
-    await b.close().catch(() => {});
-    return { ok: false, report: [...log, `실패: ${(e as Error).message.split("\n")[0]}`].join("\n") };
+  const target = "menu-seo-draft";
+  if (!dryRun) {
+    try { assertApproved(approvalId, "imweb_write", { site_id, target }); }
+    catch { return { ok: false, report: "BLOCKED: 메뉴 SEO 초안에 대한 1회 승인 필요" }; }
   }
+  const observed = await readAll(site_id);
+  if (!observed.ok) return { ok: false, report: "BLOCKED: 메뉴 전체 원문을 읽지 못했습니다." };
+  const beforeRows = observed.rows.sort((a, b) => a.code.localeCompare(b.code));
+  if (!plans.length || new Set(plans.map((p) => p.code)).size !== plans.length ||
+      plans.some((p) => !beforeRows.some((r) => r.code === p.code) || !/^[a-zA-Z0-9_-]+$/.test(p.code))) {
+    return { ok: false, report: "BLOCKED: 잘못된 메뉴 계획" };
+  }
+  const nextRows = beforeRows.map((r) => {
+    const plan = plans.find((p) => p.code === r.code);
+    return plan ? { ...r, title: plan.title, description: plan.description, inherits: false } : r;
+  });
+  const serialize = (rows: MenuSeo[]) => canonical(rows.map(({ inherits: _inherited, ...fields }) => fields));
+  const before = serialize(beforeRows), next = serialize(nextRows);
+  if (dryRun) return { ok: true, report: "dryRun — 초안 변경만 준비. 디자인 전체 게시 미포함.", approvalPayload: writePayload(site_id, target, before, next) };
+  const { b, page } = await open(site_id, false);
+  const read = async () => {
+    const codes: string[] = await page.evaluate(() => Array.from(document.querySelectorAll(".dd-item[data-code]")).map((e: any) => e.getAttribute("data-code")));
+    const rows: MenuSeo[] = [];
+    for (const code of [...new Set(codes)].sort((a, b) => a.localeCompare(b))) {
+      await openMenuDialog(page, code);
+      const title = await page.locator(F.title).first().inputValue();
+      rows.push({ code, title, description: await page.locator(F.description).first().inputValue(),
+        name: await page.locator(F.name).first().inputValue(), url: await page.locator(F.url).first().inputValue(),
+        inherits: !title && !!(await page.locator(F.title).first().getAttribute("placeholder")) });
+      await closeDialog(page);
+    }
+    if (!rows.length) throw new Error("BLOCKED: 메뉴 없음");
+    return serialize(rows);
+  };
+  try {
+    const io = {
+      read,
+      write: async (value: string) => {
+        await closeDialog(page).catch(() => {});
+        const rows: MenuSeo[] = JSON.parse(value);
+        for (const row of rows) {
+          await openMenuDialog(page, row.code);
+          const title = page.locator(F.title).first(), description = page.locator(F.description).first();
+          if (await title.inputValue() !== row.title) { await title.fill(row.title); await title.blur(); }
+          if (await description.inputValue() !== row.description) { await description.fill(row.description); await description.blur(); }
+          await closeDialog(page);
+        }
+      },
+      save: async () => { await page.waitForTimeout(1500); }, // blur가 관리자 초안에 저장한다.
+      reload: async () => {
+        await page.reload({ waitUntil: "domcontentloaded", timeout: 90_000 });
+        await page.waitForSelector(".dd-item[data-code]", { timeout: 60_000 });
+        await page.waitForTimeout(BOOT_MS);
+        await page.addStyleTag({ content: "#menu_list_slide{transform:none !important;}" });
+      },
+    };
+    const result = await verifiedWrite(io, site_id, target, before, next, approvalId);
+    return { ...result, report: result.report + "\n디자인 전체 게시 미실행. 게시 전 전체 디자인 변경과 복구 범위를 별도로 확인해야 합니다." };
+  } finally { await b.close().catch(() => {}); }
 }
 
 if (import.meta.main) {

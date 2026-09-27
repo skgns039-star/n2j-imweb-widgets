@@ -39,20 +39,32 @@ export function decide(text: string): SeoDecision {
 export const AMBIGUOUS_REPLY =
   "SEO 진단을 말씀하시는 건가요, 아니면 위젯 쪽 작업인가요? 한 번만 확인하겠습니다.";
 
+/** 명시된 다른 사이트를 유일한 등록 사이트로 조용히 바꾸지 않는다. */
+function selectSite(text: string) {
+  const sites = manifest().sites;
+  const named = sites.find((s) => text.toLowerCase().includes(s.site_id.toLowerCase()) ||
+    (s.label && text.includes(s.label)));
+  const urlText = text.match(/https?:\/\/[^\s]+/i)?.[0];
+  let host = "";
+  try { if (urlText) host = new URL(urlText).hostname.toLowerCase(); } catch { /* 아래에서 미등록 처리 */ }
+  const byHost = host && sites.find((s) => s.url && new URL(s.url).hostname.toLowerCase() === host);
+  if (host && !byHost) return { site: null, error: `요청한 ${host} 사이트가 manifest에 없습니다. 먼저 '연결'로 등록하세요.` };
+  if (named && byHost && named.site_id !== byHost.site_id) return { site: null, error: "사이트 이름과 URL이 서로 다릅니다. 대상 사이트를 다시 확인하세요." };
+  if (/엔투제이트리니|n2jtrini|nj2trini/i.test(text) &&
+      !sites.some((s) => /엔투제이트리니|n2jtrini|nj2trini/i.test(`${s.site_id} ${s.label ?? ""} ${s.url ?? ""}`)))
+    return { site: null, error: "엔투제이트리니 사이트가 manifest에 없습니다. 먼저 '연결'로 등록하세요." };
+  const site = named || byHost || (sites.length === 1 ? sites[0]! : null);
+  return { site, error: site ? "" : `어느 사이트인가요? 등록된 site_id: ${sites.map((s) => s.site_id).join(", ")}` };
+}
+
 /** "SEO" 진입 시 첫 응답: site_id 확인 → 애널리틱스 사전 질문 → 키워드 요청 → OBSERVE. */
 export async function enter(text: string): Promise<string> {
   const idReject = rejectIdInChat(text);
   if (idReject) return idReject;
 
-  const sites = manifest().sites;
-  if (!sites.length) return "등록된 사이트가 없습니다. 먼저 '연결'로 사이트를 등록하세요.";
-
-  // 1) site_id 확인 — manifest 가 정본이다 (§18.3)
-  const named = sites.find((s) => text.includes(s.site_id));
-  const site = named ?? (sites.length === 1 ? sites[0]! : null);
-  if (!site) {
-    return `어느 사이트인가요? 등록된 site_id: ${sites.map((s) => s.site_id).join(", ")}`;
-  }
+  if (!manifest().sites.length) return "등록된 사이트가 없습니다. 먼저 '연결'로 사이트를 등록하세요.";
+  const { site, error } = selectSite(text);
+  if (!site) return error;
   const r = resolveSiteId(site.site_id);
   if (!r.ok) return r.msg;
   if (!site.url) return `${site.site_id} 에 url 이 없습니다. '연결' 위저드로 먼저 등록하세요.`;
@@ -60,7 +72,7 @@ export async function enter(text: string): Promise<string> {
   // 2) 애널리틱스 자동 감지 → 사전 질문 (감지 없이 묻지 않는다)
   const { collector } = await import("./observe.ts");
   const first = await collector.page(site.url.replace(/\/+$/, ""), site.test_path ?? "/");
-  const detected = { ga4: first.analytics.ga4, gtm: first.analytics.gtm };
+  const detected = { ga4: first.analytics.ga4, gtm: first.analytics.gtm, observed: first.ok };
 
   // 3) 메타 키워드 요청 + 4) OBSERVE 안내
   return [
@@ -73,7 +85,7 @@ export async function enter(text: string): Promise<string> {
     "검색엔진 등록 가능 범위:",
     engineStatusText(),
     "",
-    "이번 범위는 **진단까지**입니다. 아임웹에 아무것도 쓰지 않습니다 (M1).",
+    "이번 흐름은 **진단까지**입니다. 실제 반영은 별도 승인·원문 스냅샷·검증을 거칩니다.",
   ].join("\n");
 }
 
@@ -97,7 +109,7 @@ function parseCombined(text: string) {
 async function detectAnalytics(site: { url?: string; test_path?: string }) {
   const { collector } = await import("./observe.ts");
   const first = await collector.page((site.url ?? "").replace(/\/+$/, ""), site.test_path ?? "/");
-  return { ga4: first.analytics.ga4, gtm: first.analytics.gtm };
+  return { ga4: first.analytics.ga4, gtm: first.analytics.gtm, observed: first.ok };
 }
 
 /** Q-A2(설치 위치) · Q-A3(전자상거래 추적) 답변인지 판정. 키워드 단계가 이걸 삼키면 안 된다.
@@ -185,15 +197,15 @@ export async function start(text: string, _ctx: Ctx): Promise<{ answers: Answers
   if (idReject) return idReject;
 
   if (asksStatus(text)) {
+    const selected = selectSite(text);
+    if (!selected.site) return selected.error;
     const { seoStatus } = await import("./artifacts.ts");
     return seoStatus();
   }
 
-  const sites = manifest().sites;
-  if (!sites.length) return "등록된 사이트가 없습니다. 먼저 '연결'로 사이트를 등록하세요.";
-  const named = sites.find((s) => text.includes(s.site_id));
-  const site = named ?? (sites.length === 1 ? sites[0]! : null);
-  if (!site) return `어느 사이트인가요? 등록된 site_id: ${sites.map((s) => s.site_id).join(", ")}`;
+  if (!manifest().sites.length) return "등록된 사이트가 없습니다. 먼저 '연결'로 사이트를 등록하세요.";
+  const { site, error } = selectSite(text);
+  if (!site) return error;
   const r = resolveSiteId(site.site_id);
   if (!r.ok) return r.msg;
   if (!site.url) return `${site.site_id} 에 url 이 없습니다. '연결' 위저드로 먼저 등록하세요.`;
@@ -209,7 +221,7 @@ export async function start(text: string, _ctx: Ctx): Promise<{ answers: Answers
     "검색엔진 등록 가능 범위:",
     engineStatusText(),
     "",
-    "이번 범위는 **진단까지**입니다. 아임웹에 아무것도 쓰지 않습니다 (M1).",
+    "이번 흐름은 **진단까지**입니다. 실제 반영은 별도 승인·원문 스냅샷·검증을 거칩니다.",
   ].join("\n");
 
   return { answers: { site_id: site.site_id, __intro: intro }, intro };

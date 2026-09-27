@@ -1,3 +1,5 @@
+import { assertBrowserFormAllowed } from "../seo/gates.ts";
+import { consumeApproval } from "../release/approval.ts";
 /* 검색엔진 등록 오케스트레이터.
 
    **사람은 두 가지만 한다: 로그인, 그리고 캡차.** 나머지는 전부 여기서 한다.
@@ -24,7 +26,9 @@ const siteUrl = (site_id: string) => {
 };
 
 /** 네이버: 사이트 등록 → HTML 태그 방식 → 코드 수령. 캡차 전까지. */
-export async function naverCode(target: string): Promise<{ code: string; already: boolean }> {
+export async function naverCode(target: string, approvalId?: string): Promise<{ code: string; already: boolean }> {
+  assertBrowserFormAllowed("naver");
+  consumeApproval(approvalId, "naver_register", { target });
   const pw = await import("playwright");
   const b = await pw.chromium.launch({ headless: true });
   try {
@@ -55,10 +59,10 @@ export async function naverCode(target: string): Promise<{ code: string; already
 }
 
 /** 모아둔 코드 전량 + JSON-LD 로 Header Code 를 다시 쓴다. */
-export async function syncHeaderCode(site_id: string, jsonLd: string): Promise<Step> {
+export async function syncHeaderCode(site_id: string, jsonLd: string, approvalId?: string): Promise<Step> {
   const codes = loadCodes(site_id);
   const next = compose({ jsonLd, verification: codes });
-  const r = await putBlock(site_id, "Header Code", "owner-verification", "", false, false, next);
+  const r = await putBlock(site_id, "Header Code", "owner-verification", "", false, false, next, approvalId);
   return { name: "아임웹 Header Code 반영", ok: r.ok, detail: `${summary(codes)} — ${r.report.split("\n").pop()}` };
 }
 
@@ -83,6 +87,7 @@ export function report(steps: Step[]): string {
 
 /** 한 번에 돌리는 진입점. 사람이 필요한 지점(로그인·캡차)에서만 멈춘다. */
 if (import.meta.main) {
+  assertBrowserFormAllowed("naver");
   const site_id = process.argv[2] ?? "sehwa";
   const target = process.argv[3] ?? "https://세화건설산업.kr";
   const { BODY } = await import("../seo/jsonld_sehwa.ts");
@@ -93,7 +98,7 @@ if (import.meta.main) {
     const { code, already } = await naverCode(target);
     if (code) {
       putCode(site_id, "naver", code);
-      steps.push({ name: "네이버 코드 수령", ok: true, detail: code.slice(0, 12) + "…" });
+      steps.push({ name: "네이버 코드 수령", ok: true, detail: "코드 수령 (값 미출력)" });
     } else {
       steps.push({ name: "네이버 코드 수령", ok: already, detail: already ? "이미 소유확인 완료" : "코드를 못 찾음" });
     }

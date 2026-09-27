@@ -1,3 +1,5 @@
+import { assertBrowserFormAllowed } from "../seo/gates.ts";
+import { consumeApproval } from "../release/approval.ts";
 /* 다음 검색등록.
 
    **네이버·구글과 성격이 다르다.** 웹마스터 콘솔이 아니라 **심사 신청 폼**이다:
@@ -13,7 +15,9 @@ const CHECK = "https://register.search.daum.net/searchForm.daum?act=search";
 export type Apply = { url: string; dryRun?: boolean };
 
 /** 신청 폼 1단계: 유형(사이트검색) + URL. 이후 단계는 로그인 뒤에야 보인다. */
-export async function apply(a: Apply): Promise<{ ok: boolean; report: string }> {
+export async function apply(a: Apply, approvalId?: string): Promise<{ ok: boolean; report: string }> {
+  assertBrowserFormAllowed("daum");
+  consumeApproval(approvalId, "daum_register", { url: a.url });
   if (!sessionStatus("daum").ok) {
     return { ok: false, report: "다음 세션이 없다. npm run console:login daum 부터." };
   }
@@ -61,6 +65,7 @@ export async function apply(a: Apply): Promise<{ ok: boolean; report: string }> 
 }
 
 if (import.meta.main) {
+  assertBrowserFormAllowed("naver");
   const url = process.argv[2] ?? "https://세화건설산업.kr";
   const r = await apply({ url, dryRun: !process.argv.includes("--go") });
   console.log(r.report);

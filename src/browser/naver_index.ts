@@ -1,3 +1,5 @@
+import { assertBrowserFormAllowed } from "../seo/gates.ts";
+import { consumeApproval } from "../release/approval.ts";
 /* 네이버 서치어드바이저 — 사이트맵 제출 · 웹페이지 수집(색인) 요청.
 
    소유확인이 끝난 뒤에는 캡차가 없다. 그래서 여기부터는 전부 자동이다.
@@ -30,7 +32,9 @@ async function submitOne(page: any, url: string, value: string, listMarker: stri
 
 export type IndexResult = { ok: boolean; report: string };
 
-export async function run(site: string, paths: string[]): Promise<IndexResult> {
+export async function run(site: string, paths: string[], approvalId?: string): Promise<IndexResult> {
+  assertBrowserFormAllowed("naver");
+  consumeApproval(approvalId, "naver_index", { site, paths });
   if (!sessionStatus("naver").ok) return { ok: false, report: "네이버 세션 없음. npm run console:login naver 부터." };
   const root = site.replace(/\/+$/, "");
   const pw = await import("playwright");

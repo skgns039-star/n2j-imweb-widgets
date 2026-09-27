@@ -1,10 +1,10 @@
 /* ENG-046 SEO 스킬 진입점. 이번 범위는 **M1 진단 전용** — 아임웹 쓰기 0건 (SKILL §18.2).
    산출물은 seo/<site_id>/ 안에서만 만든다. dist/·registry.json·loader/ 를 건드리지 않는다. */
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { p, manifest } from "../release/paths.ts";
+import { p, manifest, gateBlock } from "../release/paths.ts";
 import { looksSecret } from "../release/secrets.ts";
 import { resolveSiteId, engineStatusText, assertApplyAllowed } from "./gates.ts";
-import { observe, siteFiles, MAX_PAGES, infer, questionsFor, weakPoints, maskAnalytics, markerTypesFound, type PageSeo } from "./observe.ts";
+import { observe, siteFiles, MAX_PAGES, infer, questionsFor, weakPoints, maskId, maskAnalytics, markerTypesFound, type PageSeo } from "./observe.ts";
 import { checkField, cannibalization, gate, type Finding } from "./quality.ts";
 
 export const SEO_DIRS = [
@@ -47,7 +47,7 @@ export function startupReport(a: {
     `사이트:            ${a.site_id}   정식 도메인: ${g("정식 도메인")}`,
     `브랜드명:          ${g("브랜드명")}   쇼핑몰 여부: ${g("쇼핑몰 여부")}`,
     `공개 페이지 진단:  ${ok}/${a.pages.length} 페이지`,
-    `디자인모드:        읽기 전용 고정 (INV-11)`,
+    `디자인모드:        ${gateBlock("design_mode_write") ? "쓰기 게이트 차단" : "변경은 별도 승인·스냅샷 후"}`,
     `GA4/GTM 상태:      ${g("GA4")}`,
     `SEO 마커:          ${markerTypesFound(a.pages).join(", ") || "없음"}`,
     "",
@@ -59,7 +59,7 @@ export function startupReport(a: {
     ...(weakPoints(a.inferred).length
       ? ["", "확인 필요 — 근거가 약해 그대로 진행하지 않습니다:", ...weakPoints(a.inferred).map((w) => "  · " + w)]
       : []),
-    "차단 게이트:       SEO 반영(9~11단계)은 M2. 이번 범위는 진단까지입니다.",
+    `SEO 반영 게이트:  ${gateBlock("seo_apply") ?? "해소됨 — 실제 반영은 별도 승인·스냅샷 후"}`,
     "다음 단계:         1 공개 페이지 진단 → 2 sitemap/robots/llms → 6 초안",
   ].join("\n");
 }
@@ -70,6 +70,8 @@ export function auditFindings(pages: PageSeo[], siteType = "일반"): Finding[] 
     if (!pg.ok) continue;
     out.push({ ...checkField("메타 타이틀", pg.title, siteType), field: `${pg.path} 메타 타이틀` });
     out.push({ ...checkField("메타 디스크립션", pg.description, siteType), field: `${pg.path} 메타 디스크립션` });
+    if ((pg.descriptionCount ?? 1) > 1) out.push({ field: `${pg.path} 메타 디스크립션 중복`, verdict: "조정 후보", reason: `${pg.descriptionCount}개 발견 — 기존 코드 위젯 보존, 출처 확인 필요` });
+    if (pg.analytics.duplicateGa4Config) out.push({ field: `${pg.path} GA4 설정 중복`, verdict: "조정 후보", reason: `같은 측정 ID의 config 호출 중복 (${pg.analytics.ga4ConfigCount ?? 0}회 중)` });
     if (pg.imgNoAlt > 0) out.push({ field: `${pg.path} ALT 누락`, verdict: "조정 후보", reason: `${pg.imgNoAlt}/${pg.imgTotal}` });
     if (!pg.canonical) out.push({ field: `${pg.path} canonical`, verdict: "조정 후보", reason: "없음" });
     if (!pg.jsonLdTypes.length) out.push({ field: `${pg.path} JSON-LD`, verdict: "조정 후보", reason: "없음" });
@@ -91,6 +93,10 @@ export async function runDiagnosis(site_id: string, keyword: string, paths: stri
   const inferred = infer(pages);
   const questions = questionsFor(inferred);
   const head = startupReport({ site_id, keyword, url: site.url, inferred, questions, pages });
+  if (!pages.some((x) => x.ok)) {
+    return [head, "", "진단 중단 — 공개 페이지를 한 건도 수집하지 못했습니다. 근거 없는 SEO 초안·산출물은 생성하지 않습니다.",
+      ...pages.map((x) => `  ${x.path}: ${x.error ?? "수집 실패"}`)].join("\n");
+  }
 
   const findings = auditFindings(pages);
   const g = gate(findings);
@@ -130,18 +136,19 @@ export async function runDiagnosis(site_id: string, keyword: string, paths: stri
 }
 
 /** §1.4 애널리틱스 사전 질문. 감지 없이 묻지 않고, 질문 없이 설치하지 않는다. */
-export function analyticsGateQuestions(detected: { ga4: string[]; gtm: string[] }): string {
+export function analyticsGateQuestions(detected: { ga4: string[]; gtm: string[]; observed?: boolean }): string {
   const found = detected.ga4.length || detected.gtm.length;
+  const observed = detected.observed !== false;
   return [
     "[애널리틱스 사전 확인]  모드: OBSERVE",
-    `자동 감지 결과: GA4 ${detected.ga4.join(", ") || "없음"} / GTM ${detected.gtm.join(", ") || "없음"}`,
+    `자동 감지 결과: ${observed ? `GA4 ${detected.ga4.map(maskId).join(", ") || "없음"} / GTM ${detected.gtm.map(maskId).join(", ") || "없음"}` : "공개 페이지 수집 실패 — 판정 보류"}`,
     "",
     "Q-A1  애널리틱스를 어떻게 할까요?",
     "  A 이미 연결됨 → 검수만 (설치 안 함)",
     "  B 미연결 → 이번에 설치 (승인 후 진행)",
     "  C 이번 작업에서 제외",
     "  D 감지 결과가 실제와 다름 → 관리자 확인 후 재판정",
-    `  · 권장: ${found ? "A" : "B"}`,
+    `  · 권장: ${!observed ? "D" : found ? "A" : "B"}`,
     "",
     "Q-A2  (B 선택 시만) 어디에 붙일까요?  A 아임웹 데이터 연결(권장) / B GTM / C Header Code",
     "Q-A3  (쇼핑몰일 때만) 전자상거래 추적이 필요한가요?  A 필요 / B 불필요",

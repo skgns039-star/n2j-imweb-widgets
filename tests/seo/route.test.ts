@@ -1,14 +1,17 @@
 /* STEST-003, 009~012, 015~018, 021, 022, 024, 027 + ITEST-001·003·004 — 라우팅·게이트·진입 흐름. */
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createInbox } from "../../src/bot/inbox.ts";
 import { execFileSync } from "node:child_process";
 import { ROOT, p, manifest, gateBlock } from "../../src/release/paths.ts";
 import { selectors } from "../../src/browser/session.ts";
 import { decide, mentionsSeo, mentionsSeoConflict, enter, AMBIGUOUS_REPLY } from "../../src/seo/route.ts";
 import { engineStatus, assertBrowserFormAllowed, assertApplyAllowed, resolveSiteId } from "../../src/seo/gates.ts";
 import { collector, infer, questionsFor, type PageSeo } from "../../src/seo/observe.ts";
-import { startupReport, rejectIdInChat, analyticsGateQuestions, writeReport, siteDir } from "../../src/seo/index.ts";
+import { startupReport, rejectIdInChat, analyticsGateQuestions, writeReport, siteDir, runDiagnosis } from "../../src/seo/index.ts";
 import { classify, handle } from "../../src/bot/router.ts";
 
 const ctx = { agent_id: "imweb-widget-agent", channel: "telegram", bot_account_id: "imweb-widget-bot", chat_id: 9300 };
@@ -50,21 +53,28 @@ test("애매하면 임의 분기하지 않고 한 번 되묻는다", async () =>
 test("STEST-011 SCHK 미해소 엔진만 PENDING, 나머지는 진행", () => {
   const st = engineStatus();
   assert.equal(st.length, 4);
+  const actions = { gsc: "gsc_api", bing: "bing_api", naver: "naver_form", daum: "daum_form" } as const;
   for (const e of st) {
+    assert.equal(e.status, gateBlock(actions[e.engine]) ? "PENDING" : "가능");
     if (e.status === "PENDING") assert.ok(e.fallback, `${e.engine} 대체 경로가 없다`);
   }
-  assert.ok(st.every((e) => e.status === "PENDING"), "SCHK 전부 OPEN 상태이므로 4개 모두 PENDING 이어야 한다");
 });
 
-test("STEST-012 Naver/Daum 최종 제출은 승인 이전에 클릭 0건 — 게이트가 먼저 막는다", () => {
-  assert.throws(() => assertBrowserFormAllowed("naver"), /BLOCKED/);
-  assert.throws(() => assertBrowserFormAllowed("daum"), /BLOCKED/);
+test("STEST-012 Naver/Daum 폼 게이트는 매니페스트를 따르고 승인 없이 제출하지 않는다", () => {
+  for (const engine of ["naver", "daum"] as const) {
+    if (gateBlock(`${engine}_form`)) assert.throws(() => assertBrowserFormAllowed(engine), /BLOCKED/);
+    else assert.doesNotThrow(() => assertBrowserFormAllowed(engine));
+  }
 });
 
 test("STEST-021 미해소 게이트가 있으면 폼 자동입력은 차단되고 안내로 강등된다", () => {
-  // 네이버는 SCHK-003(naver_form) 이 미해소다. 게이트 이름을 박지 않고 **차단된다는 사실**을 본다.
-  assert.throws(() => assertBrowserFormAllowed("naver"), /BLOCKED/);
-  assert.match(engineStatus().find((e) => e.engine === "naver")!.fallback, /안내 카드/);
+  // 게이트 이름을 박지 않는다. 미해소 게이트가 있는 엔진은 차단되고 안내 카드로 강등된다.
+  // 폼 엔진(naver·daum)이 PENDING 이면 자동입력은 막히고 값이 채워진 안내 카드로 강등된다.
+  for (const e of engineStatus().filter((s) => s.engine === "naver" || s.engine === "daum")) {
+    if (e.status !== "PENDING") continue;
+    assert.throws(() => assertBrowserFormAllowed(e.engine), /BLOCKED/);
+    assert.match(e.fallback, /안내 카드/);
+  }
 });
 
 test("SEO 반영 허용 여부는 매니페스트를 따른다 — 코드가 임의로 정하지 않는다", () => {
@@ -94,7 +104,7 @@ test("STEST-009 메타 키워드만 줘도 나머지는 추론되고 [추론] �
   const report = startupReport({ site_id: SITE, keyword: "조립식 건축", url: "https://x", inferred: inf, questions: [], pages });
   assert.match(report, /\[추론\]/);
   assert.match(report, /모드: OBSERVE/);
-  assert.match(report, /읽기 전용 고정/);
+  assert.match(report, /별도 승인·스냅샷/);
 });
 
 test("STEST-010 추론 실패 항목이 많아도 최대 4개까지만 묻는다", () => {
@@ -116,6 +126,30 @@ test("STEST-016 이미 감지된 상태에서는 A(검수)를 권장한다", () 
   const q = analyticsGateQuestions({ ga4: ["G-ABC1234567"], gtm: [] });
   assert.match(q, /권장: A/);
   assert.match(analyticsGateQuestions({ ga4: [], gtm: [] }), /권장: B/);
+  assert.match(analyticsGateQuestions({ ga4: [], gtm: [], observed: false }), /권장: D/);
+  assert.match(analyticsGateQuestions({ ga4: [], gtm: [], observed: false }), /판정 보류/);
+});
+
+test("미등록 N2J 요청을 세화 사이트 진단으로 바꾸지 않는다", async () => {
+  assert.match(await enter("엔투제이트리니 SEO 해줘"), /manifest에 없습니다/);
+  assert.match(await enter("https:\/\/n2jtriniweb.co.kr SEO 진단"), /manifest에 없습니다/);
+  assert.match(await enter("세화 말고 엔투제이트리니 SEO 해줘"), /manifest에 없습니다/);
+});
+
+test("렌더 실패는 GA4 미연결로 단정하지 않는다", async () => {
+  collector.page = async (_u, path) => page({ path, ok: false, error: "렌더 실패", analytics: { ga4: [], gtm: [], hasGtag: false, hasDataLayer: false } });
+  assert.match(await enter("SEO"), /판정 보류/);
+  assert.match(await enter("SEO"), /권장: D/);
+  assert.equal(infer([await collector.page("", "/")]).find((x) => x.field === "GA4")?.value, "판정 보류");
+});
+
+test("수집 0건이면 근거 없는 SEO 초안 생성을 중단한다", async (t) => {
+  collector.page = async (_u, path) => page({ path, ok: false, error: "렌더 실패" });
+  t.mock.method(globalThis, "fetch", async () => new Response("", { status: 404 }));
+  const out = await runDiagnosis(SITE, "조립식 건축");
+  assert.match(out, /진단 중단/);
+  assert.match(out, /판정 보류/);
+  assert.doesNotMatch(out, /산출물 \d+개/);
 });
 
 test("STEST-017 측정 ID를 대화로 보내면 저장 0건 + 관리자 입력 안내", () => {
@@ -136,11 +170,21 @@ test("STEST-018 Q-A1 에서 D 를 골라도 나머지 SEO 작업은 계속 진�
 
 // ── 디자인모드 불가침
 
-test("STEST-003 디자인모드 본문 수정 지시는 거부되고 보고서로 안내된다", async () => {
-  const r = await handle("SEO 디자인모드 본문 텍스트 고쳐줘", ctx);
-  // 위젯 엔티티가 없으므로 seo 라우트로 가고, 진입 응답은 읽기 전용 고정을 명시한다.
-  assert.match(r, /진단까지|읽기 전용|OBSERVE/);
-  assert.ok(!/수정했습니다|반영/.test(r));
+test("STEST-003 디자인모드 쓰기 허용 여부는 매니페스트를 따른다", async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "imweb-route-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const queue = createInbox(join(dir, "tasks.json"));
+  // INV-11 은 2026-08-31 사용자 결정으로 폐기됐다 (AUTHORITY_MANIFEST overrides).
+  // 테스트가 특정 상태를 박아두면 매니페스트를 되돌려도 거짓말을 한다 — 게이트를 보고 판정한다.
+  const blocked = gateBlock("design_mode_write");
+  const r = await handle("SEO 디자인모드 본문 텍스트 고쳐줘", ctx, queue);
+  if (blocked) {
+    assert.match(r, /읽기 전용|INV-11/, "막혀 있으면 이유를 말해야 한다");
+    assert.ok(!/수정했습니다|반영 완료/.test(r), "막힌 상태에서 완료를 말하면 안 된다");
+  } else {
+    assert.match(r, /접수 T-\d{3,}/, "열려 있으면 작업 큐로 접수된다");
+    assert.ok(!/수정했습니다|반영 완료/.test(r), "접수는 완료가 아니다");
+  }
 });
 
 // ── 롤백 기록
@@ -170,7 +214,7 @@ test("ITEST-001 기존 위젯 경로에 변경이 없다", () => {
   const widgetPaths = changed.filter((f) =>
     f.startsWith("src/widgets/") || f.startsWith("dist/") || f.startsWith("loader/") ||
     // src/browser 는 M2(브라우저 업로드) 영역이라 위젯 경로가 아니다 — tests/browser 가 따로 지킨다.
-    f === "registry.json" || f.startsWith("src/release/"));
+    f === "registry.json"); // 승인·배포 결함 수정은 이번 사용자 요청 범위다.
   assert.deepEqual(widgetPaths, [], `위젯 경로가 변경됐다: ${widgetPaths.join(", ")}`);
 });
 

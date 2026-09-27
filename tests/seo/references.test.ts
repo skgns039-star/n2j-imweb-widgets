@@ -284,3 +284,12 @@ test("근거가 약한 쇼핑몰 판정은 밀어붙이지 않고 묻는다", as
   // 근거가 확실하면 묻지 않는다
   assert.deepEqual(questionsFor([{ field: "쇼핑몰 여부", value: "예", inferred: true }]), []);
 });
+
+test("SEO 작업 지시는 일반 작업 경로로 분류된다", async () => {
+  const { classify } = await import("../../src/bot/router.ts");
+  assert.equal(classify("세화 메뉴 SEO 나머지 채워줘").intent, "agent");
+  assert.equal(classify("메타 디스크립션 수정해줘").intent, "agent");
+  assert.equal(classify("세화 SEO 시작").intent, "seo");
+  assert.equal(classify("SEO 현황").intent, "seo");
+  assert.equal(classify("SEO 진단해줘").intent, "seo");
+});

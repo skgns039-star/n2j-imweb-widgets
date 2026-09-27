@@ -1,3 +1,6 @@
+import { gateBlock } from "../release/paths.ts";
+import { consumeApproval } from "../release/approval.ts";
+import { sha256 } from "../release/hash.ts";
 /* Search Console API + Site Verification API.
 
    순서가 정해져 있다:
@@ -12,7 +15,10 @@ import { accessToken } from "./oauth.ts";
 const SV = "https://www.googleapis.com/siteVerification/v1";
 const WM = "https://www.googleapis.com/webmasters/v3";
 
-async function call(url: string, init: RequestInit = {}): Promise<{ status: number; body: any }> {
+async function call(url: string, init: RequestInit = {}, approvalId?: string): Promise<{ status: number; body: any }> {
+  const blocked = gateBlock("gsc_api");
+  if (blocked) throw new Error(`BLOCKED: ${blocked}`);
+  if (init.method && init.method !== "GET") consumeApproval(approvalId, "gsc_api_write", { url, request_sha256: sha256(String(init.body ?? "")) });
   const t = await accessToken();
   const r = await fetch(url, {
     ...init,
@@ -25,25 +31,25 @@ async function call(url: string, init: RequestInit = {}): Promise<{ status: numb
 }
 
 /** 구글이 발급하는 META 토큰. 우리가 넣은 값과 같아야 한다. */
-export async function metaToken(site: string): Promise<string> {
+export async function metaToken(site: string, approvalId?: string): Promise<string> {
   const { status, body } = await call(`${SV}/token`, {
     method: "POST",
     body: JSON.stringify({ verificationMethod: "META", site: { type: "SITE", identifier: site } }),
-  });
-  if (status !== 200) throw new Error(`토큰 조회 실패 ${status}: ${JSON.stringify(body).slice(0, 200)}`);
+  }, approvalId);
+  if (status !== 200) throw new Error(`토큰 조회 실패 ${status}: 응답 내용은 비밀값 보호를 위해 생략`);
   // "<meta name=\"google-site-verification\" content=\"...\" />" 에서 값만 뽑는다
   return String(body.token ?? "").match(/content="([^"]+)"/)?.[1] ?? String(body.token ?? "");
 }
 
 /** 소유확인 실행. 사이트에 META 태그가 이미 있어야 통과한다. */
-export async function verify(site: string): Promise<string> {
+export async function verify(site: string, approvalId?: string): Promise<string> {
   const { status, body } = await call(`${SV}/webResource?verificationMethod=META`, {
     method: "POST",
     body: JSON.stringify({ site: { type: "SITE", identifier: site } }),
-  });
+  }, approvalId);
   if (status === 200) return `소유확인 완료 (${body.id ?? site})`;
   if (status === 400 && JSON.stringify(body).includes("already")) return "이미 확인됨";
-  throw new Error(`소유확인 실패 ${status}: ${JSON.stringify(body).slice(0, 240)}`);
+  throw new Error(`소유확인 실패 ${status}: 응답 내용은 비밀값 보호를 위해 생략`);
 }
 
 export async function listSites(): Promise<string[]> {
@@ -52,17 +58,17 @@ export async function listSites(): Promise<string[]> {
   return (body.siteEntry ?? []).map((s: any) => `${s.siteUrl} (${s.permissionLevel})`);
 }
 
-export async function addSite(site: string): Promise<string> {
-  const { status, body } = await call(`${WM}/sites/${encodeURIComponent(site)}`, { method: "PUT" });
+export async function addSite(site: string, approvalId?: string): Promise<string> {
+  const { status, body } = await call(`${WM}/sites/${encodeURIComponent(site)}`, { method: "PUT" }, approvalId);
   if (status === 204 || status === 200) return "사이트 등록 완료";
-  throw new Error(`사이트 등록 실패 ${status}: ${JSON.stringify(body).slice(0, 200)}`);
+  throw new Error(`사이트 등록 실패 ${status}: 응답 내용은 비밀값 보호를 위해 생략`);
 }
 
-export async function submitSitemap(site: string, sitemapUrl: string): Promise<string> {
+export async function submitSitemap(site: string, sitemapUrl: string, approvalId?: string): Promise<string> {
   const { status, body } = await call(
-    `${WM}/sites/${encodeURIComponent(site)}/sitemaps/${encodeURIComponent(sitemapUrl)}`, { method: "PUT" });
+    `${WM}/sites/${encodeURIComponent(site)}/sitemaps/${encodeURIComponent(sitemapUrl)}`, { method: "PUT" }, approvalId);
   if (status === 204 || status === 200) return "사이트맵 제출 완료";
-  throw new Error(`사이트맵 제출 실패 ${status}: ${JSON.stringify(body).slice(0, 200)}`);
+  throw new Error(`사이트맵 제출 실패 ${status}: 응답 내용은 비밀값 보호를 위해 생략`);
 }
 
 export async function sitemapStatus(site: string): Promise<string> {
@@ -75,19 +81,21 @@ export async function sitemapStatus(site: string): Promise<string> {
 }
 
 /** 1 → 2 → 3 을 순서대로. 각 단계 결과를 그대로 보고한다. */
-export async function setup(site: string, sitemapUrl: string): Promise<string> {
+export async function setup(site: string, sitemapUrl: string, approvals: { metaToken?: string; verify?: string; addSite?: string; sitemap?: string } = {}): Promise<string> {
+  const blocked = gateBlock("gsc_api");
+  if (blocked) throw new Error(`BLOCKED: ${blocked}`);
   const out: string[] = [];
   const step = async (name: string, f: () => Promise<string>) => {
     try { out.push(`  OK   ${name.padEnd(16)}${await f()}`); return true; }
     catch (e) { out.push(`  실패 ${name.padEnd(16)}${(e as Error).message.split("\n")[0]}`); return false; }
   };
   await step("META 토큰", async () => {
-    const t = await metaToken(site);
-    return `${t.slice(0, 16)}… (사이트에 심은 값과 대조 필요)`;
+    const t = await metaToken(site, approvals.metaToken);
+    return t ? "META 토큰 수령 (값 미출력)" : "META 토큰 없음";
   });
-  if (!(await step("소유확인", () => verify(site)))) return out.join("\n");
-  await step("사이트 등록", () => addSite(site));
-  await step("사이트맵 제출", () => submitSitemap(site, sitemapUrl));
+  if (!(await step("소유확인", () => verify(site, approvals.verify)))) return out.join("\n");
+  await step("사이트 등록", () => addSite(site, approvals.addSite));
+  await step("사이트맵 제출", () => submitSitemap(site, sitemapUrl, approvals.sitemap));
   await step("사이트맵 상태", () => sitemapStatus(site));
   return out.join("\n");
 }

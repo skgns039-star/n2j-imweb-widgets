@@ -2,10 +2,11 @@
    위젯 스캐너와 독립된 자체 수집기를 쓴다 (격리 계약). 판정은 렌더 후 DOM 기준이다. */
 import { NS } from "./marker.ts";
 
-export type Analytics = { ga4: string[]; gtm: string[]; hasGtag: boolean; hasDataLayer: boolean };
+export type Analytics = { ga4: string[]; gtm: string[]; hasGtag: boolean; hasDataLayer: boolean;
+  ga4ConfigCount?: number; duplicateGa4Config?: boolean };
 export type PageSeo = {
   path: string; ok: boolean; error?: string;
-  title: string; description: string; canonical: string;
+  title: string; description: string; descriptionCount?: number; canonical: string;
   og: Record<string, string>;
   h1: string[]; h2Count: number;
   bodyText: string;              // 렌더된 본문 발췌. 문구의 **근거**로만 쓴다 (INV-13).
@@ -29,7 +30,7 @@ export const maskAnalytics = (a: Analytics): Analytics => ({
   ...a, ga4: a.ga4.map(maskId), gtm: a.gtm.map(maskId),
 });
 
-const COLLECT = `(() => {
+export const COLLECT = `(() => {
   const meta = (sel, attr) => { const e = document.querySelector(sel); return e ? (e.getAttribute(attr) || "") : ""; };
   const og = {};
   for (const m of Array.from(document.querySelectorAll('meta[property^="og:"]'))) {
@@ -39,16 +40,26 @@ const COLLECT = `(() => {
   for (const s of Array.from(document.querySelectorAll('script[type="application/ld+json"]'))) {
     try {
       const j = JSON.parse(s.textContent);
-      const arr = Array.isArray(j) ? j : [j];
-      for (const x of arr) if (x && x["@type"]) jsonLdTypes.push(String(x["@type"]));
+      const visit = (node) => {
+        if (Array.isArray(node)) { for (const x of node) visit(x); return; }
+        if (!node || typeof node !== "object") return;
+        const t = node["@type"];
+        if (Array.isArray(t)) jsonLdTypes.push(...t.map(String));
+        else if (t) jsonLdTypes.push(String(t));
+        if (node["@graph"]) visit(node["@graph"]);
+      };
+      visit(j);
     } catch (e) { jsonLdTypes.push("PARSE_ERROR"); }
   }
   const imgs = Array.from(document.querySelectorAll("img"));
   const html = document.documentElement.outerHTML;
+  const scripts = Array.from(document.querySelectorAll("script"));
+  const configIds = scripts.flatMap((s) => Array.from((s.textContent || "").matchAll(/gtag\\s*\\(\\s*['"]config['"]\\s*,\\s*['"](G-[A-Z0-9]{6,})['"]/g), (m) => m[1]));
   const uniq = (a) => Array.from(new Set(a));
   return {
     title: document.title || "",
     description: meta('meta[name="description"]', "content"),
+    descriptionCount: document.querySelectorAll('meta[name="description"]').length,
     canonical: meta('link[rel="canonical"]', "href"),
     og,
     h1: Array.from(document.querySelectorAll("h1")).map((e) => e.innerText.trim()).filter(Boolean),
@@ -70,6 +81,8 @@ const COLLECT = `(() => {
       gtm: uniq((html.match(/GTM-[A-Z0-9]{4,}/g) || [])),
       hasGtag: /gtag\\s*\\(/.test(html),
       hasDataLayer: /dataLayer/.test(html),
+      ga4ConfigCount: configIds.length,
+      duplicateGa4Config: configIds.length > uniq(configIds).length,
     },
   };
 })()`;
@@ -78,10 +91,10 @@ const COLLECT = `(() => {
 export const collector = {
   async page(url: string, path: string): Promise<PageSeo> {
     const base: PageSeo = {
-      path, ok: false, title: "", description: "", canonical: "", og: {},
+      path, ok: false, title: "", description: "", descriptionCount: 0, canonical: "", og: {},
       h1: [], h2Count: 0, bodyText: "", imgTotal: 0, imgNoAlt: 0, jsonLdTypes: [],
       ownerVerification: { google: false, naver: false, bing: false, daum: false },
-      seoMarkers: [], analytics: { ga4: [], gtm: [], hasGtag: false, hasDataLayer: false },
+      seoMarkers: [], analytics: { ga4: [], gtm: [], hasGtag: false, hasDataLayer: false, ga4ConfigCount: 0, duplicateGa4Config: false },
     };
     let pw: any;
     try { pw = await import("playwright"); }
@@ -144,7 +157,7 @@ export function brandOf(pages: PageSeo[]): string {
 }
 
 /** 한 번에 여는 페이지 상한. 넘치면 **잘렸다고 보고한다** — 조용히 자르면 전수 점검처럼 읽힌다. */
-export const MAX_PAGES = 20;
+export const MAX_PAGES = 50;
 
 export type SiteFiles = { sitemap: boolean; robots: boolean; llms: boolean; paths: string[]; sitemapHost: string };
 
@@ -194,15 +207,15 @@ export function infer(pages: PageSeo[]): Inferred[] {
   out.push({ field: "브랜드명", value: brandOf(pages), inferred: true });
   const s = shopVerdict(pages);
   out.push({ field: "쇼핑몰 여부", value: s.value, inferred: true, weak: s.weak, why: s.why });
-  const ga = [...new Set(pages.flatMap((p) => p.analytics.ga4))];
-  out.push({ field: "GA4", value: ga.length ? ga.map(maskId).join(", ") : "미연결", inferred: true });
+  const ga = [...new Set(pages.filter((p) => p.ok).flatMap((p) => p.analytics.ga4))];
+  out.push({ field: "GA4", value: !first ? "판정 보류" : ga.length ? ga.map(maskId).join(", ") : "미연결", inferred: !!first });
   return out;
 }
 
 /** 추론 실패 항목만 모아 **최대 4개까지** 한 번에 묻는다. 하나씩 묻지 않는다 (STEST-010). */
 export function questionsFor(inferred: Inferred[]): string[] {
   // 값이 비었거나(추론 실패) **근거가 약한** 항목을 묻는다. 최대 4개는 그대로 (STEST-010).
-  return inferred.filter((i) => !i.value || i.value === "미연결" || i.weak).map((i) => i.field).slice(0, 4);
+  return inferred.filter((i) => !i.value || i.value === "미연결" || i.value === "판정 보류" || i.weak).map((i) => i.field).slice(0, 4);
 }
 
 /** 근거가 약한 항목을 사람이 읽을 형태로. 시작 보고서에 붙는다. */

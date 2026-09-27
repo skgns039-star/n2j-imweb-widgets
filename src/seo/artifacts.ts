@@ -135,16 +135,16 @@ export function buildAll(a: BuildInput): { file: string; path: string }[] {
     head(a, "API·관리자 진단", "OBSERVE"),
     "| 경로 | 상태 |", "|---|---|",
     "| Open API `Script` (script:write) | CHK-001~003 미해소 — 호출 차단 중 |",
-    "| 관리자 화면 | 브라우저 경로 (M2) |",
+    "| 관리자 화면 | 브라우저 경로 — 게이트·승인·스냅샷 확인 후 |",
     "", "> 미해소 게이트 상태에서 API를 호출하지 않는다.",
   ].join("\n"));
 
   put("05_design-mode-audit.md", [
-    head(a, "디자인모드 진단", "OBSERVE (읽기 전용)"),
-    "**INV-11 — 본문·이미지·레이아웃·메뉴명은 읽기만 한다. 개선안은 이 보고서에만 남긴다.**", "",
+    head(a, "디자인모드 진단", "OBSERVE"),
+    "이 보고서는 공개 페이지 관찰 결과다. 디자인모드 변경은 별도 승인·스냅샷·검증 절차에서 다룬다.", "",
     "## 메뉴 SEO 확인 경로 (audit §B-2)",
     "디자인모드 → 메뉴 관리 → 대상 메뉴 우측 `i` → 메뉴 설정 → 메뉴명 / 메뉴 주소 / 페이지 제목 / 페이지 설명",
-    "", "## 상태", "- 디자인모드 접근: 세션 확보됨 · 셀렉터 실측 대기 (verified:false)",
+    "", "## 상태", "- 디자인모드 접근·세션: 이번 공개 페이지 진단에서는 확인하지 않음",
   ].join("\n"));
 
   put("06_product-seo-audit.md", [
@@ -166,12 +166,13 @@ export function buildAll(a: BuildInput): { file: string; path: string }[] {
   put("08_ga4-gtm-audit.md", [
     head(a, "GA4 / GTM 검수", "OBSERVE"),
     table([
-      ["GA4", an?.ga4.length ? `${an.ga4.length}개 감지` : "미연결"],
-      ["GTM", an?.gtm.length ? `${an.gtm.length}개 감지` : "미연결"],
-      ["gtag()", an?.hasGtag ? "있음" : "없음"],
-      ["dataLayer", an?.hasDataLayer ? "있음" : "없음"],
+      ["GA4", !an ? "판정 보류 — 수집 실패" : an.ga4.length ? `${an.ga4.length}개 감지` : "공개 페이지에서 미감지"],
+      ["GTM", !an ? "판정 보류 — 수집 실패" : an.gtm.length ? `${an.gtm.length}개 감지` : "공개 페이지에서 미감지"],
+      ["gtag()", !an ? "판정 보류" : an.hasGtag ? "있음" : "없음"],
+      ["dataLayer", !an ? "판정 보류" : an.hasDataLayer ? "있음" : "없음"],
+      ["동일 GA4 config 중복", !an ? "판정 보류" : an.duplicateGa4Config ? "감지 — 출처 확인 필요" : "미감지"],
     ], ["항목", "상태"]),
-    "", "> 측정 ID는 마스킹해 출력한다. 중복이 감지되면 삭제하지 않고 `중복 정리 필요`로 보고한다.",
+    "", "> 측정 ID는 출력하지 않는다. 중복은 렌더된 스크립트 기준이며 관리자 설치 위치는 별도 확인이 필요하다.",
   ].join("\n"));
 
   const d = derive(a);
@@ -271,10 +272,10 @@ export function buildAll(a: BuildInput): { file: string; path: string }[] {
 
   const body13 = [
     head(a, "클라이언트 전달용 요약", "DRAFT"),
-    `## 무엇을 확인했나`, `- 공개 페이지 ${ok.length}개 진단`, `- 검색엔진 등록 상태 4곳 확인`,
+    `## 무엇을 확인했나`, `- 공개 페이지 ${ok.length}개 진단`, `- 검색엔진 4곳 자동화 게이트 확인 (실제 등록 상태 미확인)`,
     "", "## 무엇이 문제인가",
     ...gate(a.findings).warn.slice(0, 8).map((f) => `- ${f.field}: ${f.reason}`),
-    "", "## 권장(미적용)", "- 디자인모드 본문·레이아웃 관련 개선안은 반영하지 않고 여기에만 남깁니다 (INV-11).",
+    "", "## 권장(미적용)", "- 디자인모드 개선안은 별도 변경 작업에서 승인·스냅샷·검증 후 처리합니다.",
   ].join("\n");
   put("13_client-delivery.md", body13);
 

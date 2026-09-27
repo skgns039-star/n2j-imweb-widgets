@@ -72,9 +72,9 @@ export function derive(raw: Facts): Derived[] {
   add("페이지별 SEO 문구", f.summary ? `${f.keyword} — ${f.summary}` : "", "페이지마다 다르게 쓴다. 공통 문구를 전 페이지에 반복하지 않는다");
   add("상품 제목/설명 후보", f.siteType === "쇼핑몰" ? `${f.keyword}` : "",
     f.siteType === "쇼핑몰" ? "상품별로 개별 검토 필요" : "쇼핑몰이 아니므로 해당 없음");
-  add("본문 보강안", "", "INV-11 — 보고서에만 기록하고 반영하지 않는다");
+  add("본문 보강안", "", "공개 페이지 근거 부족 — 별도 디자인모드 검토에서 작성");
   add("FAQ 후보", "", "실제 본문과 일치하는 질문만 만든다. 확인된 FAQ가 없어 작성하지 않음");
-  add("CTA 개선안", "", "INV-11 — 보고 전용");
+  add("CTA 개선안", "", "현재 진단에서 사용자 흐름 근거 부족 — 별도 검토 필요");
   add("AEO 상단 요약문", f.summary || "", "2~3문장. 본문과 일치해야 한다");
   add("JSON-LD description", f.summary || "", f.summary ? undefined : "미확인 정보를 넣지 않는다 (INV-13)");
   add("llms.txt 브랜드 설명문", f.brand && f.summary ? `${f.brand} — ${f.summary}` : "", "브랜드·설명 둘 다 확인돼야 작성");

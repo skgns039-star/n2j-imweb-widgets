@@ -64,7 +64,7 @@ export async function authorize(port = 8765): Promise<string> {
     body: new URLSearchParams({ code, client_id: id, client_secret: secret, redirect_uri: redirect, grant_type: "authorization_code" }),
   });
   const j = await r.json() as any;
-  if (!j.refresh_token) throw new Error(`refresh token 을 못 받았다: ${JSON.stringify(j).slice(0, 200)}`);
+  if (!j.refresh_token) throw new Error(`refresh token 을 못 받았다: 응답 내용은 비밀값 보호를 위해 생략`);
   mkdirSync(p("state", "google"), { recursive: true });
   writeFileSync(tokenFile(), JSON.stringify({ refresh_token: j.refresh_token, obtained_at: new Date().toISOString() } satisfies Stored, null, 2));
   return "구글 연결 완료. refresh token 저장됨 (state/google/).";

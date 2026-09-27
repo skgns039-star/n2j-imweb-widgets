@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { checkField, blockers, cannibalization, brandRepeat, robotsBlocksImportant, gate, FORBIDDEN } from "../../src/seo/quality.ts";
-import { maskId, maskAnalytics } from "../../src/seo/observe.ts";
+import { COLLECT, maskId, maskAnalytics } from "../../src/seo/observe.ts";
 
 test("STEST-005 금지 표현이 들어간 초안은 산출이 차단된다 (경고 아님)", () => {
   for (const w of ["업계 1위 시공", "최고의 품질 보장", "100% 완치"]) {
@@ -66,6 +66,24 @@ test("STEST-008 측정 ID는 보고서에서 마스킹된다", () => {
   assert.equal(maskId("GTM-AB12CD"), "GTM-AB12**");
   const masked = maskAnalytics({ ga4: ["G-ABC1234567"], gtm: ["GTM-AB12CD"], hasGtag: true, hasDataLayer: true });
   assert.ok(!JSON.stringify(masked).includes("ABC1234567"), "원본 ID가 남으면 안 된다");
+});
+
+test("렌더 수집기는 중복 description·GA4 config와 @graph 유형을 보존한다", () => {
+  const meta = { getAttribute: () => "설명" };
+  const schema = { textContent: JSON.stringify({ "@graph": [{ "@type": "Organization" }, { "@type": ["WebSite", "FAQPage"] }] }) };
+  const script = { textContent: "gtag('config','G-ABC1234567'); gtag('config','G-ABC1234567');" };
+  const document = {
+    title: "페이지", body: { innerText: "본문" }, documentElement: { outerHTML: "<script>" + script.textContent + "</script>" },
+    querySelector: (sel: string) => sel === 'meta[name="description"]' ? meta : null,
+    querySelectorAll: (sel: string) => sel === 'meta[name="description"]' ? [meta, meta]
+      : sel === 'script[type="application/ld+json"]' ? [schema]
+      : sel === "script" ? [script] : [],
+  };
+  const result = Function("document", `return ${COLLECT}`)(document);
+  assert.equal(result.descriptionCount, 2);
+  assert.deepEqual(result.jsonLdTypes, ["Organization", "WebSite", "FAQPage"]);
+  assert.equal(result.analytics.ga4ConfigCount, 2);
+  assert.equal(result.analytics.duplicateGa4Config, true);
 });
 
 test("STEST-004 기존값이 있는 필드는 수정 대상이 아니다 (INV-12)", () => {
