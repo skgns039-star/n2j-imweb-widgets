@@ -1,5 +1,9 @@
 # RESUME — 다음 세션에서 이어가는 지점
 
+## 2026-09-28 최신 — 코드 위젯 수정·신규 자동화 파이프라인 (로컬 커밋, push 전)
+
+사용자 요구: 봇 명령으로 위젯 수정·신규 생성 자동화 / 누락·변질 없이 / 봇이 켜져도 화면 노출 금지. `src/widget_pipeline/`(index·policy·render_check·generate) + 라우터 `widget_edit`/`widget_new` + `build({only})`·internal 봉인 + hello-badge `internal:true`. LLM 쓰기는 임시 폴더 위젯 파일 3개만(canUseTool), 규칙·누락·렌더 관문, 생성 중 변질 감시·적용 후 범위 재검사·원복, 승인 요청까지 자동(배포는 기존 1회 승인). 실제 LLM(임시 복제본): 수정 70초 통과·배포·방문자 화면 확인, 신규(명시) 151초 통과, 신규(모호) 누락 관문이 차단. 테스트 210/210. 커밋 `d85234c`·`3054e96`. **다음:** 봇 재기동(`npm start`), push, 새 위젯 켜기·슬롯 배치 경로. 보고서 `state/reports/세화건설/2026-09-28_세화건설_코드위젯-자동화-파이프라인-결과보고.md`.
+
 ## 2026-09-28 최신 — 재작업 4: 원래 요청 ①② 완료 실측, 잔여는 기록 커밋 1개
 
 `git fetch`로 확인한 결과는 다음과 같다. origin/main은 `5e68b8f`다. 검토·병합 커밋 8개는 8/8이 공개 저장소에 반영됐다(`merge-base --is-ancestor`). 공개 registry sha256은 로컬과 같다. 작업 트리는 0파일이다. `npm test` 198/198, typecheck 통과, secretscan 0, 두 사이트 모두 200이다. 로컬에만 있는 커밋은 RESUME 기록 커밋 1개로, 새 커밋을 만들지 않고 amend로 합쳤다. 이 커밋 때문에 가드가 BLOCKED다(커밋 1·파일 1). 배포 경로 차이는 0이다. 선택 사항으로 사용자가 `! git -C /Volumes/T7/NJ2_AGENT/N2J_projects/imweb-widget-agent push origin main`을 실행하면 된다. **다음 세션은 이 확인 결과를 새 커밋으로 남기지 않는다.** 보고서는 12절에 있다.
