@@ -1,6 +1,10 @@
 # RESUME — 다음 세션에서 이어가는 지점
 
-## 2026-09-28 최신 — 재작업: 남은 RESUME 미커밋 정리, push 사용자 대기
+## 2026-09-28 최신 — 공개 저장소 push 완료 (사용자 지시)
+
+사용자 "git -C … push origin main 푸쉬하도록해" 명시 지시로 에이전트가 일반 `git push` 실행 → `499097f..77cf82c main -> main` 성공. push 직후 로컬 = origin(ahead 0·behind 0), `assertOnlyReleaseCommitsAhead` 통과(위젯 배포 가능), 공개 registry 내용 불변, 세화건설·엔투제이트리니 HTTP 200. 아래 두 절의 "push 사용자 대기"는 이것으로 해소. 이 기록 커밋은 로컬에만 있으니 다음 push 때 함께 올린다. 보고서 `state/reports/2026-09-28_공통_작업저장소-정리-커밋-결과보고.md` 9절.
+
+## 2026-09-28 — 재작업: 남은 RESUME 미커밋 정리 (push 는 위 절에서 완료)
 
 완료 검사 "원래 지시 반영" 미달 → 원인: 보고는 "작업 트리 깨끗함"이었으나 `RESUME.md` 1건이 커밋 안 됨. 재검증(198/198·typecheck·lint·secretscan 0·무결성 16/16) 후 커밋, 작업 트리 0파일. `git fetch` 결과 origin/main `499097f` 불변, 로컬 ahead 12·behind 0. push 대상 배포 경로 차이는 manifest(hello-badge enabled:false)·integrity built_at 2개뿐, registry/dist/loader 차이 0 → 실사이트 영향 없음. 가드 BLOCKED(push 전 정상). **다음 한 걸음: 사용자가 `! git -C /Volumes/T7/NJ2_AGENT/N2J_projects/imweb-widget-agent push origin main` → Claude가 ahead 0·가드 통과·공개 registry 불변 확인.** 보고서 9절 추가.
 
