@@ -1,7 +1,8 @@
 /* ENG-017. update 단일 소유자 polling 프로세스. 여기 말고 다른 consumer를 붙이지 않는다. */
 import { existsSync, writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { p } from "../release/paths.ts";
-import { assertSingleOwner, getUpdates, send, sendTyping, isAllowed, logReject, inbound, downloadImage } from "./telegram.ts";
+import { assertSingleOwner, getUpdates, send, sendTyping, isAllowed, logReject, inbound, downloadImage, notifyOwners } from "./telegram.ts";
+import { manifest } from "../release/paths.ts";
 import { getOffset, setOffset, markSeen } from "./threads.ts";
 import { handle } from "./router.ts";
 import { checkAll, missing, render, bootBlockers } from "../../checks/setup_check.ts";
@@ -18,7 +19,6 @@ function acquireLock() {
   writeFileSync(LOCK, String(process.pid));
   const release = () => { try { unlinkSync(LOCK); } catch { /* ignore */ } };
   process.on("exit", release);
-  process.on("SIGINT", () => { release(); process.exit(0); });
 }
 
 async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
@@ -55,11 +55,33 @@ async function assertSetup() {
   }
 }
 
+const stamp = () => new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false });
+
+/** 켜짐 알림에 붙이는 위젯 상태. 봇 기동은 위젯 표시를 바꾸지 않는다 — 켜진 목록만 보여준다. */
+function widgetStatus(): string {
+  const on = manifest().widgets.filter((w) => w.enabled).map((w) => `${w.widget_id}@${w.version}`);
+  return `켜진 위젯: ${on.join(", ") || "없음"} · 봇 기동으로 사이트 화면에 새로 보이는 위젯은 없습니다.`;
+}
+
+let stopping = false;
+/** 정상 종료(Ctrl+C·종료 신호)에도 꺼짐을 알린다. 알림이 늦어도 3초 안에 끝낸다. */
+async function shutdown(reason: string, code: number) {
+  if (stopping) return;
+  stopping = true;
+  const icon = code === 0 ? "⚪" : "🔴";
+  await Promise.race([notifyOwners(`${icon} 위젯 봇 꺼짐 — ${reason} (${stamp()})`), new Promise((r) => setTimeout(r, 3000))]);
+  process.exit(code);
+}
+
 async function main() {
   await assertSetup();
   acquireLock();
   await assertSingleOwner();
+  process.on("SIGINT", () => { void shutdown("수동 종료", 0); });
+  process.on("SIGTERM", () => { void shutdown("종료 신호", 0); });
+  process.on("uncaughtException", (e) => { void shutdown(`비정상 종료: ${e.message.slice(0, 120)}`, 1); });
   console.log("imweb-widget-agent polling 시작 (Ctrl+C 종료)");
+  await notifyOwners(`🟢 위젯 봇 켜짐 (${stamp()}, pid ${process.pid})\n${widgetStatus()}`);
 
   for (;;) {
     let updates: Awaited<ReturnType<typeof getUpdates>> = [];
@@ -120,4 +142,4 @@ async function main() {
   }
 }
 
-main().catch((e) => { console.error(e.message); process.exit(1); });
+main().catch((e) => { console.error(e.message); void shutdown(`비정상 종료: ${String(e.message).slice(0, 120)}`, 1); });

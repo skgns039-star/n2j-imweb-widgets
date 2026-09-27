@@ -82,6 +82,21 @@ export async function assertSingleOwner() {
   if (info.url) throw new Error(`webhook(${info.url})이 설정되어 있다. polling과 동시 사용 금지 — 기동 거부`);
 }
 
+/** 봇 켜짐·꺼짐 알림 대상 = 허용된 대화 전부 (환경변수가 정본). */
+export function ownerChats(): number[] {
+  return [...new Set((process.env.ALLOWED_CHAT_IDS ?? "").split(/[,\s]+/).map((s) => Number(s.trim()))
+    .filter((n) => Number.isFinite(n) && n !== 0))];
+}
+
+/** 운영 상태 알림(켜짐·꺼짐·비정상 종료). 실패해도 봇 동작을 막지 않는다. 보낸 대화 수를 돌려준다. */
+export async function notifyOwners(text: string): Promise<number> {
+  let sent = 0;
+  for (const chat_id of ownerChats()) {
+    try { await send(chat_id, text); sent++; } catch { /* 알림 실패는 조용히 넘긴다 */ }
+  }
+  return sent;
+}
+
 type Allow = { allowed: { chat_id: number; user_id?: number; label?: string }[] };
 
 /** REQ-005. 화이트리스트 밖은 무응답 + 거절 로그.
