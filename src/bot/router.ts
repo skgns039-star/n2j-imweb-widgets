@@ -1,16 +1,16 @@
 /* ENG-009 Routing + ENG-045 인텐트 경계 (§24.8).
    승인·무결성·킬스위치·비밀값 판정은 LLM을 거치지 않는다 — 결정적으로 처리해야 하기 때문이다. */
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
-import { p, manifest, json } from "../release/paths.ts";
+import { p, manifest, json, gateBlock } from "../release/paths.ts";
 import { request, decide, load, latestPending, payloadText } from "../release/approval.ts";
 import { looksSecret, SECRET_REFUSAL } from "../release/secrets.ts";
-import { deploy, publishRegistry } from "../release/deploy.ts";
-import { rollback } from "../release/rollback.ts";
+import { deploy, publishRegistry, deploymentPayload } from "../release/deploy.ts";
+import { rollback, rollbackPayload } from "../release/rollback.ts";
 import { verify } from "../release/verify.ts";
 import { writeRegistry } from "../release/registry.ts";
 import { summarize } from "../release/report.ts";
-import { loadEngine, agentConfig, systemPrompt } from "../engine/index.ts";
-import { getThread, setThread, type Ctx } from "./threads.ts";
+import type { Ctx } from "./threads.ts";
+import { inbox, receipt } from "./inbox.ts";
 import {
   WIZARDS, loadState, saveState, clearState, cancel, expire, type State, type Wizard, applyApproved,
 } from "./onboarding.ts";
@@ -43,8 +43,30 @@ export function mentionsEntity(text: string): boolean {
 export const negated = (t: string) =>
   /(안\s*해도|안\s*할|하지\s*마|필요\s*없|말고|아닌|아니야|아니다|아니고|나중에|보류)/.test(t);
 
-/** 결정적으로 남기는 것은 **안전 경계**와 **상태 흐름 진입**뿐이다.
- *  나머지 의도 판정은 엔진이 한다 (자연어 우선). 승인·무결성 게이트는 실행 시점에 그대로 작동한다. */
+/** DESIGN-WRITE가 닫힌 경우 화면 본문 수정 지시를 접수 전에 차단한다.
+ *  SEO 필드의 언급만으로 함께 요청한 본문 수정까지 허용하지 않는다. */
+export function protectedEdit(t: string): string | null {
+  // 매니페스트가 정본이다. DESIGN-WRITE 가 열려 있으면 막지 않는다 —
+  // 2026-08-31 사용자 결정으로 INV-11 은 폐기됐다 (overrides 참조).
+  if (!gateBlock("design_mode_write")) return null;
+
+  const target = /(본문|텍스트|이미지|사진|레이아웃|섹션|배치|메뉴명|메뉴 이름|상품명|폰트|색상)/.test(t.replace(/대체 텍스트/g, ""));
+  const verb = /(고쳐|수정|바꿔|변경|교체|지워|삭제|넣어|옮겨)/.test(t);
+  if (!target || !verb) return null;
+  return [
+    "디자인모드의 본문·이미지·레이아웃·메뉴명·상품명은 **읽기 전용**입니다 (DESIGN-WRITE 게이트).",
+    "화면에 보이는 글자는 불가침이고, 검색엔진만 보는 값(페이지 제목·설명·ALT)만 승인 후 다룹니다.",
+    "",
+    "개선안이 필요하시면 진단 보고서에 '권장(미적용)' 으로 남겨드립니다.",
+  ].join("\n");
+}
+
+/** SEO 를 언급한 문장이 **진단 시작**인지 **작업 지시**인지 가른다.
+ *  시작어(시작·진단·점검·현황)가 있으면 위저드, 없이 시키는 말투면 작업 큐로 보낸다. */
+export const seoWorkOrder = (t: string) =>
+  !/시작|진단|점검|현황|상태|목록/.test(t) &&
+  /(채워|고쳐|수정|넣어|바꿔|적용|반영|올려|진행)\s*(줘|주세요|해|해줘|해주세요|라)?/.test(t);
+
 export function classify(text: string): { intent: Intent; arg?: string } {
   const t = text.trim();
   const ap = t.match(/\b(AP-[0-9a-f]{8})\b/i)?.[1];
@@ -62,13 +84,14 @@ export function classify(text: string): { intent: Intent; arg?: string } {
   // 이건 엔진에 맡기지 않는다. 규칙으로 강제해야 매번 같은 판정이 나온다.
   const seo = seoDecide(t);
   if (seo === "ambiguous") return { intent: "unclear" };
-  if (seo === "seo" && !negated(t)) return { intent: "seo" };
+  // SEO 를 언급했어도 **진단 시작이 아니라 작업 지시**면 위저드로 끌고 가지 않는다.
+  // "세화 메뉴 SEO 나머지 채워줘" 같은 말이 진단 위저드에 빨려들면 사람이 답답해진다.
+  if (seo === "seo" && !negated(t) && !seoWorkOrder(t)) return { intent: "seo" };
   if (mentionsConnect(t) && !negated(t)) {
     return mentionsEntity(t) ? { intent: "unclear" } : { intent: "connect" };
   }
 
-  // 그 밖의 모든 자연어는 엔진이 받는다. 배포·롤백·조회·설치·재개도 여기로 간다 —
-  // 실행은 승인 게이트를 그대로 지나가므로 의도를 잘못 읽어도 사고로 이어지지 않는다.
+  // 그 밖의 자연어는 작업 큐로 접수한다. 실제 실행은 터미널에서 승인·게이트를 확인한다.
   return { intent: "agent" };
 }
 
@@ -91,23 +114,24 @@ function inspect(): string {
 }
 
 /** REQ-022. 정지는 승인 없이 즉시. 재개는 승인 대상이다 (§22.1). */
-async function setKill(on: boolean): Promise<string> {
+async function setKill(on: boolean, signal?: AbortSignal): Promise<string> {
   if (on) writeFileSync(p("config", "kill_switch"), new Date().toISOString());
   else if (existsSync(p("config", "kill_switch"))) unlinkSync(p("config", "kill_switch"));
   const reg = writeRegistry();
-  const done = await publishRegistry(reg.updated_at);
+  const done = await publishRegistry(reg.updated_at, undefined, undefined, signal);
   return done
-    ? `전역 ${on ? "정지" : "재개"} 반영 완료 (global_enabled=${!on}). 60초 내 전 사이트 적용.`
+    ? `전역 ${on ? "정지" : "재개"} 반영 완료 (global_enabled=${!on}). 새로 열거나 새로고침한 페이지에 적용됩니다.`
     : "registry는 갱신했으나 CDN 반영 미확인 — BLOCKED. 수동 확인이 필요합니다.";
 }
 
-async function runApproved(id: string): Promise<string> {
+async function runApproved(id: string, signal?: AbortSignal): Promise<string> {
   const a = load(id);
   if (!a) return `승인 ${id}: 기록 없음`;
   const w = String((a.payload as any).widget_id ?? "");
-  if (a.action === "cdn_deploy") return summarize(await deploy(w, id));
-  if (a.action === "rollback") return summarize(await rollback(w, String((a.payload as any).to ?? "off"), id));
-  return applyApproved(a.action, a.payload);
+  if (a.action === "cdn_deploy") return summarize(await deploy(w, id, signal));
+  if (a.action === "rollback") return summarize(await rollback(w, String((a.payload as any).to ?? "off"), id, signal));
+  if (["manifest_commit", "engine_switch", "config_commit", "loader_replace"].includes(a.action)) return applyApproved(a.action, a.payload, id);
+  return `승인 ${id} 기록 완료. 대상 실행은 터미널에서 15분 이내에 이 승인 ID로 진행하세요. 아직 실행하지 않았습니다.`;
 }
 
 // ─────────────────────── 위저드 구동 ───────────────────────
@@ -152,13 +176,15 @@ function greeting(): string {
     "· 배포 / 되돌려 — 승인을 거쳐 실행",
     "· 전체 중지 — 모든 위젯 즉시 정지 (승인 불필요)",
     "",
-    "그 밖의 지시는 자연어로 말씀하시면 됩니다.",
+    "작업 목록 — 이 대화에서 접수한 요청의 상태",
+    "그 밖의 지시와 질문은 접수 후 터미널에서 이어받아 처리합니다.",
   ].join("\n");
 }
 
 // ─────────────────────── 진입점 ───────────────────────
 
-export async function handle(text: string, ctx: Ctx): Promise<string> {
+export async function handle(text: string, ctx: Ctx, queue = inbox, signal?: AbortSignal): Promise<string> {
+  signal?.throwIfAborted();
   // REQ-027 — 무엇보다 먼저. 값을 저장·로그·에코하지 않는다.
   if (looksSecret(text)) return SECRET_REFUSAL;
 
@@ -189,9 +215,8 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
   if (!st && (one.length === 1 && "abcdABCD".includes(one) || one === "예" || one === "아니오")) {
     return "진행 중이던 연결이 만료됐습니다 (15분 무응답). '연결'로 다시 시작하세요.";
   }
-  if (/전체\s*중지|킬\s*스위치/.test(text)) return await setKill(true);   // 사고 대응은 위저드보다 우선
-
   const { intent, arg } = classify(text);
+  if (intent === "kill") return await setKill(true, signal);   // 사고 대응은 위저드보다 우선
 
   if (intent === "connect") { if (st) cancel(ctx); return startWizard("menu", ctx); }
   if (intent === "migrate") { if (st) cancel(ctx); return startWizard("migrate", ctx); }
@@ -201,15 +226,15 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
     case "approve": {
       const target = arg ?? latestPending(ctx.chat_id)?.id;
       if (!target) return "대기 중인 승인이 없습니다. 승인 ID를 확인해주세요.";
-      const a = decide(target, "APPROVED");
+      const a = decide(target, "APPROVED", ctx.chat_id);
       if (!a) return `승인 ${target}: 기록 없음`;
       if (a.status !== "APPROVED") return `승인 ${target}: 상태 ${a.status} — 재요청이 필요합니다.`;
-      return await runApproved(target);
+      return await runApproved(target, signal);
     }
     case "reject": {
       const target = arg ?? latestPending(ctx.chat_id)?.id;
       if (!target) return "대기 중인 승인이 없습니다.";
-      decide(target, "REJECTED");
+      decide(target, "REJECTED", ctx.chat_id);
       return `승인 ${target} 거절 처리. 아무것도 실행하지 않았습니다.`;
     }
     case "resume": {
@@ -240,7 +265,7 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
       const rec = existsSync(p(`integrity/${w}.json`)) ? json<IntegrityRecord>(`integrity/${w}.json`) : null;
       if (!rec) return `${w}: 빌드 기록이 없습니다. npm run build 먼저.`;
       const a = request("cdn_deploy", `${w}@${rec.version}`, {
-        widget_id: w, files: rec.files.map((f) => f.name), sha256: rec.files[0]?.dist_sha256 ?? "",
+        ...deploymentPayload(w), widget_id: w, files: rec.files.map((f) => f.name), sha256: rec.files[0]?.dist_sha256 ?? "",
         site: manifest().widgets.find((x) => x.widget_id === w)?.site, rollback: `npm run rollback -- ${w} off`,
       }, ctx.chat_id);
       return payloadText(a);
@@ -250,17 +275,19 @@ export async function handle(text: string, ctx: Ctx): Promise<string> {
       if (!w) return "어느 위젯을 되돌리나요?";
       const to = text.match(/(\d+\.\d+\.\d+)/)?.[1] ?? "off";
       const a = request("rollback", `${w} -> ${to}`, {
-        widget_id: w, to, site: manifest().widgets.find((x) => x.widget_id === w)?.site, rollback: "다시 배포",
+        ...rollbackPayload(w, to), widget_id: w, to, site: manifest().widgets.find((x) => x.widget_id === w)?.site, rollback: "다시 배포",
       }, ctx.chat_id);
       return payloadText(a);
     }
     case "agent": {
-      const cfg = agentConfig(ctx.agent_id);
-      const engine = await loadEngine(ctx.agent_id);
-      const t = getThread(ctx);
-      const res = await engine.run(text, { threadId: t.thread_id, workspace: cfg.workspace, systemPrompt: systemPrompt(ctx.agent_id) });
-      if (res.threadId) setThread(ctx, res.threadId, engine.id);
-      return res.text;
+      const { add, listText } = queue;
+      // 작업 목록 조회는 즉답한다. 큐에 쌓을 일이 아니다.
+      if (/^\s*(?:내\s*)?(?:작업\s*(?:목록|현황|상태)|대기\s*작업|inbox)(?:\s*(?:보여줘|보여주세요|알려줘|알려주세요|조회))?[?？.!]?\s*$/i.test(text)) return listText(ctx);
+
+      // 문장 끝의 물음표는 실행 권한이 아니다. 자유 입력은 질문도 동일하게 접수한다.
+      const blocked = protectedEdit(text);
+      if (blocked) return blocked;
+      return receipt(add(ctx, text));
     }
     default:
       if (seoDecide(text) === "ambiguous") return AMBIGUOUS_REPLY;

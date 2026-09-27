@@ -3,6 +3,7 @@
    프롬프트·workspace·권한·Thread Store는 엔진과 무관하게 동일하다.
    두 엔진을 동시에 같은 봇 업데이트에 붙이지 않는다. */
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { p, yaml } from "../release/paths.ts";
 
 export type EngineCtx = { threadId: string | null; workspace: string; systemPrompt: string };
@@ -21,7 +22,7 @@ export function agentConfig(agent_id = "imweb-widget-agent") {
   const a = reg.agents.find((x) => x.agent_id === agent_id);
   if (!a) throw new Error(`미등록 agent_id: ${agent_id}`); // PTEST-011
   if (!a.engines[a.runtime_engine]) throw new Error(`미등록 runtime_engine: ${a.runtime_engine}`);
-  return a;
+  return { ...a, workspace: resolve(p(), a.workspace) };
 }
 
 export const systemPrompt = (agent_id?: string) => readFileSync(p(agentConfig(agent_id).prompt_path), "utf8");

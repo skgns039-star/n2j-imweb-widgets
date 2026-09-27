@@ -1,3 +1,4 @@
+import { consumeApproval } from "../release/approval.ts";
 /* ENG-041 대화형 연결 위저드 + ENG-044 연결 락 (REQ-026~035, §24).
    런타임 기능이다 — Hallmark 미적용. 새 라이브러리 없이 기존 라우터·Thread Store·승인 모듈을 재사용한다.
    **비밀값을 묻는 질문은 이 파일 어디에도 없다** (REQ-027 / PTEST-038). */
@@ -527,7 +528,8 @@ export const WIZARDS: Record<string, Wizard> = {
 // ─────────────────────── 승인 실행부 ───────────────────────
 
 /** 승인된 설정 변경만 여기서 파일에 반영된다. 부분 완료 상태로는 절대 커밋하지 않는다 (INV-9). */
-export function applyApproved(action: string, payload: any): string {
+export function applyApproved(action: string, payload: any, approvalId?: string): string {
+  consumeApproval(approvalId, action, payload);
   if (action === "manifest_commit" && payload.kind === "site") {
     const m = manifest();
     const i = m.sites.findIndex((s) => s.site_id === payload.site.site_id);

@@ -21,8 +21,18 @@ function acquireLock() {
   process.on("SIGINT", () => { release(); process.exit(0); });
 }
 
-const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
-  Promise.race([promise, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("타임아웃: 작업을 중단했다. 아무것도 배포하지 않았다.")), ms))]);
+async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([run(controller.signal), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        reject(new Error("타임아웃: 추가 실행 중단 요청. 이미 시작된 외부 작업의 반영 상태는 별도 확인이 필요합니다."));
+      }, ms);
+    })]);
+  } finally { if (timer) clearTimeout(timer); }
+}
 
 /** REQ-039. 셋업이 덜 된 상태로는 띄우지 않는다. 모든 기동 경로가 여기를 지난다.
  *  기동을 막는 것은 봇 자체에 필요한 항목뿐이다. 배포에만 필요한 항목(CDN·git remote)은
@@ -99,7 +109,7 @@ async function main() {
           text = `${body || "(설명 없는 이미지)"}\n\n[첨부 이미지] ${file}\n` +
             "이 경로의 이미지를 Read 로 열어 내용을 확인한 뒤 답하라.";
         }
-        const reply = await withTimeout(handle(text, ctx), TASK_TIMEOUT_MS);
+        const reply = await withTimeout((signal) => handle(text, ctx, undefined, signal), TASK_TIMEOUT_MS);
         clearTimeout(ack); clearInterval(keepTyping);
         await send(chat_id, reply, msg.message_thread_id); // 원래 대화로만 회신 (REQ-005)
       } catch (e) {

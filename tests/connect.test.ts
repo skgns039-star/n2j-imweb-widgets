@@ -279,7 +279,7 @@ test("승인 없이는 설정이 파일에 반영되지 않는다 (INV-8)", asyn
   const other = before.includes("runtime_engine: dry_run") ? "codex_sdk" : "dry_run";
   await toEngineWizard(c);
   await handle(other, c); await handle("확인", c);
-  const pending = readdirSync(p("logs", "approvals"))
+  const pending = readdirSync(p("logs", "approvals")).filter((f) => /^AP-[0-9a-f]{8}\.json$/.test(f))
     .map((f) => json<Approval>(`logs/approvals/${f}`)).filter((a) => a.action === "engine_switch" && a.status === "PENDING");
   assert.ok(pending.length > 0, "승인 페이로드가 있어야 한다");
   assert.equal(readFileSync(p("config", "agent_registry.yaml"), "utf8"), before, "승인 전에는 config 무변경");

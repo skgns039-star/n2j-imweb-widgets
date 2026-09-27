@@ -4,7 +4,7 @@ agents:
   - agent_id: imweb-widget-agent
     runtime_engine: claude_agent_sdk  # dry_run | codex_sdk | claude_agent_sdk
     prompt_path: prompts/AGENT_SYSTEM.md
-    workspace: C:\Users\cut07\projects\imweb-widget-agent
+    workspace: .  # 이 저장소 루트 기준. 실행한 터미널의 현재 경로와 무관하다.
     permission_profile: imweb-widget
     engines:
       codex_sdk:
