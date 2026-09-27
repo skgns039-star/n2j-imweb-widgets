@@ -1,6 +1,11 @@
 /* ENG-017 Channel Router 하부. update 단일 소유자 계약을 여기서 강제한다. */
 import { appendFileSync, mkdirSync, existsSync, writeFileSync } from "node:fs";
+import { setDefaultAutoSelectFamilyAttemptTimeout } from "node:net";
 import { p, yaml } from "../release/paths.ts";
+
+// 2026-09-28 실측: 이 망은 IPv6 경로가 막혀 있다. Node 기본(0.25초)으로는 IPv4 로 넘어가기 전에 fetch 가
+// ETIMEDOUT 으로 끝나 텔레그램 API 에 닿지 못했다(GitHub 처럼 IPv4 만 있는 곳은 정상). 1초로 늘리면 연결된다.
+setDefaultAutoSelectFamilyAttemptTimeout(1000);
 
 const TOKEN = process.env.IMWEB_WIDGET_BOT_TOKEN ?? "";
 const api = (m: string) => `https://api.telegram.org/bot${TOKEN}/${m}`;
