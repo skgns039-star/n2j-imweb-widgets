@@ -108,8 +108,8 @@ export async function deploy(widget_id: string, approvalId?: string, signal?: Ab
     const local = await verify({ cdn: false, signal });
     const localBad = local.filter((x) => !x.ok);
     if (!local.length || localBad.length) throw new Error(`BLOCKED: 로컬 해시 불일치 ${localBad.length}건`);
-    rep.integrity.source_sha256 = local.find((x) => x.point === "source")?.detail ?? "";
-    rep.integrity.dist_sha256 = local.find((x) => x.point === "dist")?.detail ?? "";
+    rep.integrity.source_sha256 = local.find((x) => x.widget_id === widget_id && x.point === "source")?.detail ?? "";
+    rep.integrity.dist_sha256 = local.find((x) => x.widget_id === widget_id && x.point === "dist")?.detail ?? "";
 
     // 2. 불변 태그 푸시 (자산). 태그가 이미 있으면 재사용하지 않고 실패시킨다 — 같은 버전 = 같은 바이트.
     const tag = `w-${widget_id}-${w.version}`;
@@ -131,7 +131,7 @@ export async function deploy(widget_id: string, approvalId?: string, signal?: Ab
     if (!(await publishRegistry(reg.updated_at, permit, undefined, signal))) {
       throw new Error("BLOCKED: registry purge 실패 또는 CDN 반영 미확인 (상한 360초)");
     }
-    rep.integrity.cdn_sha256 = all.find((x) => x.point === "cdn")?.detail ?? "";
+    rep.integrity.cdn_sha256 = all.find((x) => x.widget_id === widget_id && x.point === "cdn")?.detail ?? "";
     rep.integrity.match = true;
     rep.next_user_action = [
       `실사이트에서 확인 후 manifest의 enabled를 true로 올려라`,
