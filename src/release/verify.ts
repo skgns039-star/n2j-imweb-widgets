@@ -9,10 +9,12 @@ import { assetUrl } from "./registry.ts";
 
 export type Point = { widget_id: string; file: string; point: "source" | "dist" | "cdn" | "sri"; ok: boolean; detail: string };
 
-async function fetchBuf(url: string, tries = 3): Promise<Buffer | null> {
+async function fetchBuf(url: string, tries = 3, signal?: AbortSignal): Promise<Buffer | null> {
   for (let i = 0; i < tries; i++) {
+    signal?.throwIfAborted();
     try {
-      const r = await fetch(url, { cache: "no-store" });
+      const timeout = AbortSignal.timeout(15_000);
+      const r = await fetch(url, { cache: "no-store", signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
       if (r.ok) return Buffer.from(await r.arrayBuffer());
     } catch { /* 네트워크 실패는 backoff 재시도 (§13) */ }
     await new Promise((res) => setTimeout(res, 500 * 2 ** i));
@@ -20,11 +22,12 @@ async function fetchBuf(url: string, tries = 3): Promise<Buffer | null> {
   return null;
 }
 
-export async function verify(opts: { widget?: string; cdn?: boolean } = {}): Promise<Point[]> {
+export async function verify(opts: { widget?: string; cdn?: boolean; signal?: AbortSignal } = {}): Promise<Point[]> {
   const m = manifest();
   const out: Point[] = [];
 
   for (const w of m.widgets) {
+    opts.signal?.throwIfAborted();
     if (opts.widget && opts.widget !== w.widget_id) continue;
     const recPath = `integrity/${w.widget_id}.json`;
     if (!existsSync(p(recPath))) {
@@ -33,7 +36,15 @@ export async function verify(opts: { widget?: string; cdn?: boolean } = {}): Pro
     }
     const rec = json<IntegrityRecord>(recPath);
 
+    if (rec.widget_id !== w.widget_id || rec.version !== w.version || !Array.isArray(rec.files) || !rec.files.length) {
+      out.push({ widget_id: w.widget_id, file: "-", point: "source", ok: false, detail: "무결성 기록 대상/버전/파일 목록 불일치" });
+      continue;
+    }
     for (const f of rec.files) {
+      if (!/^[a-zA-Z0-9_./-]+$/.test(f.name) || f.name.includes("..") || f.name.startsWith("/")) {
+        out.push({ widget_id: w.widget_id, file: "-", point: "source", ok: false, detail: "자산 경로 이탈" });
+        continue;
+      }
       const srcFile = join(p("src", "widgets", w.widget_id), f.name);
       const distFile = join(p("dist", w.widget_id, w.version), f.name);
 
@@ -45,7 +56,7 @@ export async function verify(opts: { widget?: string; cdn?: boolean } = {}): Pro
 
       if (opts.cdn === false) continue;
       const url = assetUrl(m.cdn.owner, m.cdn.repo, w.widget_id, w.version, f.name);
-      const buf = await fetchBuf(url);
+      const buf = await fetchBuf(url, 3, opts.signal);
       if (!buf) {
         out.push({ widget_id: w.widget_id, file: f.name, point: "cdn", ok: false, detail: `CDN 미도달 (미배포이거나 태그 없음): ${url}` });
         continue;

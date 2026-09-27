@@ -14,12 +14,11 @@
     "verify:integrity": "node src/release/verify.ts",
     "lint": "node src/release/css_scope_lint.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --test-concurrency=1 \"tests/**/*.test.ts\"",
+    "test": "node checks/run_tests.ts",
     "secretscan": "node checks/secret_scan.ts",
     "setup:check": "node --env-file-if-exists=.env checks/setup_check.ts",
     "whoami": "node --env-file-if-exists=.env checks/whoami.ts",
     "stest:coverage": "node checks/stest_coverage.ts",
-    "posttest": "node checks/purge_fixtures.ts",
     "imweb:login": "node --env-file-if-exists=.env src/browser/session.ts",
     "console:login": "node --env-file-if-exists=.env src/browser/console_session.ts",
     "seo:register": "node --env-file-if-exists=.env src/browser/register.ts",
@@ -28,7 +27,8 @@
     "google:gsc": "node --env-file-if-exists=.env src/google/gsc.ts",
     "daum:apply": "node --env-file-if-exists=.env src/browser/daum_register.ts",
     "naver:index": "node --env-file-if-exists=.env src/browser/naver_index.ts",
-    "bing:setup": "node --env-file-if-exists=.env src/bing/api.ts"
+    "bing:setup": "node --env-file-if-exists=.env src/bing/api.ts",
+    "inbox": "node src/bot/inbox.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

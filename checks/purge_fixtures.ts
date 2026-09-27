@@ -13,7 +13,7 @@ export function purgeFixtures(): { removed: number; kept: string[] } {
   const dir = p("logs", "approvals");
   let removed = 0;
   const kept: string[] = [];
-  for (const f of readdirSync(dir)) {
+  for (const f of readdirSync(dir).filter((f) => /^AP-[0-9a-f]{8}\.json$/.test(f))) {
     const a = json<{ chat_id?: number; target?: string; action?: string }>(`logs/approvals/${f}`);
     const target = a.target ?? "";
     if (REAL.test(target)) { kept.push(f); continue; }          // 감사기록 보존

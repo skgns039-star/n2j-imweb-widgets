@@ -21,8 +21,7 @@ export function assetUrl(owner: string, repo: string, id: string, version: strin
   return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@w-${id}-${version}/dist/${id}/${version}/${file}`;
 }
 
-export function buildRegistry(): Registry {
-  const m = manifest();
+export function buildRegistry(m = manifest(), records: Record<string, IntegrityRecord> = {}): Registry {
   const killed = existsSync(p("config", "kill_switch"));
   return {
     schema_version: 1,
@@ -30,7 +29,7 @@ export function buildRegistry(): Registry {
     updated_at: new Date().toISOString(),
     sites: Object.fromEntries(m.sites.map((s) => [s.site_id, { enabled: s.enabled }])),
     modules: m.widgets.map((w) => {
-      const rec = json<IntegrityRecord>(`integrity/${w.widget_id}.json`);
+      const rec = records[w.widget_id] ?? json<IntegrityRecord>(`integrity/${w.widget_id}.json`);
       if (rec.version !== w.version) {
         throw new Error(`${w.widget_id}: integrity(${rec.version}) != manifest(${w.version}) — 빌드 먼저`);
       }
