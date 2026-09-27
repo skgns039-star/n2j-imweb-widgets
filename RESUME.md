@@ -2,7 +2,7 @@
 
 ## 2026-09-28 최신 — 공개 저장소 push 완료 (사용자 지시)
 
-사용자 "git -C … push origin main 푸쉬하도록해" 명시 지시로 에이전트가 일반 `git push` 실행 → `499097f..77cf82c main -> main` 성공. push 직후 로컬 = origin(ahead 0·behind 0), `assertOnlyReleaseCommitsAhead` 통과(위젯 배포 가능), 공개 registry 내용 불변, 세화건설·엔투제이트리니 HTTP 200. 아래 두 절의 "push 사용자 대기"는 이것으로 해소. 이 기록 커밋은 로컬에만 있으니 다음 push 때 함께 올린다. 보고서 `state/reports/2026-09-28_공통_작업저장소-정리-커밋-결과보고.md` 9절.
+사용자 "git -C … push origin main 푸쉬하도록해" 명시 지시로 에이전트가 일반 `git push` 실행 → `499097f..77cf82c main -> main` 성공. push 직후 로컬 = origin(ahead 0·behind 0), `assertOnlyReleaseCommitsAhead` 통과(위젯 배포 가능), 공개 registry 내용 불변, 세화건설·엔투제이트리니 HTTP 200. 아래 두 절의 "push 사용자 대기"는 이것으로 해소. 이 기록 커밋들까지 모두 push 완료(로컬 = origin). 보고서 `state/reports/2026-09-28_공통_작업저장소-정리-커밋-결과보고.md` 9절.
 
 ## 2026-09-28 — 재작업: 남은 RESUME 미커밋 정리 (push 는 위 절에서 완료)
 
