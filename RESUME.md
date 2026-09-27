@@ -1,5 +1,17 @@
 # RESUME — 다음 세션에서 이어가는 지점
 
+## 2026-09-28 최신 — 재작업 4: 원래 요청 ①② 완료 실측, 잔여는 기록 커밋 1개
+
+`git fetch`로 확인한 결과는 다음과 같다. origin/main은 `5e68b8f`다. 검토·병합 커밋 8개는 8/8이 공개 저장소에 반영됐다(`merge-base --is-ancestor`). 공개 registry sha256은 로컬과 같다. 작업 트리는 0파일이다. `npm test` 198/198, typecheck 통과, secretscan 0, 두 사이트 모두 200이다. 로컬에만 있는 커밋은 RESUME 기록 커밋 1개로, 새 커밋을 만들지 않고 amend로 합쳤다. 이 커밋 때문에 가드가 BLOCKED다(커밋 1·파일 1). 배포 경로 차이는 0이다. 선택 사항으로 사용자가 `! git -C /Volumes/T7/NJ2_AGENT/N2J_projects/imweb-widget-agent push origin main`을 실행하면 된다. **다음 세션은 이 확인 결과를 새 커밋으로 남기지 않는다.** 보고서는 12절에 있다.
+
+## 2026-09-28 최신 — 재작업 3: push 뒤 RESUME 커밋으로 가드 BLOCKED 재발 → 실측 정정
+
+재작업 2는 "ahead 0·가드 PASS"로 보고했지만, 그 뒤에 만든 RESUME 커밋 때문에 로컬이 ahead 1이 됐고 가드도 **BLOCKED**로 바뀌었다. 실측 결과는 다음과 같다. 검토·병합한 커밋 8개(`352d9cd`~`5e68b8f`)는 모두 origin/main에 들어가 있다(`merge-base --is-ancestor`). 로컬에만 있는 것은 이 RESUME 커밋 1개뿐이다(`RESUME.md`만 바뀌었고 배포 경로 차이는 0). `npm test` 198/198, secretscan 0, 두 사이트 모두 200이다. 에이전트의 push는 settings deny로 막혀 있다. **다음 한 걸음: 사용자가 `! git -C /Volumes/T7/NJ2_AGENT/N2J_projects/imweb-widget-agent push origin main`을 실행한다. 그다음 `git status -sb`에서 ahead 0, 가드 PASS를 확인한다. 이 확인 결과는 새 커밋으로 남기지 않는다(루프 방지).** 점검표에 F7을 추가했다. 보고서는 11절에 있다.
+
+## 2026-09-28 — 재작업 2: push 후 독립 재검증 (※ 이후 RESUME 커밋으로 ahead 1·가드 BLOCKED — 위 절)
+
+완료 검사 "원래 지시 반영" 미달 재작업. `git fetch`·`ls-remote`로 origin/main = 로컬 HEAD `5e68b8f`(ahead 0·behind 0), reflog로 `5275351`·`5e68b8f`(RESUME만) 확인. 가드 PASS, 공개 raw registry sha256 `c94a2c35…` = 로컬 = `499097f`(서빙 불변), `499097f..HEAD` 배포 경로 차이 0, 무결성 16/16, `npm test` 198/198, typecheck·secretscan 통과, 두 사이트 200. 보고서 10절. **9/28 지시(①공개 반영 ②미커밋 정리) 모두 완료.** 이 RESUME 커밋 1개는 로컬만(문서, 배포 영향 없음). 다음: 며칠 뒤 엔투제이트리니 색인 재조회(읽기만).
+
 ## 2026-09-28 최신 — 공개 저장소 push 완료 (사용자 지시)
 
 사용자 "git -C … push origin main 푸쉬하도록해" 명시 지시로 에이전트가 일반 `git push` 실행 → `499097f..77cf82c main -> main` 성공. push 직후 로컬 = origin(ahead 0·behind 0), `assertOnlyReleaseCommitsAhead` 통과(위젯 배포 가능), 공개 registry 내용 불변, 세화건설·엔투제이트리니 HTTP 200. 아래 두 절의 "push 사용자 대기"는 이것으로 해소. 이 기록 커밋들까지 모두 push 완료(로컬 = origin). 보고서 `state/reports/2026-09-28_공통_작업저장소-정리-커밋-결과보고.md` 9절.
