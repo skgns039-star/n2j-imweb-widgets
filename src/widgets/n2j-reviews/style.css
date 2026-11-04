@@ -45,3 +45,5 @@
 
 .ddak-footer { color: var(--sub,#f2eed7); }
 .ddak-footer > .footer-social > a { color: inherit; border-color: rgba(242,238,215,.3); }
+
+.ddak-footer { background-color:var(--ink,#1b1d16); }

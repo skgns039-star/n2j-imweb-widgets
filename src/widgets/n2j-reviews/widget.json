@@ -1,6 +1,6 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "enabled": true,
   "productionReadyScope": "STATIC ONLY",
   "rolling": false,
@@ -8,6 +8,6 @@
   "finalDesignSyncCount": 1,
   "sourceVersion": "20261104.8-r1",
   "parentSourceCorrection": "Source-owner HM10 single border token correction; original JS/footer unchanged",
-  "release_status": "M1_FOOTER_CONTRAST_FIX",
-  "footerSourceVersion": "FOOTER-DARK-R1"
+  "release_status": "M1_SOLID_FOOTER_CONTEXT_FIX",
+  "footerSourceVersion": "FOOTER-SOLID-R2"
 }

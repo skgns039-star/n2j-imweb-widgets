@@ -1,7 +1,7 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.1",
-  "built_at": "2026-11-04T06:34:00.401Z",
+  "version": "0.1.2",
+  "built_at": "2026-11-04T06:41:19.908Z",
   "files": [
     {
       "name": "index.js",
@@ -13,11 +13,11 @@
     },
     {
       "name": "style.css",
-      "bytes": 6085,
-      "gzip": 1842,
-      "source_sha256": "bd22e45e258be7c0b5e7aba09142e3dd74262cb1b292ca4fefd437086593b5be",
-      "dist_sha256": "bd22e45e258be7c0b5e7aba09142e3dd74262cb1b292ca4fefd437086593b5be",
-      "sri": "sha384-lxF8iKd8P4KoNfcPyXmCKJer9di7yH9sV4zewGfts9XUxXnVnOjPJAqVb7jvIp6J"
+      "bytes": 6140,
+      "gzip": 1857,
+      "source_sha256": "49ddd3d5aac4073d48e2f6a01153b9fa9fd4c2c7798715c8926f689dcc3dd077",
+      "dist_sha256": "49ddd3d5aac4073d48e2f6a01153b9fa9fd4c2c7798715c8926f689dcc3dd077",
+      "sri": "sha384-r/qcvdZTFAs1XbK/WyN6mgeLEXQTuiMae3FCrLbXudGKO2NmLibkuXh2RXqZBH9c"
     }
   ]
 }
