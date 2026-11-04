@@ -1,0 +1,23 @@
+{
+  "widget_id": "n2j-reviews",
+  "version": "0.1.0",
+  "built_at": "2026-11-04T06:15:44.446Z",
+  "files": [
+    {
+      "name": "index.js",
+      "bytes": 16737,
+      "gzip": 6542,
+      "source_sha256": "5bdb04d8ed8ff7fb797cf268cb085c09f96bd066d1cc36c46addeb045e650a3d",
+      "dist_sha256": "5bdb04d8ed8ff7fb797cf268cb085c09f96bd066d1cc36c46addeb045e650a3d",
+      "sri": "sha384-8lSSdC+KQrwriLgMQ/a26hXIpPPnrr9DBfpNAwK1ZEl5h/vVJVkTYE70CyqYwaUw"
+    },
+    {
+      "name": "style.css",
+      "bytes": 5950,
+      "gzip": 1800,
+      "source_sha256": "ead1859bddad2d2352b04dc12b1c708e328a5e6b357b7f549b46a1b34715e088",
+      "dist_sha256": "ead1859bddad2d2352b04dc12b1c708e328a5e6b357b7f549b46a1b34715e088",
+      "sri": "sha384-KO7mxuknA0ZTTkbWSaiTZjChub4Jhvhweag8x7/T3l1k0EC9Qs1MmzJAgh0Zpv0r"
+    }
+  ]
+}

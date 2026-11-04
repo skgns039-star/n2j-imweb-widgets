@@ -1,0 +1,12 @@
+{
+  "widget_id": "n2j-reviews",
+  "version": "0.1.0",
+  "enabled": true,
+  "productionReadyScope": "STATIC ONLY",
+  "rolling": false,
+  "motionStatus": "HOLD",
+  "finalDesignSyncCount": 1,
+  "sourceVersion": "20261104.8-r1",
+  "parentSourceCorrection": "Source-owner HM10 single border token correction; original JS/footer unchanged",
+  "release_status": "CONTROLLED_INITIAL_M0_INSTALL"
+}

@@ -17,6 +17,14 @@ sites:
       - cta-contact
     connected_at: 2026-08-24T14:18:47.036Z
     api_credentials_ref: env:IMWEB_API_KEY_SEHWA / env:IMWEB_API_SECRET_SEHWA
+  - site_id: n2jtrini
+    enabled: true
+    label: 엔투제이트리니
+    url: https://n2jtriniweb.co.kr
+    test_path: /
+    common_code: no
+    slots:
+      - n2j-reviews
 widgets:
   - widget_id: hello-badge
     version: 0.1.0
@@ -37,3 +45,15 @@ widgets:
     mount:
       type: slot
       slot: cta-contact
+  - widget_id: n2j-reviews
+    version: 0.1.0
+    enabled: true
+    site: n2jtrini
+    match:
+      path_glob:
+        - /
+        - /27
+        - /27/
+    mount:
+      type: slot
+      slot: n2j-reviews
