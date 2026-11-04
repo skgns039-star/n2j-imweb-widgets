@@ -1,0 +1,47 @@
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 */
+.ddak-n2j-reviews{--ddak-rv-bg:#fafbf5;--ddak-rv-paper:#fff;--ddak-rv-ink:#1b1d16;--ddak-rv-muted:#626653;--ddak-rv-accent:#66713a;--ddak-rv-line:rgba(27,29,22,.16);--ddak-rv-font:inherit;--ddak-rv-gap:24px;--ddak-rv-card:340px;color:var(--ddak-rv-ink);background:var(--ddak-rv-bg);font-family:var(--ddak-rv-font);padding:88px max(24px,calc((100% - 1240px)/2));line-height:1.7;box-sizing:border-box}
+.ddak-n2j-reviews *{box-sizing:border-box}.ddak-n2j-reviews h1,.ddak-n2j-reviews h2{font-size:clamp(32px,4.2vw,60px);line-height:1.2;letter-spacing:-.045em;font-weight:600;margin:16px 0 24px;overflow-wrap:anywhere;font-style:normal}.ddak-n2j-reviews p{margin:0 0 20px}.ddak-n2j-reviews .ddak-rv-eyebrow{font-size:12px;letter-spacing:.14em;color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-intro{max-width:600px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-top{display:flex;justify-content:space-between;gap:32px;align-items:end;margin-bottom:48px}.ddak-n2j-reviews .ddak-rv-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.ddak-n2j-reviews a,.ddak-n2j-reviews button{font:inherit;color:var(--ddak-rv-ink);text-decoration:none;min-height:48px;padding:12px 20px;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;cursor:pointer;transition:opacity .2s ease}@media(hover:hover) and (pointer:fine){.ddak-n2j-reviews a:hover,.ddak-n2j-reviews button:hover{opacity:.78}}.ddak-n2j-reviews a:active,.ddak-n2j-reviews button:active{opacity:.6}.ddak-n2j-reviews :focus-visible{outline:3px solid var(--ddak-rv-accent);outline-offset:4px}.ddak-n2j-reviews .ddak-rv-primary{background:var(--ddak-rv-accent);color:var(--ddak-rv-paper);border-color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-empty{border-top:1px solid var(--ddak-rv-line);border-bottom:1px solid var(--ddak-rv-line);padding:64px 0;max-width:100%}.ddak-n2j-reviews .ddak-rv-empty h3{font-size:24px;font-weight:500;margin:0 0 12px}.ddak-n2j-reviews .ddak-rv-muted{color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-window{overflow:hidden;padding:8px 0}.ddak-n2j-reviews .ddak-rv-track{display:flex;gap:var(--ddak-rv-gap);width:max-content}.ddak-n2j-reviews .ddak-rv-group{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--ddak-rv-card);gap:var(--ddak-rv-gap);align-items:start}.ddak-n2j-reviews .ddak-rv-card{min-width:0;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);padding:28px;overflow-wrap:anywhere}.ddak-n2j-reviews .ddak-rv-card p{white-space:pre-wrap}.ddak-n2j-reviews .ddak-rv-meta{font-size:13px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ddak-rv-gap);margin-top:40px}.ddak-n2j-reviews .ddak-rv-list details{margin-top:16px}.ddak-n2j-reviews summary{cursor:pointer;min-height:44px;padding:10px 0}.ddak-n2j-reviews [hidden]{display:none!important}
+@media(max-width:767px){.ddak-n2j-reviews{padding:56px 20px;--ddak-rv-gap:16px;--ddak-rv-card:280px}.ddak-n2j-reviews .ddak-rv-top{display:block;margin-bottom:32px}.ddak-n2j-reviews .ddak-rv-actions{margin-top:24px}.ddak-n2j-reviews .ddak-rv-list{grid-template-columns:minmax(0,1fr)}.ddak-n2j-reviews .ddak-rv-card{padding:24px}.ddak-n2j-reviews .ddak-rv-empty{padding:40px 0}}
+@media(prefers-reduced-motion:reduce){.ddak-n2j-reviews .ddak-rv-window{overflow:visible}.ddak-n2j-reviews .ddak-rv-track{width:auto;display:block}.ddak-n2j-reviews .ddak-rv-group{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-columns:auto}.ddak-n2j-reviews [data-copy]{display:none}.ddak-n2j-reviews a,.ddak-n2j-reviews button{transition:opacity .15s linear}}
+@media(prefers-reduced-motion:reduce) and (max-width:767px){.ddak-n2j-reviews .ddak-rv-group{grid-template-columns:minmax(0,1fr)}}
+
+/* CSS owns every frame; JS only measures on resize. */
+@keyframes ddak-rv-flow{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--ddak-rv-distance)),0,0)}}
+.ddak-n2j-reviews .ddak-rv-track{animation:ddak-rv-flow var(--ddak-rv-duration,1s) linear infinite;animation-play-state:paused;will-change:transform}
+@media(prefers-reduced-motion:reduce){.ddak-n2j-reviews .ddak-rv-track{animation:none!important;transform:none!important;will-change:auto}}
+
+/* Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V4
+   Add after existing CSS. All selectors are scoped by the ddak namespace. */
+.ddak-footer > .footer-social { flex-wrap: wrap; min-width: 0; }
+.ddak-footer > .footer-social > a { min-width: 44px; min-height: 44px; flex-shrink: 0; }
+.ddak-footer .ddak-footer-blog {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 14px; border: 1px solid var(--rule);
+  font-size: 13px; letter-spacing: 0; white-space: nowrap; color: var(--text);
+}
+.ddak-footer .ddak-footer-blog:hover { text-decoration: underline; text-underline-offset: 4px; }
+.ddak-footer a:focus-visible { outline: 2px solid var(--point); outline-offset: 4px; }
+.ddak-footer > span { font-size: 12px; }
+.ddak-footer .ddak-footer-business {
+  flex: 0 0 100%; min-width: 0; max-width: 100%;
+  font-size: 13px; line-height: 1.8; letter-spacing: 0; text-align: center;
+}
+.ddak-footer .ddak-footer-details {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 6px 20px; max-width: 840px; margin: 0 auto;
+}
+.ddak-footer .ddak-footer-field {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 0 6px; min-width: 0; max-width: 100%;
+}
+.ddak-footer .ddak-footer-field dt { font-weight: 600; }
+.ddak-footer .ddak-footer-field dd {
+  margin: 0; min-width: 0; max-width: 100%;
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .ddak-footer .ddak-footer-details { flex-direction: column; gap: 8px; }
+}
+
+.ddak-footer { color: var(--sub,#f2eed7); }
+.ddak-footer > .footer-social > a { color: inherit; border-color: rgba(242,238,215,.3); }
