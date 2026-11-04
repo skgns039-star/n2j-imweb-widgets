@@ -1,9 +1,12 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-09-27T14:37:17.326Z",
+  "updated_at": "2026-11-04T06:15:50.232Z",
   "sites": {
     "sehwa": {
+      "enabled": true
+    },
+    "n2jtrini": {
       "enabled": true
     }
   },
@@ -58,6 +61,35 @@
           "type": "css",
           "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-cta-contact-0.1.0/dist/cta-contact/0.1.0/style.css",
           "integrity": "sha384-9PRp/BFNny52k9gQyvihVZpY1sstPH4yK8cA6JiZ0jNCrVy4p8NR9YK1Dlte2XPF"
+        }
+      ]
+    },
+    {
+      "widget_id": "n2j-reviews",
+      "version": "0.1.0",
+      "enabled": true,
+      "match": {
+        "site": "n2jtrini",
+        "path_glob": [
+          "/",
+          "/27",
+          "/27/"
+        ]
+      },
+      "mount": {
+        "type": "slot",
+        "slot": "n2j-reviews"
+      },
+      "assets": [
+        {
+          "type": "js",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.0/dist/n2j-reviews/0.1.0/index.js",
+          "integrity": "sha384-8lSSdC+KQrwriLgMQ/a26hXIpPPnrr9DBfpNAwK1ZEl5h/vVJVkTYE70CyqYwaUw"
+        },
+        {
+          "type": "css",
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.0/dist/n2j-reviews/0.1.0/style.css",
+          "integrity": "sha384-KO7mxuknA0ZTTkbWSaiTZjChub4Jhvhweag8x7/T3l1k0EC9Qs1MmzJAgh0Zpv0r"
         }
       ]
     }
