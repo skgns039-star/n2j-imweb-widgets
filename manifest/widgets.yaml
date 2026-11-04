@@ -47,7 +47,7 @@ widgets:
       slot: cta-contact
   - widget_id: n2j-reviews
     version: 0.1.0
-    enabled: false
+    enabled: true
     site: n2jtrini
     match:
       path_glob:
