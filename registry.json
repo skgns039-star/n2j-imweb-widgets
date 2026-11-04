@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-11-04T06:15:50.232Z",
+  "updated_at": "2026-11-04T06:17:27.737Z",
   "sites": {
     "sehwa": {
       "enabled": true
@@ -67,7 +67,7 @@
     {
       "widget_id": "n2j-reviews",
       "version": "0.1.0",
-      "enabled": true,
+      "enabled": false,
       "match": {
         "site": "n2jtrini",
         "path_glob": [
