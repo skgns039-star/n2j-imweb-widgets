@@ -10,40 +10,36 @@
 .ddak-n2j-reviews .ddak-rv-track{animation:ddak-rv-flow var(--ddak-rv-duration,1s) linear infinite;animation-play-state:paused;will-change:transform}
 @media(prefers-reduced-motion:reduce){.ddak-n2j-reviews .ddak-rv-track{animation:none!important;transform:none!important;will-change:auto}}
 
-/* Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V4
-   Add after existing CSS. All selectors are scoped by the ddak namespace. */
-.ddak-footer > .footer-social { flex-wrap: wrap; min-width: 0; }
-.ddak-footer > .footer-social > a { min-width: 44px; min-height: 44px; flex-shrink: 0; }
-.ddak-footer .ddak-footer-blog {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 46px; padding: 0 14px; border: 1px solid var(--rule);
-  font-size: 13px; letter-spacing: 0; white-space: nowrap; color: var(--text);
-}
-.ddak-footer .ddak-footer-blog:hover { text-decoration: underline; text-underline-offset: 4px; }
-.ddak-footer a:focus-visible { outline: 2px solid var(--point); outline-offset: 4px; }
-.ddak-footer > span { font-size: 12px; }
-.ddak-footer .ddak-footer-business {
-  flex: 0 0 100%; min-width: 0; max-width: 100%;
-  font-size: 13px; line-height: 1.8; letter-spacing: 0; text-align: center;
-}
-.ddak-footer .ddak-footer-details {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 6px 20px; max-width: 840px; margin: 0 auto;
-}
-.ddak-footer .ddak-footer-field {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 0 6px; min-width: 0; max-width: 100%;
-}
-.ddak-footer .ddak-footer-field dt { font-weight: 600; }
-.ddak-footer .ddak-footer-field dd {
-  margin: 0; min-width: 0; max-width: 100%;
-  word-break: keep-all; overflow-wrap: anywhere;
-}
-@media (max-width: 480px) {
-  .ddak-footer .ddak-footer-details { flex-direction: column; gap: 8px; }
-}
-
-.ddak-footer { color: var(--sub,#f2eed7); }
-.ddak-footer > .footer-social > a { color: inherit; border-color: rgba(242,238,215,.3); }
-
-.ddak-footer { background-color:var(--ink,#1b1d16); }
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4
+   N2J TRINI footer r2 (sian jobs/n2jtrini_footer_reference_20261104). Scoped by ddak namespace. */
+.ddak-footer.ddak-tf{--ddak-tf-olive:#1b1d16;--ddak-tf-cream:#f2eed7;--ddak-tf-rule:#77796c;--ddak-tf-gutter:clamp(24px,5vw,80px);display:block;box-sizing:border-box;width:100%;max-width:none;padding:48px var(--ddak-tf-gutter) 36px;border-top:0;background:var(--ddak-tf-olive);color:var(--ddak-tf-cream);font-family:Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;font-weight:400;letter-spacing:normal;line-height:1.6;text-align:left;text-transform:none}
+.ddak-tf *{box-sizing:border-box}
+.ddak-tf .ddak-tf-in{max-width:1760px;margin:0 auto}
+.ddak-tf p,.ddak-tf h2,.ddak-tf dl,.ddak-tf dd{margin:0}
+.ddak-tf a{color:inherit;text-decoration:none;min-height:44px;min-width:44px;display:flex;align-items:center}
+.ddak-tf a:hover{text-decoration:underline;text-underline-offset:6px}
+.ddak-tf a:focus-visible{outline:2px solid var(--ddak-tf-cream);outline-offset:5px}
+.ddak-tf a:active{opacity:.7}
+.ddak-tf .ddak-tf-top{display:flex;justify-content:space-between;gap:24px;font-size:15px;line-height:1.6}
+.ddak-tf .ddak-tf-mark{font-family:"Arial Black",Impact,sans-serif;min-width:0;overflow-wrap:anywhere;font-size:clamp(48px,13.5vw,208px);letter-spacing:-.065em;font-weight:700;line-height:1.15;white-space:normal;padding:28px 0 36px}
+.ddak-tf .ddak-tf-dot{display:inline-block;margin-left:.015em;transform-origin:center}
+.ddak-tf .ddak-tf-main{position:relative;padding:48px 0 64px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:48px}
+.ddak-tf .ddak-tf-rule{position:absolute;inset:0 0 auto;display:block;height:1px;background:var(--ddak-tf-rule);transform-origin:left center}
+.ddak-tf h2{font-size:13px;font-weight:400;line-height:1.6;letter-spacing:normal}
+.ddak-tf .ddak-tf-contact h2{margin-bottom:12px}
+.ddak-tf .ddak-tf-email{font-size:clamp(20px,2.6vw,38px);line-height:1.5;letter-spacing:-.035em;width:fit-content}
+.ddak-tf .ddak-tf-phone{font-size:18px;line-height:1.6;width:fit-content}
+.ddak-tf .ddak-tf-ch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px 32px}
+.ddak-tf .ddak-tf-ch a{font-size:16px;line-height:1.5;justify-content:space-between;border-bottom:1px solid var(--ddak-tf-rule);padding:12px 0;white-space:nowrap;gap:8px}
+.ddak-tf .ddak-tf-ch a:hover{text-decoration:none}
+.ddak-tf .ddak-tf-ch span{display:inline-block;font-size:20px;opacity:.72;transform:translateX(0);transition:transform 180ms cubic-bezier(.22,1,.36,1)}
+@media(hover:hover) and (pointer:fine){.ddak-tf .ddak-tf-ch a:hover span{transform:translateX(3px)}}
+.ddak-tf .ddak-tf-biz{border-top:1px solid var(--ddak-tf-rule);padding-top:28px;display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px}
+.ddak-tf .ddak-tf-biz dl{display:flex;flex-wrap:wrap;gap:12px 32px;font-size:13px;line-height:1.8}
+.ddak-tf .ddak-tf-f{display:flex;gap:10px;min-width:0}.ddak-tf .ddak-tf-f dt{font-weight:600;flex-shrink:0}.ddak-tf .ddak-tf-f dd{overflow-wrap:anywhere;word-break:keep-all}.ddak-tf .ddak-tf-addr{flex-basis:100%}
+@media(max-width:800px){.ddak-tf .ddak-tf-main{grid-template-columns:minmax(0,1fr);gap:32px}.ddak-tf .ddak-tf-biz{grid-template-columns:minmax(0,1fr);gap:16px}.ddak-tf .ddak-tf-mark{padding:32px 0}.ddak-tf .ddak-tf-ch{gap:8px 24px}.ddak-tf .ddak-tf-top{font-size:13px}.ddak-footer.ddak-tf{padding-top:32px}.ddak-tf .ddak-tf-biz dl{gap:10px 24px}}
+@media(max-width:640px){.ddak-footer.ddak-tf{padding-bottom:120px}}
+@media(max-width:480px){.ddak-tf .ddak-tf-top{flex-direction:column;gap:4px}.ddak-tf .ddak-tf-top p:last-child{display:none}.ddak-tf .ddak-tf-mark{font-size:13.2vw;padding:32px 0}.ddak-tf .ddak-tf-main{padding:32px 0 40px}.ddak-tf .ddak-tf-biz dl{display:grid;grid-template-columns:minmax(0,1fr)}.ddak-tf .ddak-tf-f{gap:12px}.ddak-tf .ddak-tf-f dt{width:92px}.ddak-tf .ddak-tf-f dd{flex:1;min-width:0}.ddak-tf .ddak-tf-ch a{font-size:15px}.ddak-tf .ddak-tf-email{font-size:clamp(20px,6vw,25px)}.ddak-tf .ddak-tf-biz{padding-top:24px}}
+@media(prefers-reduced-motion:reduce){.ddak-tf .ddak-tf-dot,.ddak-tf .ddak-tf-ch span,.ddak-tf .ddak-tf-rule{transform:none!important}.ddak-tf .ddak-tf-ch span{transition:opacity 120ms ease-out}.ddak-tf .ddak-tf-ch a:hover span{opacity:1}}
+/* Imweb tablet view scales body by .85; keep touch targets >=44px after scaling. */
+@media(min-width:641px) and (max-width:1199px){.ddak-tf a{min-height:52px}}

@@ -1,13 +1,13 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "enabled": true,
   "productionReadyScope": "STATIC ONLY",
   "rolling": false,
   "motionStatus": "HOLD",
   "finalDesignSyncCount": 1,
   "sourceVersion": "20261104.8-r1",
-  "parentSourceCorrection": "Source-owner HM10 single border token correction; original JS/footer unchanged",
-  "release_status": "M1_SOLID_FOOTER_CONTEXT_FIX",
-  "footerSourceVersion": "FOOTER-SOLID-R2"
+  "parentSourceCorrection": "Footer replaced by sian footer r2 (owner 2026-11-08 instruction); original home code unchanged",
+  "release_status": "M1_TRINI_FOOTER_R2",
+  "footerSourceVersion": "FOOTER-REFERENCE-R2"
 }

@@ -145,22 +145,38 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
 (function () {
   'use strict';
   window.__ddak = window.__ddak || {};
+  // N2J TRINI footer r2 (sian jobs/n2jtrini_footer_reference_20261104). Static content stays complete without motion.
+  const MARKUP = "<div class=\"ddak-tf-in\"><div class=\"ddak-tf-top\"><p>군산 기반 제작 스튜디오</p><p>엔투제이트리니</p></div><p class=\"ddak-tf-mark\">N2J TRINI<span class=\"ddak-tf-dot\" aria-hidden=\"true\">.</span></p><div class=\"ddak-tf-main\"><span class=\"ddak-tf-rule\" aria-hidden=\"true\"></span><section class=\"ddak-tf-contact\" aria-labelledby=\"ddak-tf-contact-title\"><h2 id=\"ddak-tf-contact-title\">프로젝트 문의</h2><a class=\"ddak-tf-email\" href=\"mailto:n2jtrini@gmail.com\">n2jtrini@gmail.com</a><a class=\"ddak-tf-phone\" href=\"tel:01026318279\">010-2631-8279</a></section><nav class=\"ddak-tf-ch\" aria-label=\"소셜 채널 · 새 창으로 열림\"><a href=\"https://www.instagram.com/n2j_ddalkkak_web_studio?igsh=MW14NHlieXFvNW9rcw%3D%3D&amp;utm_source=qr\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"인스타그램 (새 창)\">인스타그램<span aria-hidden=\"true\">↗</span></a><a href=\"https://youtube.com/@n2jtrini?si=zmLJ5wbruLfd7FVu\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"유튜브 (새 창)\">유튜브<span aria-hidden=\"true\">↗</span></a><a href=\"https://www.threads.com/@n2jtrini\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"스레드 (새 창)\">스레드<span aria-hidden=\"true\">↗</span></a><a href=\"https://blog.naver.com/jbe_123\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"네이버 블로그 (새 창)\">네이버 블로그<span aria-hidden=\"true\">↗</span></a></nav></div><section class=\"ddak-tf-biz\" aria-labelledby=\"ddak-tf-biz-title\"><h2 id=\"ddak-tf-biz-title\">사업자 정보</h2><dl><div class=\"ddak-tf-f\"><dt>상호</dt><dd>엔투제이트리니</dd></div><div class=\"ddak-tf-f\"><dt>대표</dt><dd>이현주</dd></div><div class=\"ddak-tf-f\"><dt>사업자등록번호</dt><dd>772-46-01252</dd></div><div class=\"ddak-tf-f ddak-tf-addr\"><dt>주소</dt><dd>전북특별자치도 군산시 미룡로 41</dd></div><div class=\"ddak-tf-f\"><dt>전화</dt><dd>010-2631-8279</dd></div><div class=\"ddak-tf-f\"><dt>이메일</dt><dd>n2jtrini@gmail.com</dd></div></dl></section></div>";
+  function motion(footer) {
+    const dot = footer.querySelector('.ddak-tf-dot'), rule = footer.querySelector('.ddak-tf-rule');
+    if (!dot || !rule || !dot.animate || !('IntersectionObserver' in window)) return;
+    const ease = 'cubic-bezier(.22,1,.36,1)';
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      try {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          dot.animate([{opacity: .68}, {opacity: 1}], {duration: 120, easing: ease});
+          rule.animate([{opacity: .35}, {opacity: 1}], {duration: 150, delay: 60, easing: ease, fill: 'backwards'});
+        } else {
+          dot.animate([{opacity: .68, transform: 'scale(.78)'}, {opacity: 1, transform: 'none'}], {duration: 420, easing: ease});
+          rule.animate([{transform: 'scaleX(0)'}, {transform: 'scaleX(1)'}], {duration: 420, delay: 80, easing: ease, fill: 'backwards'});
+        }
+      } catch (_) { /* footer stays fully visible */ }
+    }, {threshold: .05, rootMargin: '0px 0px -5% 0px'});
+    io.observe(footer.querySelector('.ddak-tf-mark') || footer);
+  }
   function apply() {
     const nodes = document.querySelectorAll('footer.site-footer[aria-label="사이트 정보"]');
     if (nodes.length !== 1) throw new Error('REVIEW_FOOTER_TARGET');
     const footer = nodes[0];
     if (footer.dataset.ddakReviewFooter === 'true') return false;
-    const social = footer.querySelectorAll(':scope > .footer-social');
-    const threads = footer.querySelectorAll(':scope > .footer-social > a[aria-label="스레드"]');
-    if (social.length !== 1 || threads.length !== 1 || threads[0].getAttribute('href') !== "https://www.threads.com/@n2j_ddalkkak_web_studio?igshid=NTc4MTIwNjQ2YQ==" ||
-        footer.querySelector('.ddak-footer-business,.ddak-footer-blog')) throw new Error('REVIEW_FOOTER_DRIFT');
-    const business = document.createElement('template'); business.innerHTML = "<!-- Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V4 -->\n<section class=\"ddak-footer-business\" aria-label=\"사업자 정보\">\n  <dl class=\"ddak-footer-details\">\n    <div class=\"ddak-footer-field\"><dt>상호</dt><dd>엔투제이트리니</dd></div>\n    <div class=\"ddak-footer-field\"><dt>대표</dt><dd>이현주</dd></div>\n    <div class=\"ddak-footer-field\"><dt>사업자등록번호</dt><dd>772-46-01252</dd></div>\n    <div class=\"ddak-footer-field\"><dt>주소</dt><dd>전북특별자치도 군산시 미룡로 41 (미룡동, 미룡(2) 주공아파트) 210동803호</dd></div>\n    <div class=\"ddak-footer-field\"><dt>전화</dt><dd>010-5148-8279</dd></div>\n    <div class=\"ddak-footer-field\"><dt>이메일</dt><dd>n2jtrini@gmail.com</dd></div>\n  </dl>\n</section>\n";
-    const blog = document.createElement('template'); blog.innerHTML = "<a class=\"ddak-footer-blog\" href=\"https://blog.naver.com/jbe_123\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"네이버 블로그 (새 창)\">네이버 블로그</a>\n";
-    footer.classList.add('ddak-footer');
-    threads[0].setAttribute('href',"https://www.threads.com/@n2jtrini");
-    social[0].append(blog.content.cloneNode(true));
-    footer.append(business.content.cloneNode(true));
+    if (footer.querySelectorAll(':scope > .footer-social').length !== 1) throw new Error('REVIEW_FOOTER_DRIFT');
+    const t = document.createElement('template'); t.innerHTML = MARKUP;
+    footer.classList.add('ddak-footer', 'ddak-tf');
+    footer.replaceChildren(t.content.cloneNode(true));
     footer.dataset.ddakReviewFooter = 'true';
+    motion(footer);
     window.__ddak.reviewController?.refresh();
     return true;
   }
