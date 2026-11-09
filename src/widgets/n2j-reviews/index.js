@@ -56,6 +56,37 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
     for (let p = node.parentElement; p; p = p.parentElement) { result.push(p); if (p === root) break; }
     return result;
   }
+  // 0.1.4: 작성자 = 성 + 가림 + 끝 글자 (홍길동→홍*동, 김수→김*, 남궁민수→남**수). 가림 글자는 이 한 곳만 바꾼다(예: 'x').
+  const MASK = '*';
+  const hidden = c => c === '*' || c === MASK;
+  function maskName(value) {
+    if (typeof value !== 'string') return '';
+    const chars = Array.from(value.normalize('NFC').replace(/[\u0000-\u001F\u007F​-‍⁠﻿]/g, '').replace(/\s+/g, ''));
+    // 한 글자는 가려도 전체가 드러나므로 표시하지 않는다(작성자 비공개).
+    if (chars.length < 2 || chars.length > 40 || hidden(chars[0])) return '';
+    if (chars.length === 2) return chars[0] + MASK;
+    const last = chars[chars.length - 1];
+    return chars[0] + MASK.repeat(Math.min(chars.length - 2, 3)) + (hidden(last) ? MASK : last);
+  }
+  // authors.json = {"authors":{"<게시글 idx>":"홍*동"}}. 가린 값만 담지만, 위젯이 한 번 더 가려 전체 이름이 실수로 들어가도 화면에 나오지 않는다.
+  async function authors(url, signal) {
+    if (!url) return {};
+    try {
+      const response = await fetch(url, {method:'GET', credentials:'omit', redirect:'error', cache:'no-cache',
+        signal, headers:{Accept:'application/json'}});
+      if (!response.ok) return {};
+      const raw = await response.text();
+      if (raw.length > 65536) return {};
+      const map = JSON.parse(raw)?.authors;
+      if (!map || typeof map !== 'object' || Array.isArray(map)) return {};
+      const out = Object.create(null);
+      for (const [id, name] of Object.entries(map)) {
+        const masked = /^[1-9]\d*$/.test(id) ? maskName(name) : '';
+        if (masked) out[id] = masked;
+      }
+      return out;
+    } catch (_) { return {}; }
+  }
   const text = n => {
     const copy = n.cloneNode(true);
     copy.querySelectorAll('script,style,iframe,object,template').forEach(x => x.remove());
@@ -73,7 +104,7 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
     }
     return u;
   }
-  async function load({signal, timeoutMs = 5000} = {}) {
+  async function load({signal, timeoutMs = 5000, authorsURL} = {}) {
     const base = new URL('/27', window.location.origin);
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -89,6 +120,7 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
       return new DOMParser().parseFromString(html, 'text/html');
     }
     try {
+      const names = authors(authorsURL, controller.signal);
       const doc = await get(base);
       const anchor = doc.getElementById(widget) || doc.getElementById('scroll_' + widget);
       if (!anchor) throw new Error('NATIVE_WIDGET_MISSING');
@@ -114,20 +146,22 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
         const value = text(body);
         const normalized = (text(title) + '\n' + value).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'');
         if (!value || value.length > 12000 || qa.test(value) || pii.test(normalized)) continue;
-        reviews.push(Object.freeze({id,body:value,verified:true}));
+        reviews.push({id,body:value,verified:true});
       }
-      return Object.freeze({state: reviews.length ? 'success' : 'empty', reviews:Object.freeze(reviews)});
+      const masked = reviews.length ? await names : {};
+      return Object.freeze({state: reviews.length ? 'success' : 'empty',
+        reviews:Object.freeze(reviews.map(r => Object.freeze(masked[r.id] ? {...r, displayName:masked[r.id]} : r)))});
     } finally {
       clearTimeout(timer); signal?.removeEventListener('abort', abort);
     }
   }
-  window.__ddak.nativeReviews = Object.freeze({load, detailURL});
+  window.__ddak.nativeReviews = Object.freeze({load, detailURL, maskName, MASK});
 })();
 
 (function(){
 'use strict';window.__ddak=window.__ddak||{};
 function refresh(){requestAnimationFrame(()=>requestAnimationFrame(()=>{try{window.ScrollTrigger?.refresh();}catch(_){}}));}
-function mount({root,mode,renderer,timeoutMs,ready=Promise.resolve()}={}){
+function mount({root,mode,renderer,timeoutMs,authorsURL,ready=Promise.resolve()}={}){
  if(!root||!root.matches('[data-ddak-slot="n2j-reviews"]')||!['home','intro'].includes(mode))throw Error('REVIEW_MOUNT_CONTRACT');
  if(['write','view','edit'].includes(new URLSearchParams(location.search).get('bmode'))||root.dataset.ddakReviewBound||root.childNodes.length)return null;
  const anchor=document.getElementById(mode==='home'?'contact':'w20261104b7a91a4a18f0d');if(!anchor)return null;
@@ -135,7 +169,7 @@ function mount({root,mode,renderer,timeoutMs,ready=Promise.resolve()}={}){
  const urls={all:'/27',write:'/27?board=b20261104dccbf249f2535&bmode=write',join:'/?mode=join',login:'/?mode=login'};
  function render(state,items=[]){if(typeof renderer!=='function')throw Error('REVIEW_RENDERER_MISSING');renderer(root,{mode,items,urls,state,onRetry:retry,rolling:false});root.dataset.state=state;refresh();}
  async function retry(){if(running||rendered)return;running=true;
- try{render('loading');await(typeof ready==='function'?ready():ready);const result=mode==='intro'?{state:'success',reviews:[]}:await window.__ddak.nativeReviews.load({timeoutMs});render(result.state,result.reviews);rendered=true;}
+ try{render('loading');await(typeof ready==='function'?ready():ready);const result=mode==='intro'?{state:'success',reviews:[]}:await window.__ddak.nativeReviews.load({timeoutMs,authorsURL});render(result.state,result.reviews);rendered=true;}
  catch(_){render('error');}finally{running=false;root.setAttribute('aria-busy','false');}}
  return{done:retry(),retry};
 }
@@ -206,14 +240,15 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       poll();
     });
   }
-  function start({renderer, styleURL = scriptURL && new URL('style.css',scriptURL).href, timeoutMs} = {}) {
+  function start({renderer, styleURL = scriptURL && new URL('style.css',scriptURL).href,
+    authorsURL = scriptURL && new URL('authors.json',scriptURL).href, timeoutMs} = {}) {
     if (['write','view','edit'].includes(new URLSearchParams(location.search).get('bmode'))) return [];
     const ready = () => styleURL ? stylesheet(styleURL,timeoutMs) : Promise.reject(new Error('REVIEW_STYLESHEET_MISSING'));
     const roots = [...document.querySelectorAll('[data-ddak-slot="n2j-reviews"][data-ddak-review-mode]')]
       .filter(root => ['home','intro'].includes(root.dataset.ddakReviewMode) && !root.dataset.ddakReviewBound);
     if (!roots.length) return [];
     return roots.map(root => ns.reviewController.mount({root, mode:root.dataset.ddakReviewMode,
-      renderer, timeoutMs, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') ns.reviewFooter.apply(); })})).filter(Boolean);
+      renderer, timeoutMs, authorsURL, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') ns.reviewFooter.apply(); })})).filter(Boolean);
   }
   ns.reviewBoot = Object.freeze({start, stylesheet});
   // Final .6 helper binding is supplied verbatim only after its handoff is verified.
