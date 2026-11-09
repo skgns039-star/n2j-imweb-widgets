@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "global_enabled": true,
-  "updated_at": "2026-11-09T07:50:38.419Z",
+  "updated_at": "2026-11-09T10:58:25.873Z",
   "sites": {
     "sehwa": {
       "enabled": true
@@ -66,7 +66,7 @@
     },
     {
       "widget_id": "n2j-reviews",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "enabled": true,
       "match": {
         "site": "n2jtrini",
@@ -83,13 +83,13 @@
       "assets": [
         {
           "type": "js",
-          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.4/dist/n2j-reviews/0.1.4/index.js",
-          "integrity": "sha384-XfxWOX5fp24cgHzLkJGT4EwwoEFXa1ZhljiMTUX6oG5GMzJQizveGgnr8xYERoTS"
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.5/dist/n2j-reviews/0.1.5/index.js",
+          "integrity": "sha384-1PbgC1bXOQycqUoko1N94dmmEc9HCT3ekiDPDBXRltNXRK1pi04cUjUx8ATM0EuM"
         },
         {
           "type": "css",
-          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.4/dist/n2j-reviews/0.1.4/style.css",
-          "integrity": "sha384-JeGPMWn5zt4xTKCbRPQSFu5KftRb1W76DzR/5G4f72/105ujEjgb8uhJJK5f1cl2"
+          "url": "https://cdn.jsdelivr.net/gh/skgns039-star/n2j-imweb-widgets@w-n2j-reviews-0.1.5/dist/n2j-reviews/0.1.5/style.css",
+          "integrity": "sha384-N4x6B4zQv2OZi6mMY9MgUimxQvJZ0sCaX+xXG6Mrkz+vUGnnw7A2SNiGNl2Ca75S"
         }
       ]
     }
