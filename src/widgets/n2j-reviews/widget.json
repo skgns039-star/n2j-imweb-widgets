@@ -1,14 +1,15 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "enabled": true,
   "productionReadyScope": "STATIC ONLY",
   "rolling": false,
-  "motionStatus": "HOLD",
+  "motionStatus": "FOOTER_ENTRANCE+REVIEW_FIELD (flow grid HOLD: owner decision)",
   "finalDesignSyncCount": 1,
   "sourceVersion": "20261104.8-r1",
   "parentSourceCorrection": "Footer replaced by sian footer r2 (owner 2026-11-08 instruction); original home code unchanged",
-  "release_status": "M1_TRINI_AUTHOR_MASK_CANDIDATE",
+  "release_status": "M1_TRINI_MOTION_0.1.5_CANDIDATE",
   "footerSourceVersion": "FOOTER-REFERENCE-R2",
-  "authorMask": "0.1.4 hotfix: 성+가림+끝 글자, authors.json(가린 값만), 가림 글자 상수 MASK"
+  "authorMask": "0.1.4 hotfix: 성+가림+끝 글자, authors.json(가린 값만), 가림 글자 상수 MASK",
+  "motion015": "footer entrance r1 + review background field (sian n2jtrini_motion_20261109); portfolio URL_VERIFIED label swap; author mask 0.1.4 kept"
 }

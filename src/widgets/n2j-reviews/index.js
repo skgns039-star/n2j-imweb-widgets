@@ -20,6 +20,7 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
  if(state==='error'&&typeof onRetry==='function'){const retry=el('button','ddak-rv-retry','다시 시도');retry.type='button';listen(retry,'click',onRetry);box.append(retry)}root.append(box);return api;
  }
  root.setAttribute('aria-busy','false');
+ if(mode==='home'&&state==='success'){const bg=el('canvas','ddak-rv-bg');bg.setAttribute('aria-hidden','true');root.append(bg);const field=window.__ddak.reviewField?.(bg,{host:root});if(field){root.__ddakReviewField=field;removers.push(()=>{field.dispose();if(root.__ddakReviewField===field)delete root.__ddakReviewField})}}
  if(!clean.length){const empty=el('div','ddak-rv-empty');empty.append(el('h3','','아직 공개된 리뷰가 없습니다.'),el('p','ddak-rv-muted','함께한 경험을 첫 리뷰로 남겨주세요.'));root.append(empty)}
  const card=(x,full)=>{const a=el('article','ddak-rv-card');a.append(el('p','ddak-rv-meta',x.displayName||'작성자 비공개'));if(full&&x.body.length>200){a.append(el('p','',x.body.slice(0,200)+'…'));const d=el('details'),s=el('summary','','리뷰 전문 읽기');d.append(s,el('p','',x.body));a.append(d)}else a.append(el('p','',full?x.body:(x.body.length>200?x.body.slice(0,200)+'…':x.body)));return a};
  let manual=false,over=false,focus=false,visible=true,compact=false,lastSize='';const mq=matchMedia('(prefers-reduced-motion: reduce)');
@@ -40,6 +41,50 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
  root.append(el('p','ddak-rv-muted','리뷰 작성은 회원가입·로그인 후 이용할 수 있습니다.'));
  return api;
 };
+
+/* 0.1.5 review background field (sian jobs/n2jtrini_motion_20261109 bg-field.js shape 'threads').
+   Same dots as the home canvas#bg (1.6px, olive .30, lerp .055). Ambient 3.2s then rests (WCAG 2.2.2);
+   fine pointer wakes it 1.6s; off-screen/hidden tab paused; reduced motion = one still frame. rAF instead of anime.js timer. */
+(function(){
+'use strict';window.__ddak=window.__ddak||{};
+const hash=(i,s)=>{const v=Math.sin(i*s)*43758.5453;return v-Math.floor(v)};
+function threads(i,n,t,w,h){const lines=w>900?9:6,line=i%lines,per=Math.ceil(n/lines),k=Math.floor(i/lines)/per,drift=(t*0.018*(1+line*0.07))%1;let u=k-drift;u-=Math.floor(u);
+ const x=u*(w+80)-40,base=h*(0.16+0.68*(line/(lines-1))),amp=h*0.035*(1+Math.sin(t*0.35+line)*0.35);
+ return{x,y:base+Math.sin(u*Math.PI*2*1.5+t*0.6+line*0.9)*amp+Math.sin(u*Math.PI*2*4-t*0.9)*amp*0.18}}
+const AMBIENT_MS=3200,WAKE_MS=1600,EASE_OUT_MS=900,HARD_STOP_MS=600;
+window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba(121,134,69,0.30)',density=1}={}){
+ const ctx=canvas.getContext&&canvas.getContext('2d');if(!ctx||!('IntersectionObserver' in window)||!('ResizeObserver' in window))return null;
+ const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),fineMQ=matchMedia('(hover: hover) and (pointer: fine)');
+ let w=0,h=0,dpr=1,pts=[],visible=false,simT=0,last=0,until=0,settled=false,firstFrame=0,settledAt=0,moved=0,raf=0,disposed=false;
+ const ptr={x:-9999,y:-9999,on:false};
+ function draw(t,snap=false,k=0.055){ctx.clearRect(0,0,w,h);ctx.fillStyle=color;const n=pts.length,R=120,R2=R*R;moved=0;
+  for(let i=0;i<n;i++){const p=pts[i],g=threads(i,n,t,w,h);let tx=g.x+(hash(i,3.7)-0.5)*6,ty=g.y+(hash(i,9.1)-0.5)*6;
+   if(ptr.on){const dx=tx-ptr.x,dy=ty-ptr.y,d2=dx*dx+dy*dy;if(d2<R2){const f=(1-Math.sqrt(d2)/R)*22,d=Math.sqrt(d2)||1;tx+=dx/d*f;ty+=dy/d*f}}
+   if(!snap&&Math.abs(tx-p.x)>w*0.5){p.x=tx;p.y=ty}
+   if(snap){p.x=tx;p.y=ty}else{const dx=(tx-p.x)*k,dy=(ty-p.y)*k;p.x+=dx;p.y+=dy;moved=Math.max(moved,Math.abs(dx),Math.abs(dy))}
+   ctx.fillRect(p.x,p.y,1.6,1.6)}}
+ function rebuild(){if(disposed)return;dpr=Math.min(devicePixelRatio||1,2);const r=host.getBoundingClientRect();w=Math.max(1,Math.round(r.width));h=Math.max(1,Math.round(r.height));
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+  const n=Math.round((w>900?1500:640)*density),prev=pts;pts=Array.from({length:n},(_,i)=>prev[i]??{x:hash(i,12.9898)*w,y:hash(i,78.233)*h});
+  if(reduceMQ.matches||(settled&&!raf))draw(simT,true)}
+ const pause=()=>{if(raf)cancelAnimationFrame(raf);raf=0;last=0};
+ function frame(){raf=requestAnimationFrame(frame);const now=performance.now();if(!firstFrame)firstFrame=now;const dt=last?Math.min(now-last,64):16;last=now;
+  const tempo=Math.max(0,Math.min(1,(until-now)/EASE_OUT_MS));simT+=(dt/1000)*tempo;draw(simT,false,0.055+(1-tempo)*0.125);
+  const hard=now>until+HARD_STOP_MS;if(hard&&moved>=0.1)draw(simT,true);
+  if(tempo===0&&(moved<0.1||hard)){settled=true;if(!settledAt)settledAt=now;pause()}}
+ const wake=(ms)=>{if(disposed||reduceMQ.matches||!visible||document.hidden)return;until=Math.max(until,performance.now()+ms);settled=false;if(!raf)raf=requestAnimationFrame(frame)};
+ const sync=()=>{if(visible&&!document.hidden&&!reduceMQ.matches)wake(AMBIENT_MS);else pause()};
+ const io=new IntersectionObserver(es=>{const v=es.some(e=>e.isIntersecting),entered=v&&!visible;visible=v;if(entered||!v)sync()},{threshold:0});io.observe(host);
+ const onVis=()=>{if(document.hidden)pause();else sync()},onMQ=()=>{rebuild();sync()};
+ document.addEventListener('visibilitychange',onVis);reduceMQ.addEventListener?.('change',onMQ);
+ const ro=new ResizeObserver(()=>rebuild());ro.observe(host);
+ const onMove=e=>{const r=canvas.getBoundingClientRect();ptr.x=e.clientX-r.left;ptr.y=e.clientY-r.top;ptr.on=true;wake(WAKE_MS)},onLeave=()=>{ptr.on=false;wake(WAKE_MS)};
+ if(fineMQ.matches){host.addEventListener('pointermove',onMove);host.addEventListener('pointerleave',onLeave)}
+ rebuild();
+ return{get running(){return !!raf},get settled(){return settled},get count(){return pts.length},get debug(){return{simT,moved,firstSettleMs:settledAt?Math.round(settledAt-firstFrame):null}},
+  dispose(){if(disposed)return;disposed=true;pause();io.disconnect();ro.disconnect();document.removeEventListener('visibilitychange',onVis);reduceMQ.removeEventListener?.('change',onMQ);host.removeEventListener('pointermove',onMove);host.removeEventListener('pointerleave',onLeave)}};
+};
+})();
 
 /* Anonymous public native HTML projection. No authentication or moderation claims. */
 (function () {
@@ -181,24 +226,68 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   window.__ddak = window.__ddak || {};
   // N2J TRINI footer r2 (sian jobs/n2jtrini_footer_reference_20261104). Static content stays complete without motion.
   const MARKUP = "<div class=\"ddak-tf-in\"><div class=\"ddak-tf-top\"><p>군산 기반 제작 스튜디오</p><p>엔투제이트리니</p></div><p class=\"ddak-tf-mark\">N2J TRINI<span class=\"ddak-tf-dot\" aria-hidden=\"true\">.</span></p><div class=\"ddak-tf-main\"><span class=\"ddak-tf-rule\" aria-hidden=\"true\"></span><section class=\"ddak-tf-contact\" aria-labelledby=\"ddak-tf-contact-title\"><h2 id=\"ddak-tf-contact-title\">프로젝트 문의</h2><a class=\"ddak-tf-email\" href=\"mailto:n2jtrini@gmail.com\">n2jtrini@gmail.com</a><a class=\"ddak-tf-phone\" href=\"tel:01026318279\">010-2631-8279</a></section><nav class=\"ddak-tf-ch\" aria-label=\"소셜 채널 · 새 창으로 열림\"><a href=\"https://www.instagram.com/n2j_ddalkkak_web_studio?igsh=MW14NHlieXFvNW9rcw%3D%3D&amp;utm_source=qr\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"인스타그램 (새 창)\">인스타그램<span aria-hidden=\"true\">↗</span></a><a href=\"https://youtube.com/@n2jtrini?si=zmLJ5wbruLfd7FVu\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"유튜브 (새 창)\">유튜브<span aria-hidden=\"true\">↗</span></a><a href=\"https://www.threads.com/@n2jtrini\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"스레드 (새 창)\">스레드<span aria-hidden=\"true\">↗</span></a><a href=\"https://blog.naver.com/jbe_123\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"네이버 블로그 (새 창)\">네이버 블로그<span aria-hidden=\"true\">↗</span></a></nav></div><section class=\"ddak-tf-biz\" aria-labelledby=\"ddak-tf-biz-title\"><h2 id=\"ddak-tf-biz-title\">사업자 정보</h2><dl><div class=\"ddak-tf-f\"><dt>상호</dt><dd>엔투제이트리니</dd></div><div class=\"ddak-tf-f\"><dt>대표</dt><dd>이현주</dd></div><div class=\"ddak-tf-f\"><dt>사업자등록번호</dt><dd>772-46-01252</dd></div><div class=\"ddak-tf-f ddak-tf-addr\"><dt>주소</dt><dd>전북특별자치도 군산시 미룡로 41</dd></div><div class=\"ddak-tf-f\"><dt>전화</dt><dd>010-2631-8279</dd></div><div class=\"ddak-tf-f\"><dt>이메일</dt><dd>n2jtrini@gmail.com</dd></div></dl></section></div>";
+  // 0.1.5 footer motion = sian jobs/n2jtrini_motion_20261109 footer-motion.js r1 (WAAPI only). Resting state = r2 CSS unchanged.
   function motion(footer) {
-    const dot = footer.querySelector('.ddak-tf-dot'), rule = footer.querySelector('.ddak-tf-rule');
-    if (!dot || !rule || !dot.animate || !('IntersectionObserver' in window)) return;
-    const ease = 'cubic-bezier(.22,1,.36,1)';
-    const io = new IntersectionObserver((entries) => {
-      if (!entries.some((e) => e.isIntersecting)) return;
-      io.disconnect();
+    const $ = (s) => footer.querySelector(s), $$ = (s) => [...footer.querySelectorAll(s)];
+    const mark = $('.ddak-tf-mark'), dot = $('.ddak-tf-dot'), rule = $('.ddak-tf-rule');
+    if (!mark || !dot || !rule || !mark.animate || !('IntersectionObserver' in window)) return null;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // already on screen when JS arrives: keep the static design, no pop-in
+    if (footer.getBoundingClientRect().top < innerHeight * 0.9) return { skipped: 'visible-at-load' };
+    footer.classList.add('ddak-tf-pre');
+    const EXPO = 'cubic-bezier(.16,1,.3,1)', UI = 'cubic-bezier(.22,1,.36,1)';
+    const done = [];
+    const run = (node, kf, o) => { const a = node.animate(kf, { fill: 'backwards', ...o }); done.push(a.finished.catch(() => {})); return a; };
+    const state = { played: false, finished: false };
+    function play() {
+      state.played = true;
       try {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          dot.animate([{opacity: .68}, {opacity: 1}], {duration: 120, easing: ease});
-          rule.animate([{opacity: .35}, {opacity: 1}], {duration: 150, delay: 60, easing: ease, fill: 'backwards'});
+        footer.classList.remove('ddak-tf-pre');
+        if (reduce) { // dissolve only, 150ms or less
+          run(dot, [{ opacity: .68 }, { opacity: 1 }], { duration: 120, easing: UI });
+          run(rule, [{ opacity: .35 }, { opacity: 1 }], { duration: 150, easing: UI });
+          [...$$('.ddak-tf-contact>*'), ...$$('.ddak-tf-ch a'), ...$$('.ddak-tf-biz h2'), ...$$('.ddak-tf-f')]
+            .forEach(n => run(n, [{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'linear' }));
         } else {
-          dot.animate([{opacity: .68, transform: 'scale(.78)'}, {opacity: 1, transform: 'none'}], {duration: 420, easing: ease});
-          rule.animate([{transform: 'scaleX(0)'}, {transform: 'scaleX(1)'}], {duration: 420, delay: 80, easing: ease, fill: 'backwards'});
+          dust();
+          run(mark, [{ clipPath: 'inset(0 100% 0 0)', filter: 'blur(8px)' }, { clipPath: 'inset(0 0% 0 0)', filter: 'blur(0px)' }], { duration: 1100, easing: EXPO });
+          run(dot, [{ opacity: .68, transform: 'scale(.78)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: 760, easing: UI });
+          run(rule, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 900, delay: 520, easing: UI });
+          $$('.ddak-tf-contact>*').forEach((n, i) => run(n, [{ opacity: 0 }, { opacity: 1 }], { duration: 520, delay: 700 + i * 80, easing: UI }));
+          $$('.ddak-tf-ch a').forEach((n, i) => run(n, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], { duration: 700, delay: 760 + i * 70, easing: EXPO }));
+          [...$$('.ddak-tf-biz h2'), ...$$('.ddak-tf-f')].forEach((n, i) => run(n, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: 1000 + i * 45, easing: UI }));
         }
-      } catch (_) { /* footer stays fully visible */ }
-    }, {threshold: .05, rootMargin: '0px 0px -5% 0px'});
-    io.observe(footer.querySelector('.ddak-tf-mark') || footer);
+      } catch (_) { footer.classList.remove('ddak-tf-pre'); /* footer stays fully visible */ }
+      // drop the animation layers once finished, so the resting footer is the plain CSS design
+      Promise.all(done).then(() => { footer.getAnimations({ subtree: true }).forEach(a => a.cancel()); state.finished = true; });
+    }
+    function dust() {
+      const c = document.createElement('canvas'); c.className = 'ddak-tf-dust'; c.setAttribute('aria-hidden', 'true');
+      const fr = footer.getBoundingClientRect(), rr = rule.getBoundingClientRect();
+      const W = Math.round(fr.width), H = Math.round(rr.top - fr.top + 24), dpr = Math.min(devicePixelRatio || 1, 2);
+      const ctx = c.getContext && c.getContext('2d'); if (!ctx || W < 1 || H < 1) return;
+      c.width = W * dpr; c.height = H * dpr; c.style.height = H + 'px';
+      const pos = footer.style.position; if (getComputedStyle(footer).position === 'static') footer.style.position = 'relative'; // only while the canvas exists
+      footer.prepend(c); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const x0 = rr.left - fr.left, len = rr.width, ly = rr.top - fr.top;
+      const N = W > 900 ? 240 : 120;
+      const P = Array.from({ length: N }, (_, i) => ({ x: x0 + Math.random() * len, y: Math.random() * Math.max(ly - 20, 1), tx: x0 + (i / (N - 1)) * len, ty: ly + (Math.random() - .5) * 2 }));
+      const t0 = performance.now();
+      const frame = (now) => {
+        const t = now - t0;
+        ctx.clearRect(0, 0, W, H);
+        const alpha = t < 900 ? .34 : Math.max(0, .34 * (1 - (t - 900) / 600));
+        ctx.fillStyle = `rgba(242,238,215,${alpha.toFixed(3)})`;
+        for (const p of P) { p.x += (p.tx - p.x) * .06; p.y += (p.ty - p.y) * .06; ctx.fillRect(p.x, p.y, 1.6, 1.6); }
+        if (t < 1500 && c.isConnected) requestAnimationFrame(frame); else { c.remove(); footer.style.position = pos; }
+      };
+      requestAnimationFrame(frame);
+    }
+    // observe the unclipped top row (the wordmark itself is clip-path hidden in the pre-state)
+    const io = new IntersectionObserver((es) => { if (!es.some(e => e.isIntersecting)) return; io.disconnect(); play(); }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+    // also observe the whole footer: a jump scroll (anchor, End key) can skip the top row entirely and must not leave the footer hidden
+    const top = $('.ddak-tf-top'); if (top) io.observe(top); io.observe(footer);
+    return state;
   }
   function apply() {
     const nodes = document.querySelectorAll('footer.site-footer[aria-label="사이트 정보"]');
@@ -210,11 +299,29 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     footer.classList.add('ddak-footer', 'ddak-tf');
     footer.replaceChildren(t.content.cloneNode(true));
     footer.dataset.ddakReviewFooter = 'true';
-    motion(footer);
+    window.__ddak.reviewFooterMotion = motion(footer);
     window.__ddak.reviewController?.refresh();
     return true;
   }
   window.__ddak.reviewFooter = Object.freeze({apply});
+})();
+
+(function () {
+  'use strict';
+  window.__ddak = window.__ddak || {};
+  // 0.1.5: portfolio cards show the internal status code URL_VERIFIED to visitors (home renderWorks()).
+  // Text-only swap to the sian label '실제 운영 중' (spec §3). Home code, layout and data are not changed.
+  const LABEL = {URL_VERIFIED: '실제 운영 중'};
+  const fix = (host) => host.querySelectorAll('.works-item__meta span').forEach((n) => { const t = LABEL[n.textContent.trim()]; if (t) n.textContent = t; });
+  function apply() {
+    const host = document.querySelector('[data-works-list]');
+    if (!host || host.dataset.ddakWorksLabel === 'true') return false;
+    host.dataset.ddakWorksLabel = 'true';
+    fix(host);
+    if ('MutationObserver' in window) new MutationObserver(() => fix(host)).observe(host, {childList: true, subtree: true});
+    return true;
+  }
+  window.__ddak.worksLabel = Object.freeze({apply});
 })();
 
 (function () {
@@ -248,7 +355,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       .filter(root => ['home','intro'].includes(root.dataset.ddakReviewMode) && !root.dataset.ddakReviewBound);
     if (!roots.length) return [];
     return roots.map(root => ns.reviewController.mount({root, mode:root.dataset.ddakReviewMode,
-      renderer, timeoutMs, authorsURL, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') ns.reviewFooter.apply(); })})).filter(Boolean);
+      renderer, timeoutMs, authorsURL, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') { try { ns.worksLabel?.apply(); } catch (_) {} ns.reviewFooter.apply(); } })})).filter(Boolean);
   }
   ns.reviewBoot = Object.freeze({start, stylesheet});
   // Final .6 helper binding is supplied verbatim only after its handoff is verified.

@@ -43,3 +43,14 @@
 @media(prefers-reduced-motion:reduce){.ddak-tf .ddak-tf-dot,.ddak-tf .ddak-tf-ch span,.ddak-tf .ddak-tf-rule{transform:none!important}.ddak-tf .ddak-tf-ch span{transition:opacity 120ms ease-out}.ddak-tf .ddak-tf-ch a:hover span{opacity:1}}
 /* Imweb tablet view scales body by .85; keep touch targets >=44px after scaling. */
 @media(min-width:641px) and (max-width:1199px){.ddak-tf a{min-height:52px}}
+/* 0.1.5 review background field (sian n2jtrini_motion_20261109 reviews.css :5-6) */
+.ddak-n2j-reviews{position:relative;isolation:isolate;overflow:hidden}
+.ddak-n2j-reviews .ddak-rv-bg{position:absolute;inset:0;z-index:-1;width:100%;height:100%;min-height:0;padding:0;border:0;pointer-events:none}
+/* 0.1.5 footer motion r1 (sian footer-motion.css) — additive only; pre-state is set by JS only below the fold */
+.ddak-tf.ddak-tf-pre .ddak-tf-mark{clip-path:inset(0 100% 0 0)}
+.ddak-tf.ddak-tf-pre .ddak-tf-rule{transform:scaleX(0)}
+.ddak-tf.ddak-tf-pre .ddak-tf-ch a{clip-path:inset(0 100% 0 0)}
+.ddak-tf.ddak-tf-pre .ddak-tf-contact>*,.ddak-tf.ddak-tf-pre .ddak-tf-biz h2,.ddak-tf.ddak-tf-pre .ddak-tf-f{opacity:0}
+.ddak-tf.ddak-tf-pre .ddak-tf-dot{opacity:.68;transform:scale(.78)}
+.ddak-tf .ddak-tf-dust{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:1}
+@media(prefers-reduced-motion:reduce){.ddak-tf.ddak-tf-pre .ddak-tf-mark,.ddak-tf.ddak-tf-pre .ddak-tf-ch a{clip-path:none}.ddak-tf.ddak-tf-pre .ddak-tf-rule{transform:none;opacity:.35}.ddak-tf.ddak-tf-pre .ddak-tf-dot{transform:none}.ddak-tf .ddak-tf-dust{display:none}}
