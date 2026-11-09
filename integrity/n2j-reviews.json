@@ -1,31 +1,31 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.5",
-  "built_at": "2026-11-09T10:54:28.121Z",
+  "version": "0.1.6",
+  "built_at": "2026-11-09T13:17:15.158Z",
   "files": [
     {
       "name": "authors.json",
-      "bytes": 36,
-      "gzip": 56,
-      "source_sha256": "e0489a3b7384feffe204f902b94842cb0e7ab0f17b8f517ff653eac32cf9aacc",
-      "dist_sha256": "e0489a3b7384feffe204f902b94842cb0e7ab0f17b8f517ff653eac32cf9aacc",
-      "sri": "sha384-z89nP+w7UTVNHkyqawScWzjHbsLVDH6R5XRM3DeR/Fuqvann4rupwjzIMFiJP+KU"
+      "bytes": 33,
+      "gzip": 53,
+      "source_sha256": "4126e5e2b77c25679b793f1758834ad09b0ee741867b43ec593733b373712161",
+      "dist_sha256": "4126e5e2b77c25679b793f1758834ad09b0ee741867b43ec593733b373712161",
+      "sri": "sha384-sRah177SinGnu1jfR65nBzaKYAholA8LOcDhhI+vA37S7ZmxM7qzv3Al3qwh7BAx"
     },
     {
       "name": "index.js",
-      "bytes": 30427,
-      "gzip": 11611,
-      "source_sha256": "cbcebc193235c62bf0a8fa6f8f1cb9f67acc883649bbf5939e22f03eeec3c8ca",
-      "dist_sha256": "cbcebc193235c62bf0a8fa6f8f1cb9f67acc883649bbf5939e22f03eeec3c8ca",
-      "sri": "sha384-1PbgC1bXOQycqUoko1N94dmmEc9HCT3ekiDPDBXRltNXRK1pi04cUjUx8ATM0EuM"
+      "bytes": 53403,
+      "gzip": 19469,
+      "source_sha256": "1e01150cc3e3314d22c4a48713fd44389588b9b78ed10e14091414ceeb64a257",
+      "dist_sha256": "1e01150cc3e3314d22c4a48713fd44389588b9b78ed10e14091414ceeb64a257",
+      "sri": "sha384-tD5DqqU5QaWqgPe46NLric6cYI1LY76S0hPuOyfuSZ0Qj9IWLQQK6ABaTYqGv978"
     },
     {
       "name": "style.css",
-      "bytes": 10087,
-      "gzip": 2821,
-      "source_sha256": "f4cc15f01d81f62a8e794a90213f9a2754c281e6aae0de7a637fedc2166178f2",
-      "dist_sha256": "f4cc15f01d81f62a8e794a90213f9a2754c281e6aae0de7a637fedc2166178f2",
-      "sri": "sha384-N4x6B4zQv2OZi6mMY9MgUimxQvJZ0sCaX+xXG6Mrkz+vUGnnw7A2SNiGNl2Ca75S"
+      "bytes": 25507,
+      "gzip": 6154,
+      "source_sha256": "078762b02014aa362568fbb97a32feadb742975490dcbcfc9441721d75e7f23a",
+      "dist_sha256": "078762b02014aa362568fbb97a32feadb742975490dcbcfc9441721d75e7f23a",
+      "sri": "sha384-6ZedrXpziO2N60+l0vd7AuiMCr8kv67lq9Q+URgI07Xw/rzRYF45AVnDEqu2dzlJ"
     }
   ]
 }
