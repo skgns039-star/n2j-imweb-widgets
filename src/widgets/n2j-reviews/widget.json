@@ -1,6 +1,6 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "enabled": true,
   "productionReadyScope": "STATIC ONLY",
   "rolling": false,
@@ -8,7 +8,7 @@
   "finalDesignSyncCount": 1,
   "sourceVersion": "20261104.8-r1",
   "parentSourceCorrection": "Footer replaced by sian footer r2 (owner 2026-11-08 instruction); original home code unchanged",
-  "release_status": "M1_TRINI_MOTION_0.1.11_CANDIDATE",
+  "release_status": "M1_TRINI_MOTION_0.1.12_CANDIDATE",
   "footerSourceVersion": "FOOTER-REFERENCE-R2",
   "authorMask": "0.1.6: 성 + 나머지 글자 수만큼 가림(고서영→고**), authors.json(가린 값만), 가림 글자 상수 MASK",
   "motion015": "footer entrance r1 + review background field (sian n2jtrini_motion_20261109); portfolio URL_VERIFIED label swap; author mask 0.1.4 kept",
@@ -17,5 +17,6 @@
   "motion018": "backlog fixes (owner 2026-11-10 \"밀린작업도 처리하고\"): portfolio covers load per card near the screen (copies no longer eager); drag follows the finger with a critically damped spring from the current flow speed (no one-frame jump at drag start, 8+ reviews two rows kept); phone footer channels one line each at 320-600 (PC order and 2x2 kept, no text change); 0.1.7 kept",
   "motion019": "phones and tablets = PC design and motion (owner 2026-11-10 \"포트폴리오, 푸터 반응형도 pc와 동일한 디자인과 애니메이션\", \"똑같이\"): touch centre card takes the PC hover state (phone rises, cover scrolls once) instead of every card auto-panning; flow rhythm = PC seconds per card; bar on one line; names band, gap, browser chrome and phone frame scale like PC; phone footer = one 393 composition scaled by width (PC arrow ratio, no <=340 tweaks), mark padding in em; reduced motion unchanged; 0.1.8 kept",
   "motion0110": "pure scale (owner 2026-11-10 \"휴대폰에서도 PC 화면을 그대로 통째로 줄여서\" -> \"적용시켜\", \"#about 바뀐게없는데 … 반응형 바뀐게없어\" -> \"알아서 해결해\"): at <=1199px the about people+facts, contact CTA+footer and portfolio list are laid out as the 1440x900 PC (PC tokens, PC rules, home phone rules neutralised inside) and scaled to the width; about film text scaled in place; fixed inquiry buttons get footer-coloured room; PC >=1200 untouched; reduced motion unchanged; 0.1.9 kept",
-  "motion0111": "pure scale extended (owner delegation 2026-11-10 \"모든업무 작업을 너스스로 해결해\", 총괄 decision on the open 0.1.10 question \"#about 앞 리뷰 칸도 PC처럼 통째로 줄일까요?\" = yes): at <=1199px the home reviews chapter (background dots, cards / flow grid, masked author, flow controls) and the portfolio chapter head join the 1440x900 PC layout scaled to the width; review dots = PC 1440 field drawn at the scaled size; review flow speed = PC px/s; phone/tablet review rules off inside the box; PC >=1200 untouched; reduced motion unchanged; 0.1.10 kept"
+  "motion0111": "pure scale extended (owner delegation 2026-11-10 \"모든업무 작업을 너스스로 해결해\", 총괄 decision on the open 0.1.10 question \"#about 앞 리뷰 칸도 PC처럼 통째로 줄일까요?\" = yes): at <=1199px the home reviews chapter (background dots, cards / flow grid, masked author, flow controls) join the 1440x900 PC layout scaled to the width; review dots = PC 1440 field drawn at the scaled size; review flow speed = PC px/s; phone/tablet review rules off inside the box; PC >=1200 untouched; reduced motion unchanged; 0.1.10 kept",
+  "motion0112": "fix of 0.1.11 (found in the live phone recording): the portfolio chapter head is no longer pure-scaled (back to the 0.1.10 list-only box). Scaling the head shortened the chapter so the home's background/theme switch (ScrollTrigger at 68% of the screen) turned dark while the list was centred on tall phones (320x700: dark; 0.1.10 light). 0.1.11 kept otherwise"
 }

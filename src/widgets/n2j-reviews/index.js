@@ -694,7 +694,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   ns.worksFlow = Object.freeze({ apply, WORKS });
 })();
 
-/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. 0.1.11: + reviews, portfolio head. */
+/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. 0.1.11: + reviews. */
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
@@ -715,10 +715,8 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     if (ap.length) wrap(ap, 'ddak-pcs-about', W0, A, A);
     const cc = C ? [...C.children].filter((n) => !n.matches('footer')) : []; // 0.1.11: footer = reference responsive, not scaled
     if (cc.length) wrap(cc, 'ddak-pcs-contact', W0, C, C);
-    // 0.1.11: portfolio head + list in one 1440 box (else the 0.1.10 list box); reviews chapter box
-    const P = L?.closest('section'), ph = P && L.parentElement === P ? [...P.querySelectorAll(':scope > .section-head')] : [];
-    if (ph.length) wrap([...ph, L], 'ddak-pcs-works ddak-pcs-plans', W0, P, P);
-    else if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
+    // 0.1.12: list only (a scaled head made the chapter too short for the home's 68% theme line: dark background behind the list)
+    if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
     const RV = document.querySelector('[data-ddak-slot="n2j-reviews"][data-ddak-review-mode="home"]');
     if (RV?.parentElement) wrap([RV], 'ddak-pcs-reviews', W0, RV.parentElement, null);
     pin = A?.querySelector('[data-about-pin]') || null; txt = A?.querySelector('[data-about-inner]') || null;
