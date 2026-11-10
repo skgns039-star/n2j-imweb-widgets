@@ -1,7 +1,7 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.7",
-  "built_at": "2026-11-10T00:11:24.312Z",
+  "version": "0.1.8",
+  "built_at": "2026-11-10T01:23:15.319Z",
   "files": [
     {
       "name": "authors.json",
@@ -13,19 +13,19 @@
     },
     {
       "name": "index.js",
-      "bytes": 53648,
-      "gzip": 19637,
-      "source_sha256": "5d3f8c2bbfe7297afda75208d8c439220c887478ed93cd5312292aea35f161a1",
-      "dist_sha256": "5d3f8c2bbfe7297afda75208d8c439220c887478ed93cd5312292aea35f161a1",
-      "sri": "sha384-ABxFcvA+M3oAR5vZvfqyDCfLNv5aFCamwTMgToSWAINao+zdaffF8D9aZQZUDHzq"
+      "bytes": 55329,
+      "gzip": 20219,
+      "source_sha256": "b66b0d501bc50ab5356d8f64d61ecd4fc6b7c1584a5d129ae50792f705bd8616",
+      "dist_sha256": "b66b0d501bc50ab5356d8f64d61ecd4fc6b7c1584a5d129ae50792f705bd8616",
+      "sri": "sha384-IRzR45vpKAgJnMmGM1OUQEyDTSyTjWJ21x40lm/6jGBvpnjrKuxYIRDh/soLVuC7"
     },
     {
       "name": "style.css",
-      "bytes": 26641,
-      "gzip": 6407,
-      "source_sha256": "0ffa9686065c4d4fda367b18331c531c92a7fa90afb858198286c80b6430ef07",
-      "dist_sha256": "0ffa9686065c4d4fda367b18331c531c92a7fa90afb858198286c80b6430ef07",
-      "sri": "sha384-O5HEj8J3FIYl60Sc11WwCE9jFW58O9TEYVqn0FPU+Wqs13glgs7v2aumMCBfjpR0"
+      "bytes": 26981,
+      "gzip": 6520,
+      "source_sha256": "c3c862a4cda2708964288d5968bdff2943a4d6a38c2bc486214a040e9cbcbb55",
+      "dist_sha256": "c3c862a4cda2708964288d5968bdff2943a4d6a38c2bc486214a040e9cbcbb55",
+      "sri": "sha384-tSj9oFp3dmLPvGXYwtV5KxilqDAavL5V/PCLj4wHu5+1o7yHmnRso6x9K7mK798N"
     }
   ]
 }

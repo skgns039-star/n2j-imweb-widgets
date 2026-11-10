@@ -332,6 +332,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)'), fineMQ = matchMedia('(hover: hover) and (pointer: fine)');
   const mod = (a, b) => b > 0 ? ((a % b) + b) % b : 0;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const SPRING = 2 / .09; // critically damped drag spring (rad/s): follows a steady finger with a 90ms lag
   const inOut = (p) => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
   // images fade in once decoded (no one-frame pop); a missing phone screenshot just drops the phone frame
   function fade(img) {
@@ -350,7 +351,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   /* rows: [{row, track, group, dir: 1 (flows left) | -1 (flows right), ratio, deco (decorative band, follows scroll too)}] */
   function flowEngine({ host, stage, rows, pauseBtn, navs = [], speed, section = null, cursor = null, cardSel, entrance = null, onBuild = null }) {
     const st = { manual: false, hover: false, focus: false, visible: false, hidden: document.hidden, drag: null, wheelUntil: 0 };
-    let s = 0, f = 0, vel = 0, rel = 0, lag = 0, tween = null, raf = 0, last = 0, zoom = 1, skew = 0, deco = 0, scrollV = 0, lastY = scrollY, disposed = false, built = false, lastW = -1, justDragged = 0, entered = false;
+    let s = 0, f = 0, vel = 0, dv = 0, rel = 0, lag = 0, tween = null, raf = 0, last = 0, zoom = 1, skew = 0, deco = 0, scrollV = 0, lastY = scrollY, disposed = false, built = false, lastW = -1, justDragged = 0, entered = false;
     const off = [];
     const on = (t, e, fn, o) => { t.addEventListener(e, fn, o); off.push(() => t.removeEventListener(e, fn, o)); };
     const isStatic = () => reduceMQ.matches;
@@ -370,7 +371,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
         c.querySelectorAll('[role]').forEach((n) => n.removeAttribute('role'));
         c.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
         c.querySelectorAll('a,button').forEach((n) => n.setAttribute('tabindex', '-1'));
-        c.querySelectorAll('img').forEach((n) => { n.loading = 'eager'; fade(n); });
+        c.querySelectorAll('img').forEach(fade); // 0.1.8: copies of unloaded covers stay unloaded (data-src; the works mount loads them per card near the screen)
         r.track.append(c);
       }
       return w;
@@ -411,8 +412,10 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       const tau = goal > f ? .6 : (st.manual ? .07 : st.hover ? .28 : .12);
       f += (goal - f) * (1 - Math.exp(-dt / tau)); if (Math.abs(goal - f) < (goal ? 1e-3 : .01)) f = goal;
       const s0 = s;
-      // drag: the row eases toward the finger (90ms, like a lerp of .17 per frame) so uneven touch events still draw one continuous move
-      if (st.drag) s += (st.drag.target - s) * (1 - Math.exp(-dt / .09));
+      // drag: a critically damped spring pulls the row toward the finger (same ~90ms lag as before). 0.1.8: the old first-order
+      // lerp changed the speed in one frame at the first finger move (flow speed -> 0 -> burst), seen as a one-frame jump with
+      // two rows (D69). The spring starts from the row's current speed and changes speed gradually, also with sparse touch events.
+      if (st.drag) { const x0 = s - st.drag.target, c = dv + SPRING * x0, e = Math.exp(-SPRING * dt); s = st.drag.target + (x0 + c * dt) * e; dv = (dv - SPRING * c * dt) * e; }
       else if (tween) { const p = Math.min(1, (now - tween.t0) / tween.d); s = tween.from + (tween.to - tween.from) * inOut(p); if (p >= 1) tween = null; }
       else {
         if (lag) { const d = lag * (1 - Math.exp(-dt / .09)); s += d; lag -= d; if (Math.abs(lag) < .05) { s += lag; lag = 0; } }
@@ -459,7 +462,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
         const thr = d0.type === 'mouse' ? 4 : 8;
         if (Math.abs(dx) < thr && Math.abs(dy) < thr) return;
         if (Math.abs(dy) > Math.abs(dx)) { d0 = null; return; }
-        d0.started = true; d0.s0 = s + lag; lag = 0; d0.x = e.clientX; tween = null; vel = 0; st.drag = d0; host.dataset.dragging = '';
+        d0.started = true; d0.s0 = s + lag; lag = 0; d0.x = e.clientX; dv = (tween ? 0 : vel + speed() * f); tween = null; vel = 0; st.drag = d0; host.dataset.dragging = '';
         try { stage.setPointerCapture(e.pointerId); } catch (_) { /* capture is optional */ }
       }
       d0.target = d0.s0 - (e.clientX - d0.x) / zoom * d0.k;
@@ -576,11 +579,11 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   function cardHTML(p, i) {
     // scroll time follows the page length (screen heights to travel), 4-12s
     const pd = Math.min(12, Math.max(4, 3 + 2.2 * (p.dh / 900 - .625))).toFixed(1);
-    const shot = `<span class="ddak-wf-shot" data-title="${esc(p.title)}"><img src="${COVERS}${esc(p.id)}-desktop.webp" alt="" width="900" height="${p.dh}" loading="lazy" decoding="async" draggable="false"></span>`;
+    const shot = `<span class="ddak-wf-shot" data-title="${esc(p.title)}"><img data-src="${COVERS}${esc(p.id)}-desktop.webp" alt="" width="900" height="${p.dh}" decoding="async" draggable="false"></span>`;
     return `<article class="ddak-wf-card" role="listitem" data-work-id="${esc(p.id)}" style="--ddak-pd:${pd}s">
 <a class="ddak-wf-media" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" draggable="false">
 <span class="ddak-wf-browser"><span class="ddak-wf-chrome"><i></i><i></i><i></i><span>${esc(host(p.url))}</span></span>${shot}</span>
-<span class="ddak-wf-phone"><img src="${COVERS}${esc(p.id)}-mobile.webp" alt="" width="300" height="${p.mh}" loading="lazy" decoding="async" draggable="false"></span>
+<span class="ddak-wf-phone"><img data-src="${COVERS}${esc(p.id)}-mobile.webp" alt="" width="300" height="${p.mh}" decoding="async" draggable="false"></span>
 </a>
 <div class="ddak-wf-info"><span class="ddak-wf-no" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
 <h3 class="ddak-wf-title">${esc(p.title)}</h3>
@@ -603,13 +606,23 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     const parts = { stage: $('.ddak-wf-stage'), row: $('.ddak-wf-row'), track: $('.ddak-wf-track'), group: $('.ddak-wf-group'), names: $('.ddak-wf-names'), ntrack: $('.ddak-wf-ntrack'), ngroup: $('.ddak-wf-ngroup'), pause: $('.ddak-wf-pause'), cursor: $('.ddak-wf-cursor'), navs: [...frag.querySelectorAll('.ddak-wf-nav')] };
     list.classList.add('ddak-wf');
     list.replaceChildren(frag);
-    // preload every screenshot before the section is reached (no pop while dragging)
-    const pre = new IntersectionObserver((es) => { if (!es.some((x) => x.isIntersecting)) return; pre.disconnect(); list.querySelectorAll('img[loading="lazy"]').forEach((i) => { i.loading = 'eager'; }); }, { rootMargin: '800px 0px' });
+    // 0.1.8 covers load per card, only near the screen (0.1.7 fetched all 16 on the first visit: the copies were eager).
+    // Covers carry data-src so no browser preloads them on its own. Flow: the section within 800px (vertical) and the card within
+    // a quarter of the row width of the visible strip (horizontal, copies included). Static grid (reduced motion): card within 600px.
+    let near = false;
+    const wait = new Set(), load = (c) => c.querySelectorAll('img[data-src]').forEach((i) => { i.src = i.dataset.src; i.removeAttribute('data-src'); });
+    const seen = (io) => (es) => es.forEach((x) => {
+      if (!x.isIntersecting) { wait.delete(x.target); return; }
+      if (near || io === 'static') { load(x.target); (io === 'static' ? still : lazy).unobserve(x.target); } else wait.add(x.target);
+    });
+    const lazy = new IntersectionObserver(seen('flow'), { root: parts.row, rootMargin: '0px 25%' });
+    const still = new IntersectionObserver(seen('static'), { rootMargin: '600px 0px' });
+    const pre = new IntersectionObserver((es) => { if (!es.some((x) => x.isIntersecting)) return; pre.disconnect(); near = true; wait.forEach((c) => { load(c); lazy.unobserve(c); }); wait.clear(); }, { rootMargin: '800px 0px' });
     pre.observe(list);
     // touch screens scroll the covers of the cards on screen only (copies included; they are rebuilt with the rows)
     const pan = new IntersectionObserver((es) => es.forEach((x) => x.target.toggleAttribute('data-pan', x.isIntersecting)), { threshold: 0 }); // a card leaving the screen is fully out before its cover returns to the top
     const api = ns.flowEngine({
-      onBuild: () => { pan.disconnect(); list.querySelectorAll('.ddak-wf-card').forEach((c) => pan.observe(c)); },
+      onBuild: () => { pan.disconnect(); lazy.disconnect(); still.disconnect(); wait.clear(); const cards = list.querySelectorAll('.ddak-wf-card'); cards.forEach((c) => pan.observe(c)); cards.forEach((c) => (list.dataset.flow === 'static' ? still : lazy).observe(c)); },
       host: list, stage: parts.stage, section, cursor: parts.cursor, pauseBtn: parts.pause, navs: parts.navs, cardSel: '.ddak-wf-card',
       speed: () => innerWidth < 768 ? 20 : 40,
       rows: [{ row: parts.row, track: parts.track, group: parts.group, dir: 1, ratio: 1 }, { row: parts.names, track: parts.ntrack, group: parts.ngroup, dir: -1, ratio: 1.15, deco: true }],
@@ -620,7 +633,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       },
     });
     const dispose = api.dispose;
-    api.dispose = () => { pre.disconnect(); pan.disconnect(); dispose(); };
+    api.dispose = () => { pre.disconnect(); lazy.disconnect(); still.disconnect(); pan.disconnect(); dispose(); };
     api.items = items.length;
     return api;
   }
