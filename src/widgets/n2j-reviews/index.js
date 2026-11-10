@@ -337,11 +337,18 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   function fade(img) {
     const done = () => img.classList.add('ddak-fl-ok');
     if (img.complete && img.naturalWidth) done();
-    else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', () => { const p = img.closest('.ddak-wf-phone'); if (p) p.remove(); }, { once: true }); }
+    else {
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', () => {
+        const p = img.closest('.ddak-wf-phone'), s = img.closest('.ddak-wf-shot');
+        if (p) p.remove();
+        else if (s?.dataset.title) { const b = document.createElement('b'); b.textContent = s.dataset.title; s.classList.add('ddak-wf-type'); img.replaceWith(b); }
+      }, { once: true });
+    }
   }
 
   /* rows: [{row, track, group, dir: 1 (flows left) | -1 (flows right), ratio, deco (decorative band, follows scroll too)}] */
-  function flowEngine({ host, stage, rows, pauseBtn, navs = [], speed, section = null, cursor = null, cardSel, entrance = null }) {
+  function flowEngine({ host, stage, rows, pauseBtn, navs = [], speed, section = null, cursor = null, cardSel, entrance = null, onBuild = null }) {
     const st = { manual: false, hover: false, focus: false, visible: false, hidden: document.hidden, drag: null, wheelUntil: 0 };
     let s = 0, f = 0, vel = 0, rel = 0, lag = 0, tween = null, raf = 0, last = 0, zoom = 1, skew = 0, deco = 0, scrollV = 0, lastY = scrollY, disposed = false, built = false, lastW = -1, justDragged = 0, entered = false;
     const off = [];
@@ -385,6 +392,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       s = built ? keep * (main.W || 0) : -(parseFloat(host.style.getPropertyValue('--ddak-fl-l')) || 0); built = true;
       if (isStatic()) { rows.forEach((r) => { r.track.style.transform = ''; }); stop(); }
       render(); sync();
+      onBuild?.();
     }
     function render() {
       if (isStatic()) return;
@@ -542,46 +550,37 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
-  /* Every work registered in the Imweb expert portfolio of N2J TRINI (imweb.me/expert/profile/6zbrl598, read 2026-11-09, 10 items),
-     the three representative works first. URLs answered 200 on 2026-11-09. Names/categories from the portfolio and the sites
-     themselves; no numbers. The five works the home already shows keep its URL and screenshots (read from the home cards). */
-  // [id, name, category, URL, '실제 운영 중' (business site checked 2026-11-09), image already hosted on the Imweb CDN, fit]
-  // '실제 운영 중' only where the live site is a running business (home's verified five, 아더앤컴퍼니, 네이처씨푸드);
-  // SAI·N2J 홍보 랜딩·브라이트마인드 are shown as portfolio work without that label.
+  /* Works from the Imweb expert portfolio of N2J TRINI (imweb.me/expert/profile/6zbrl598), the three representative works first.
+     0.1.7: owner 2026-11-10 "아임웹 포트폴리오 처럼 움직이는 커버사진" / "적힌주소로 유지해" / "그두개는 제외시켜":
+     every card is a long full-page capture of the live site (own captures 2026-11-10, n2j-trini-assets tag covers-0.1.7-r2,
+     desktop 1440 -> 900px wide, phone 390 -> 300px wide) that scrolls like the Imweb portfolio thumbnails. Captures stop above
+     each site's footer (no representative names, phone numbers, bank accounts or e-mails) and customer reviews are blurred;
+     SAI = the page sinsuy.imweb.me shows full-screen (skgns039-star.github.io/sinsu);
+     코너플라워·세화 use the address written in the Imweb portfolio (same business numbers as the old addresses, both 200);
+     N2J 홍보 랜딩·브라이트마인드 removed. '실제 운영 중' only where the live site is a running business. */
+  // [id, name, category, URL, '실제 운영 중', desktop capture height, phone capture height] (capture widths 900 / 300)
+  const COVERS = 'https://cdn.jsdelivr.net/gh/skgns039-star/n2j-trini-assets@covers-0.1.7-r2/assets/works/scroll/';
   const WORKS = [
-    ['arthurnco', 'ARTHUR & CO.', 'BRAND DISTRIBUTION', 'https://arthurnco.imweb.me/', 1, 'https://cdn.imweb.me/upload/S201906272400c0071045f/70a489d22990a.png', 'contain'],
-    ['duckfeet', 'DUCKFEET', 'WEBSITE', 'https://duckfeet11.imweb.me/', 1],
-    ['vantamodus', 'VANTAMODUS', 'APPAREL', 'https://vantamodusk.imweb.me/apparel', 1],
-    ['sai', 'SAI', 'PORTFOLIO', 'https://sinsuy.imweb.me/', 0],
-    ['cornerflower', '코너플라워', 'FLOWER SHOP', 'https://cornerflower.imweb.me/', 1],
-    ['n2jtrini-landing', 'N2J TRINI 랜딩', 'LANDING PAGE', 'https://n2jtriniweb.imweb.me/', 0, 'https://cdn.imweb.me/expert_portfolio_file/9e6cf1cb469cf.jpeg', 'cover'],
-    ['brightmind', '브라이트마인드', 'EDUCATION', 'https://skgns03994323.imweb.me/', 0],
-    ['sehwa-construction', 'Sehwa Construction', 'CONSTRUCTION', 'https://sehwaconstruction.imweb.me/', 1],
-    ['embra', 'EMBRA', 'WEBSITE', 'https://embra01.imweb.me/', 1],
-    ['naturesea-food', '네이처씨푸드', 'SEAFOOD STORE', 'https://www.nsfood.shop/', 1, 'https://cdn.imweb.me/upload/S20260929bc9c9b4597a94/9b571535861fe.png', 'contain'],
+    ['arthurnco', 'ARTHUR & CO.', 'BRAND DISTRIBUTION', 'https://arthurnco.imweb.me/', 1, 1488, 1639],
+    ['duckfeet', 'DUCKFEET', 'WEBSITE', 'https://duckfeet11.imweb.me/', 1, 874, 669],
+    ['vantamodus', 'VANTAMODUS', 'APPAREL', 'https://vantamodusk.imweb.me/apparel', 1, 1118, 1550],
+    ['sai', 'SAI', 'PORTFOLIO', 'https://sinsuy.imweb.me/', 0, 2342, 2557],
+    ['cornerflower', '코너플라워', 'FLOWER SHOP', 'https://cornerflower1.imweb.me/', 1, 2725, 3437],
+    ['sehwa-construction', 'Sehwa Construction', 'CONSTRUCTION', 'https://onetag.imweb.me/', 1, 1662, 2030],
+    ['embra', 'EMBRA', 'WEBSITE', 'https://embra01.imweb.me/', 1, 1655, 1271],
+    ['naturesea-food', '네이처씨푸드', 'SEAFOOD STORE', 'https://www.nsfood.shop/', 1, 1016, 1065],
   ];
   const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const host = (u) => { try { const x = new URL(u); return (x.host + x.pathname).replace(/\/$/, ''); } catch (_) { return ''; } };
 
-  // screenshots of the home cards (same CDN files the home uses), keyed by data-work-id
-  function homeShots(list) {
-    const out = {};
-    list.querySelectorAll(':scope > .works-item').forEach((card) => {
-      const img = card.querySelector('img'); let src = '';
-      try { src = img ? new URL(img.getAttribute('src'), location.href).href : ''; } catch (_) { src = ''; }
-      if (card.dataset.workId && /^https?:/.test(src)) out[card.dataset.workId] = { desktop: src, mobile: /-desktop\.webp($|\?)/.test(src) ? src.replace(/-desktop\.webp/, '-mobile.webp') : '' };
-    });
-    return out;
-  }
   function cardHTML(p, i) {
-    const src = p.desktop || p.img;
-    const shot = src
-      ? `<span class="ddak-wf-shot${p.desktop || p.fit !== 'contain' ? '' : ' ddak-wf-plate'}"><img src="${esc(src)}" alt="" width="1440" height="900" loading="lazy" decoding="async" draggable="false"></span>`
-      : `<span class="ddak-wf-shot ddak-wf-type"><b>${esc(p.title)}</b><small>${esc(host(p.url))}</small></span>`;
-    return `<article class="ddak-wf-card" role="listitem" data-work-id="${esc(p.id)}">
+    // scroll time follows the page length (screen heights to travel), 4-12s
+    const pd = Math.min(12, Math.max(4, 3 + 2.2 * (p.dh / 900 - .625))).toFixed(1);
+    const shot = `<span class="ddak-wf-shot" data-title="${esc(p.title)}"><img src="${COVERS}${esc(p.id)}-desktop.webp" alt="" width="900" height="${p.dh}" loading="lazy" decoding="async" draggable="false"></span>`;
+    return `<article class="ddak-wf-card" role="listitem" data-work-id="${esc(p.id)}" style="--ddak-pd:${pd}s">
 <a class="ddak-wf-media" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" draggable="false">
 <span class="ddak-wf-browser"><span class="ddak-wf-chrome"><i></i><i></i><i></i><span>${esc(host(p.url))}</span></span>${shot}</span>
-${p.mobile ? `<span class="ddak-wf-phone"><img src="${esc(p.mobile)}" alt="" width="390" height="844" loading="lazy" decoding="async" draggable="false"></span>` : ''}
+<span class="ddak-wf-phone"><img src="${COVERS}${esc(p.id)}-mobile.webp" alt="" width="300" height="${p.mh}" loading="lazy" decoding="async" draggable="false"></span>
 </a>
 <div class="ddak-wf-info"><span class="ddak-wf-no" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
 <h3 class="ddak-wf-title">${esc(p.title)}</h3>
@@ -591,8 +590,7 @@ ${p.mobile ? `<span class="ddak-wf-phone"><img src="${esc(p.mobile)}" alt="" wid
   }
 
   function mount(list) {
-    const shots = homeShots(list);
-    const items = WORKS.map(([id, title, category, url, live, img, fit]) => ({ id, title, category, url, live: !!live, img, fit, ...(shots[id] || {}) }));
+    const items = WORKS.map(([id, title, category, url, live, dh, mh]) => ({ id, title, category, url, live: !!live, dh, mh }));
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const section = list.closest('section') || list.parentElement;
     const tpl = document.createElement('template');
@@ -608,7 +606,10 @@ ${p.mobile ? `<span class="ddak-wf-phone"><img src="${esc(p.mobile)}" alt="" wid
     // preload every screenshot before the section is reached (no pop while dragging)
     const pre = new IntersectionObserver((es) => { if (!es.some((x) => x.isIntersecting)) return; pre.disconnect(); list.querySelectorAll('img[loading="lazy"]').forEach((i) => { i.loading = 'eager'; }); }, { rootMargin: '800px 0px' });
     pre.observe(list);
+    // touch screens scroll the covers of the cards on screen only (copies included; they are rebuilt with the rows)
+    const pan = new IntersectionObserver((es) => es.forEach((x) => x.target.toggleAttribute('data-pan', x.isIntersecting)), { threshold: 0 }); // a card leaving the screen is fully out before its cover returns to the top
     const api = ns.flowEngine({
+      onBuild: () => { pan.disconnect(); list.querySelectorAll('.ddak-wf-card').forEach((c) => pan.observe(c)); },
       host: list, stage: parts.stage, section, cursor: parts.cursor, pauseBtn: parts.pause, navs: parts.navs, cardSel: '.ddak-wf-card',
       speed: () => innerWidth < 768 ? 20 : 40,
       rows: [{ row: parts.row, track: parts.track, group: parts.group, dir: 1, ratio: 1 }, { row: parts.names, track: parts.ntrack, group: parts.ngroup, dir: -1, ratio: 1.15, deco: true }],
@@ -619,7 +620,7 @@ ${p.mobile ? `<span class="ddak-wf-phone"><img src="${esc(p.mobile)}" alt="" wid
       },
     });
     const dispose = api.dispose;
-    api.dispose = () => { pre.disconnect(); dispose(); };
+    api.dispose = () => { pre.disconnect(); pan.disconnect(); dispose(); };
     api.items = items.length;
     return api;
   }

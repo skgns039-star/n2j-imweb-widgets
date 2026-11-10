@@ -1,16 +1,17 @@
 {
   "widget_id": "n2j-reviews",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "enabled": true,
   "productionReadyScope": "STATIC ONLY",
   "rolling": false,
-  "motionStatus": "FOOTER_ENTRANCE+REVIEW_FIELD+REVIEW_FLOW(4+)+WORKS_FLOW",
+  "motionStatus": "FOOTER_ENTRANCE+REVIEW_FIELD+REVIEW_FLOW(4+)+WORKS_FLOW+WORKS_SCROLL_COVERS",
   "finalDesignSyncCount": 1,
   "sourceVersion": "20261104.8-r1",
   "parentSourceCorrection": "Footer replaced by sian footer r2 (owner 2026-11-08 instruction); original home code unchanged",
-  "release_status": "M1_TRINI_MOTION_0.1.6_CANDIDATE",
+  "release_status": "M1_TRINI_MOTION_0.1.7_CANDIDATE",
   "footerSourceVersion": "FOOTER-REFERENCE-R2",
   "authorMask": "0.1.6: 성 + 나머지 글자 수만큼 가림(고서영→고**), authors.json(가린 값만), 가림 글자 상수 MASK",
   "motion015": "footer entrance r1 + review background field (sian n2jtrini_motion_20261109); portfolio URL_VERIFIED label swap; author mask 0.1.4 kept",
-  "motion016": "portfolio flowing grid (sian portfolio-r2, Imweb expert portfolio 10 works) + review flowing grid for 4+ public reviews (owner choice 1) + footer responsive = PC composition; 0.1.5 kept"
+  "motion016": "portfolio flowing grid (sian portfolio-r2, Imweb expert portfolio 10 works) + review flowing grid for 4+ public reviews (owner choice 1) + footer responsive = PC composition; 0.1.5 kept",
+  "motion017": "portfolio scrolling covers (owner 2026-11-10 \"아임웹 포트폴리오 처럼 움직이는 커버사진\"): long full-page captures (n2j-trini-assets@covers-0.1.7) scroll on hover (desktop) / auto in view (touch), paused with the flow; 8 works (N2J landing·브라이트마인드 removed), 코너플라워·세화 = Imweb portfolio addresses; 0.1.6 kept"
 }
