@@ -220,6 +220,11 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
 (function () {
   'use strict';
   window.__ddak = window.__ddak || {};
+  const ns = window.__ddak;
+  // 0.1.9 container-unit correction (see style.css --ddak-cqk): 1 in Chrome; 1/.85 in WebKit under Imweb's tablet zoom
+  // 0.1.9 viewport-unit correction: Imweb zooms body to .85 on tablets, so 5vw/7.5vw end up 15% smaller than on PC; --ddak-vz = 1/zoom
+  ns.vz = ns.vz || (() => { const z = parseFloat(getComputedStyle(document.body).zoom) || 1; return z > .3 && z < 3 ? +(1 / z).toFixed(4) : 1; });
+  ns.cqk = ns.cqk || ((box) => { try { const a = document.createElement('i'), b = document.createElement('i'); a.style.cssText = b.style.cssText = 'display:block;height:0;margin:0;padding:0;border:0;visibility:hidden'; a.style.width = '100%'; b.style.width = '100cqw'; box.append(a, b); const r = b.getBoundingClientRect().width / (a.getBoundingClientRect().width || 1); a.remove(); b.remove(); return r > .5 && r < 1.5 && Math.abs(r - 1) > .005 ? +(1 / r).toFixed(4) : 1; } catch (_) { return 1; } });
   // N2J TRINI footer r2 (sian jobs/n2jtrini_footer_reference_20261104). Static content stays complete without motion.
   const MARKUP = "<div class=\"ddak-tf-in\"><div class=\"ddak-tf-top\"><p>군산 기반 제작 스튜디오</p><p>엔투제이트리니</p></div><p class=\"ddak-tf-mark\">N2J TRINI<span class=\"ddak-tf-dot\" aria-hidden=\"true\">.</span></p><div class=\"ddak-tf-main\"><span class=\"ddak-tf-rule\" aria-hidden=\"true\"></span><section class=\"ddak-tf-contact\" aria-labelledby=\"ddak-tf-contact-title\"><h2 id=\"ddak-tf-contact-title\">프로젝트 문의</h2><a class=\"ddak-tf-email\" href=\"mailto:n2jtrini@gmail.com\">n2jtrini@gmail.com</a><a class=\"ddak-tf-phone\" href=\"tel:01026318279\">010-2631-8279</a></section><nav class=\"ddak-tf-ch\" aria-label=\"소셜 채널 · 새 창으로 열림\"><a href=\"https://www.instagram.com/n2j_ddalkkak_web_studio?igsh=MW14NHlieXFvNW9rcw%3D%3D&amp;utm_source=qr\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"인스타그램 (새 창)\">인스타그램<span aria-hidden=\"true\">↗</span></a><a href=\"https://youtube.com/@n2jtrini?si=zmLJ5wbruLfd7FVu\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"유튜브 (새 창)\">유튜브<span aria-hidden=\"true\">↗</span></a><a href=\"https://www.threads.com/@n2jtrini\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"스레드 (새 창)\">스레드<span aria-hidden=\"true\">↗</span></a><a href=\"https://blog.naver.com/jbe_123\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"네이버 블로그 (새 창)\">네이버 블로그<span aria-hidden=\"true\">↗</span></a></nav></div><section class=\"ddak-tf-biz\" aria-labelledby=\"ddak-tf-biz-title\"><h2 id=\"ddak-tf-biz-title\">사업자 정보</h2><dl><div class=\"ddak-tf-f\"><dt>상호</dt><dd>엔투제이트리니</dd></div><div class=\"ddak-tf-f\"><dt>대표</dt><dd>이현주</dd></div><div class=\"ddak-tf-f\"><dt>사업자등록번호</dt><dd>772-46-01252</dd></div><div class=\"ddak-tf-f ddak-tf-addr\"><dt>주소</dt><dd>전북특별자치도 군산시 미룡로 41</dd></div><div class=\"ddak-tf-f\"><dt>전화</dt><dd>010-2631-8279</dd></div><div class=\"ddak-tf-f\"><dt>이메일</dt><dd>n2jtrini@gmail.com</dd></div></dl></section></div>";
   // 0.1.5 footer motion = sian jobs/n2jtrini_motion_20261109 footer-motion.js r1 (WAAPI only). Resting state = r2 CSS unchanged.
@@ -295,6 +300,8 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     footer.classList.add('ddak-footer', 'ddak-tf');
     footer.replaceChildren(t.content.cloneNode(true));
     footer.dataset.ddakReviewFooter = 'true';
+    const fin = footer.querySelector('.ddak-tf-in'), fix = () => { footer.style.setProperty('--ddak-cqk', String(ns.cqk(fin))); footer.style.setProperty('--ddak-vz', String(ns.vz())); };
+    fix(); addEventListener('resize', fix, { passive: true });
     window.__ddak.reviewFooterMotion = motion(footer);
     window.__ddak.reviewController?.refresh();
     return true;
@@ -619,12 +626,24 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     const still = new IntersectionObserver(seen('static'), { rootMargin: '600px 0px' });
     const pre = new IntersectionObserver((es) => { if (!es.some((x) => x.isIntersecting)) return; pre.disconnect(); near = true; wait.forEach((c) => { load(c); lazy.unobserve(c); }); wait.clear(); }, { rootMargin: '800px 0px' });
     pre.observe(list);
-    // touch screens scroll the covers of the cards on screen only (copies included; they are rebuilt with the rows)
-    const pan = new IntersectionObserver((es) => es.forEach((x) => x.target.toggleAttribute('data-pan', x.isIntersecting)), { threshold: 0 }); // a card leaving the screen is fully out before its cover returns to the top
+    // 0.1.9 touch screens: the card crossing the centre line of the row takes the PC hover state (data-act: phone rises, cover
+    // scrolls through once, point border); fine pointers keep real hover. Copies included (rebuilt with the rows).
+    const act = new IntersectionObserver((es) => es.forEach((x) => x.target.toggleAttribute('data-act', x.isIntersecting && list.dataset.flow === 'on')), { root: parts.row, rootMargin: '0px -49.5% 0px -49.5%', threshold: 0 });
+    // 0.1.9 flow rhythm = PC: one card + gap passes every 13.76s on every width (PC 1440: 518px card + 32px gap at 40px/s)
+    let rhythm = 40;
     const api = ns.flowEngine({
-      onBuild: () => { pan.disconnect(); lazy.disconnect(); still.disconnect(); wait.clear(); const cards = list.querySelectorAll('.ddak-wf-card'); cards.forEach((c) => pan.observe(c)); cards.forEach((c) => (list.dataset.flow === 'static' ? still : lazy).observe(c)); },
+      onBuild: () => {
+        act.disconnect(); lazy.disconnect(); still.disconnect(); wait.clear();
+        const cards = list.querySelectorAll('.ddak-wf-card'), c0 = parts.group.firstElementChild;
+        if (c0) { const w = parseFloat(getComputedStyle(c0).width) || 0, g = parseFloat(getComputedStyle(parts.group).columnGap) || 0; if (w > 0) rhythm = (w + g) / 13.76; }
+        list.querySelectorAll('[data-act]').forEach((c) => c.removeAttribute('data-act'));
+        if (c0) list.style.setProperty('--ddak-cqk', String((ns.cqk || (() => 1))(c0)));
+        list.style.setProperty('--ddak-vz', String((ns.vz || (() => 1))()));
+        if (!fine && list.dataset.flow === 'on') cards.forEach((c) => act.observe(c));
+        cards.forEach((c) => (list.dataset.flow === 'static' ? still : lazy).observe(c));
+      },
       host: list, stage: parts.stage, section, cursor: parts.cursor, pauseBtn: parts.pause, navs: parts.navs, cardSel: '.ddak-wf-card',
-      speed: () => innerWidth < 768 ? 20 : 40,
+      speed: () => rhythm,
       rows: [{ row: parts.row, track: parts.track, group: parts.group, dir: 1, ratio: 1 }, { row: parts.names, track: parts.ntrack, group: parts.ngroup, dir: -1, ratio: 1.15, deco: true }],
       entrance() {
         const media = [...parts.group.querySelectorAll('.ddak-wf-browser')];
@@ -633,7 +652,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       },
     });
     const dispose = api.dispose;
-    api.dispose = () => { pre.disconnect(); lazy.disconnect(); still.disconnect(); pan.disconnect(); dispose(); };
+    api.dispose = () => { pre.disconnect(); lazy.disconnect(); still.disconnect(); act.disconnect(); dispose(); };
     api.items = items.length;
     return api;
   }
