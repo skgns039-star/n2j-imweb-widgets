@@ -33,7 +33,7 @@ window.__ddak.mountN2JReviews=function(root,{items=[],mode='page',urls={},state=
  const n=clean.length>=8?2:1,rows=[];
  for(let r=0;r<n;r++){const row=el('div','ddak-rv-row'),track=el('div','ddak-rv-ftrack'),group=el('div','ddak-rv-fgroup');group.setAttribute('role','list');clean.slice(r*Math.ceil(clean.length/n),(r+1)*Math.ceil(clean.length/n)).forEach(x=>{const c=card(x,false);c.setAttribute('role','listitem');group.append(c)});track.append(group);row.append(track);stage.append(row);rows.push({row,track,group,dir:r?-1:1,ratio:1})}
  wrap.append(bar,stage);root.append(wrap);
- const flow=window.__ddak.flowEngine({host:wrap,stage,rows,pauseBtn:pause,navs:[prev,next],section:root,cardSel:'.ddak-rv-card',speed:()=>innerWidth<768?18:28});
+ const flow=window.__ddak.flowEngine({host:wrap,stage,rows,pauseBtn:pause,navs:[prev,next],section:root,cardSel:'.ddak-rv-card',speed:()=>innerWidth<768&&!root.closest('.ddak-pcs-on')?18:28});
  root.__ddakReviewFlow=flow;removers.push(()=>{flow.dispose();if(root.__ddakReviewFlow===flow)delete root.__ddakReviewFlow});
  }}
  root.append(el('p','ddak-rv-muted','리뷰 작성은 회원가입·로그인 후 이용할 수 있습니다.'));
@@ -53,7 +53,7 @@ const AMBIENT_MS=3200,WAKE_MS=1600,EASE_OUT_MS=900,HARD_STOP_MS=600;
 window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba(121,134,69,0.30)',density=1}={}){
  const ctx=canvas.getContext&&canvas.getContext('2d');if(!ctx||!('IntersectionObserver' in window)||!('ResizeObserver' in window))return null;
  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),fineMQ=matchMedia('(hover: hover) and (pointer: fine)');
- let w=0,h=0,dpr=1,pts=[],visible=false,simT=0,last=0,until=0,settled=false,firstFrame=0,settledAt=0,moved=0,raf=0,disposed=false;
+ let w=0,h=0,dpr=1,k=1,pts=[],visible=false,simT=0,last=0,until=0,settled=false,firstFrame=0,settledAt=0,moved=0,raf=0,disposed=false;
  const ptr={x:-9999,y:-9999,on:false};
  function draw(t,snap=false,k=0.055){ctx.clearRect(0,0,w,h);ctx.fillStyle=color;const n=pts.length,R=120,R2=R*R;moved=0;
   for(let i=0;i<n;i++){const p=pts[i],g=threads(i,n,t,w,h);let tx=g.x+(hash(i,3.7)-0.5)*6,ty=g.y+(hash(i,9.1)-0.5)*6;
@@ -61,8 +61,10 @@ window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba
    if(!snap&&Math.abs(tx-p.x)>w*0.5){p.x=tx;p.y=ty}
    if(snap){p.x=tx;p.y=ty}else{const dx=(tx-p.x)*k,dy=(ty-p.y)*k;p.x+=dx;p.y+=dy;moved=Math.max(moved,Math.abs(dx),Math.abs(dy))}
    ctx.fillRect(p.x,p.y,1.6,1.6)}}
- function rebuild(){if(disposed)return;dpr=Math.min(devicePixelRatio||1,2);const r=host.getBoundingClientRect();w=Math.max(1,Math.round(r.width));h=Math.max(1,Math.round(r.height));
-  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+ function rebuild(){if(disposed)return;dpr=Math.min(devicePixelRatio||1,2);const r=host.getBoundingClientRect(),pc=!!(host.closest&&host.closest('.ddak-pcs-on'));
+  // 0.1.11: in the PC box = the 1440 field (layout px) drawn at the scaled size
+  k=pc?((r.width/(host.offsetWidth||r.width||1))||1):1;w=Math.max(1,Math.round(pc?host.offsetWidth:r.width));h=Math.max(1,Math.round(pc?host.offsetHeight:r.height));
+  canvas.width=Math.round(w*k*dpr);canvas.height=Math.round(h*k*dpr);ctx.setTransform(dpr*k,0,0,dpr*k,0,0);
   const n=Math.round((w>900?1500:640)*density),prev=pts;pts=Array.from({length:n},(_,i)=>prev[i]??{x:hash(i,12.9898)*w,y:hash(i,78.233)*h});
   if(reduceMQ.matches||(settled&&!raf))draw(simT,true)}
  const pause=()=>{if(raf)cancelAnimationFrame(raf);raf=0;last=0};
@@ -76,11 +78,12 @@ window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba
  const onVis=()=>{if(document.hidden)pause();else sync()},onMQ=()=>{rebuild();sync()};
  document.addEventListener('visibilitychange',onVis);reduceMQ.addEventListener?.('change',onMQ);
  const ro=new ResizeObserver(()=>rebuild());ro.observe(host);
- const onMove=e=>{const r=canvas.getBoundingClientRect();ptr.x=e.clientX-r.left;ptr.y=e.clientY-r.top;ptr.on=true;wake(WAKE_MS)},onLeave=()=>{ptr.on=false;wake(WAKE_MS)};
+ const onRs=()=>{if(k!==1||(host.closest&&host.closest('.ddak-pcs-on')))rebuild()};addEventListener('resize',onRs,{passive:true});
+ const onMove=e=>{const r=canvas.getBoundingClientRect();ptr.x=(e.clientX-r.left)/k;ptr.y=(e.clientY-r.top)/k;ptr.on=true;wake(WAKE_MS)},onLeave=()=>{ptr.on=false;wake(WAKE_MS)};
  if(fineMQ.matches){host.addEventListener('pointermove',onMove);host.addEventListener('pointerleave',onLeave)}
  rebuild();
  return{get running(){return !!raf},get settled(){return settled},get count(){return pts.length},get debug(){return{simT,moved,firstSettleMs:settledAt?Math.round(settledAt-firstFrame):null}},
-  dispose(){if(disposed)return;disposed=true;pause();io.disconnect();ro.disconnect();document.removeEventListener('visibilitychange',onVis);reduceMQ.removeEventListener?.('change',onMQ);host.removeEventListener('pointermove',onMove);host.removeEventListener('pointerleave',onLeave)}};
+  dispose(){if(disposed)return;disposed=true;pause();io.disconnect();ro.disconnect();removeEventListener('resize',onRs);document.removeEventListener('visibilitychange',onVis);reduceMQ.removeEventListener?.('change',onMQ);host.removeEventListener('pointermove',onMove);host.removeEventListener('pointerleave',onLeave)}};
 };
 })();
 
@@ -505,6 +508,8 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     on(stage, 'pointerleave', (e) => { if (e.pointerType === 'mouse') { st.hover = false; if (cursor) showCursor(false); sync(); } });
     // keyboard: focus stops the flow and brings the focused card fully into view
     on(stage, 'focusin', (e) => {
+      // 0.1.11: only keyboard focus stops the flow (Chrome focuses a tapped/clicked link, which kept phones stopped after opening a work)
+      try { if (!e.target.matches(':focus-visible')) return; } catch (_) { /* old engines: keep stopping */ }
       st.focus = true; sync();
       const card = cardSel && e.target.closest(cardSel);
       if (!card || card.closest('[data-copy]') || isStatic()) return;
@@ -689,7 +694,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   ns.worksFlow = Object.freeze({ apply, WORKS });
 })();
 
-/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. */
+/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. 0.1.11: + reviews, portfolio head. */
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
@@ -708,8 +713,14 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     const A = document.getElementById('about'), C = document.getElementById('contact'), L = document.querySelector('[data-works-list]');
     const ap = A ? [...A.querySelectorAll(':scope > .about-people, :scope > .about-facts-row')] : [];
     if (ap.length) wrap(ap, 'ddak-pcs-about', W0, A, A);
-    if (C && C.children.length) wrap([...C.children], 'ddak-pcs-contact', W0, C, C);
-    if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
+    const cc = C ? [...C.children].filter((n) => !n.matches('footer')) : []; // 0.1.11: footer = reference responsive, not scaled
+    if (cc.length) wrap(cc, 'ddak-pcs-contact', W0, C, C);
+    // 0.1.11: portfolio head + list in one 1440 box (else the 0.1.10 list box); reviews chapter box
+    const P = L?.closest('section'), ph = P && L.parentElement === P ? [...P.querySelectorAll(':scope > .section-head')] : [];
+    if (ph.length) wrap([...ph, L], 'ddak-pcs-works ddak-pcs-plans', W0, P, P);
+    else if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
+    const RV = document.querySelector('[data-ddak-slot="n2j-reviews"][data-ddak-review-mode="home"]');
+    if (RV?.parentElement) wrap([RV], 'ddak-pcs-reviews', W0, RV.parentElement, null);
     pin = A?.querySelector('[data-about-pin]') || null; txt = A?.querySelector('[data-about-inner]') || null;
     if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => queue()); boxes.forEach((b) => ro.observe(b.i)); }
   }
@@ -717,17 +728,17 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     raf = 0; let moved = false;
     for (const b of boxes) {
       b.o.classList.toggle('ddak-pcs-on', on); b.host?.classList.toggle('ddak-pcs-host', on);
-      b.i.querySelectorAll('footer.ddak-tf,[data-works-list].ddak-wf').forEach((n) => { n.classList.toggle('ddak-pc', on); n.style.setProperty('--ddak-vz', String(on ? 1 : (ns.vz || (() => 1))())); });
+      b.i.querySelectorAll('footer.ddak-tf,[data-works-list].ddak-wf,.ddak-n2j-reviews').forEach((n) => { n.classList.toggle('ddak-pc', on); n.style.setProperty('--ddak-vz', String(on ? 1 : (ns.vz || (() => 1))())); });
       const s = on ? (b.ref.clientWidth || W0) / W0 : 1;
       b.o.style.setProperty('--ddak-pcs-s', String(s));
       b.o.style.width = on ? b.w * s + 'px' : '';
-      const ft = b.i.querySelector('footer.ddak-tf');
-      if (ft) {
-        const q = document.querySelector('.fixed-inquiry'), r = q && on ? q.getBoundingClientRect() : null, fr = ft.getBoundingClientRect(), k = (fr.width / (ft.offsetWidth || 1)) || 1;
-        ft.style.setProperty('--ddak-pcs-fpad', r && r.height ? Math.ceil((innerHeight - r.top + 12) / k) + 'px' : '0px');
-      }
       const h = on ? Math.ceil(b.i.offsetHeight * s) + 'px' : '';
       if (b.o.style.height !== h) { b.o.style.height = h; moved = true; }
+    }
+    const ft = document.querySelector('footer.ddak-tf');
+    if (ft) { // room for the fixed inquiry buttons under the footer (measured)
+      const q = document.querySelector('.fixed-inquiry'), r = q && on ? q.getBoundingClientRect() : null, fr = ft.getBoundingClientRect(), k = (fr.width / (ft.offsetWidth || 1)) || 1;
+      ft.style.setProperty('--ddak-pcs-fpad', r && r.height ? Math.ceil((innerHeight - r.top + 12) / k) + 'px' : '0px');
     }
     if (pin) {
       const vz = (ns.vz || (() => 1))(), f = on && vz !== 1;

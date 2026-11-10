@@ -1,9 +1,9 @@
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 */
 .ddak-n2j-reviews{--ddak-rv-bg:#fafbf5;--ddak-rv-paper:#fff;--ddak-rv-ink:#1b1d16;--ddak-rv-muted:#626653;--ddak-rv-accent:#66713a;--ddak-rv-line:rgba(27,29,22,.16);--ddak-rv-font:inherit;--ddak-rv-gap:24px;--ddak-rv-card:340px;color:var(--ddak-rv-ink);background:var(--ddak-rv-bg);font-family:var(--ddak-rv-font);padding:88px max(24px,calc((100% - 1240px)/2));line-height:1.7;box-sizing:border-box}
-.ddak-n2j-reviews *{box-sizing:border-box}.ddak-n2j-reviews h1,.ddak-n2j-reviews h2{font-size:clamp(32px,4.2vw,60px);line-height:1.2;letter-spacing:-.045em;font-weight:600;margin:16px 0 24px;overflow-wrap:anywhere;font-style:normal}.ddak-n2j-reviews p{margin:0 0 20px}.ddak-n2j-reviews .ddak-rv-eyebrow{font-size:12px;letter-spacing:.14em;color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-intro{max-width:600px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-top{display:flex;justify-content:space-between;gap:32px;align-items:end;margin-bottom:48px}.ddak-n2j-reviews .ddak-rv-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.ddak-n2j-reviews a,.ddak-n2j-reviews button{font:inherit;color:var(--ddak-rv-ink);text-decoration:none;min-height:48px;padding:12px 20px;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;cursor:pointer;transition:opacity .2s ease}@media(hover:hover) and (pointer:fine){.ddak-n2j-reviews a:hover,.ddak-n2j-reviews button:hover{opacity:.78}}.ddak-n2j-reviews a:active,.ddak-n2j-reviews button:active{opacity:.6}.ddak-n2j-reviews :focus-visible{outline:3px solid var(--ddak-rv-accent);outline-offset:4px}.ddak-n2j-reviews .ddak-rv-primary{background:var(--ddak-rv-accent);color:var(--ddak-rv-paper);border-color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-empty{border-top:1px solid var(--ddak-rv-line);border-bottom:1px solid var(--ddak-rv-line);padding:64px 0;max-width:100%}.ddak-n2j-reviews .ddak-rv-empty h3{font-size:24px;font-weight:500;margin:0 0 12px}.ddak-n2j-reviews .ddak-rv-muted{color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-window{overflow:hidden;padding:8px 0}.ddak-n2j-reviews .ddak-rv-track{display:flex;gap:var(--ddak-rv-gap);width:max-content}.ddak-n2j-reviews .ddak-rv-group{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--ddak-rv-card);gap:var(--ddak-rv-gap);align-items:start}.ddak-n2j-reviews .ddak-rv-card{min-width:0;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);padding:28px;overflow-wrap:anywhere}.ddak-n2j-reviews .ddak-rv-card p{white-space:pre-wrap}.ddak-n2j-reviews .ddak-rv-meta{font-size:13px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ddak-rv-gap);margin-top:40px}.ddak-n2j-reviews .ddak-rv-list details{margin-top:16px}.ddak-n2j-reviews summary{cursor:pointer;min-height:44px;padding:10px 0}.ddak-n2j-reviews [hidden]{display:none!important}
-@media(max-width:767px){.ddak-n2j-reviews{padding:56px 20px;--ddak-rv-gap:16px;--ddak-rv-card:280px}.ddak-n2j-reviews .ddak-rv-top{display:block;margin-bottom:32px}.ddak-n2j-reviews .ddak-rv-actions{margin-top:24px}.ddak-n2j-reviews .ddak-rv-list{grid-template-columns:minmax(0,1fr)}.ddak-n2j-reviews .ddak-rv-card{padding:24px}.ddak-n2j-reviews .ddak-rv-empty{padding:40px 0}}
+.ddak-n2j-reviews *{box-sizing:border-box}.ddak-n2j-reviews h1,.ddak-n2j-reviews h2{font-size:clamp(32px,calc(4.2 * var(--ddak-vw,1vw)),60px);line-height:1.2;letter-spacing:-.045em;font-weight:600;margin:16px 0 24px;overflow-wrap:anywhere;font-style:normal}.ddak-n2j-reviews p{margin:0 0 20px}.ddak-n2j-reviews .ddak-rv-eyebrow{font-size:12px;letter-spacing:.14em;color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-intro{max-width:600px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-top{display:flex;justify-content:space-between;gap:32px;align-items:end;margin-bottom:48px}.ddak-n2j-reviews .ddak-rv-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.ddak-n2j-reviews a,.ddak-n2j-reviews button{font:inherit;color:var(--ddak-rv-ink);text-decoration:none;min-height:48px;padding:12px 20px;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;cursor:pointer;transition:opacity .2s ease}@media(hover:hover) and (pointer:fine){.ddak-n2j-reviews a:hover,.ddak-n2j-reviews button:hover{opacity:.78}}.ddak-n2j-reviews a:active,.ddak-n2j-reviews button:active{opacity:.6}.ddak-n2j-reviews :focus-visible{outline:3px solid var(--ddak-rv-accent);outline-offset:4px}.ddak-n2j-reviews .ddak-rv-primary{background:var(--ddak-rv-accent);color:var(--ddak-rv-paper);border-color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-empty{border-top:1px solid var(--ddak-rv-line);border-bottom:1px solid var(--ddak-rv-line);padding:64px 0;max-width:100%}.ddak-n2j-reviews .ddak-rv-empty h3{font-size:24px;font-weight:500;margin:0 0 12px}.ddak-n2j-reviews .ddak-rv-muted{color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-window{overflow:hidden;padding:8px 0}.ddak-n2j-reviews .ddak-rv-track{display:flex;gap:var(--ddak-rv-gap);width:max-content}.ddak-n2j-reviews .ddak-rv-group{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:var(--ddak-rv-card);gap:var(--ddak-rv-gap);align-items:start}.ddak-n2j-reviews .ddak-rv-card{min-width:0;border:1px solid var(--ddak-rv-line);background:var(--ddak-rv-paper);padding:28px;overflow-wrap:anywhere}.ddak-n2j-reviews .ddak-rv-card p{white-space:pre-wrap}.ddak-n2j-reviews .ddak-rv-meta{font-size:13px;color:var(--ddak-rv-muted)}.ddak-n2j-reviews .ddak-rv-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ddak-rv-gap);margin-top:40px}.ddak-n2j-reviews .ddak-rv-list details{margin-top:16px}.ddak-n2j-reviews summary{cursor:pointer;min-height:44px;padding:10px 0}.ddak-n2j-reviews [hidden]{display:none!important}
+@media(max-width:767px){.ddak-n2j-reviews:not(.ddak-pc){padding:56px 20px;--ddak-rv-gap:16px;--ddak-rv-card:280px}.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-top{display:block;margin-bottom:32px}.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-actions{margin-top:24px}.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-list{grid-template-columns:minmax(0,1fr)}.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-card{padding:24px}.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-empty{padding:40px 0}}
 @media(prefers-reduced-motion:reduce){.ddak-n2j-reviews .ddak-rv-window{overflow:visible}.ddak-n2j-reviews .ddak-rv-track{width:auto;display:block}.ddak-n2j-reviews .ddak-rv-group{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-columns:auto}.ddak-n2j-reviews [data-copy]{display:none}.ddak-n2j-reviews a,.ddak-n2j-reviews button{transition:opacity .15s linear}}
-@media(prefers-reduced-motion:reduce) and (max-width:767px){.ddak-n2j-reviews .ddak-rv-group{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce) and (max-width:767px){.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-group{grid-template-columns:minmax(0,1fr)}}
 
 /* CSS owns every frame; JS only measures on resize. */
 @keyframes ddak-rv-flow{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--ddak-rv-distance)),0,0)}}
@@ -39,7 +39,7 @@
 .ddak-tf .ddak-tf-f{display:flex;gap:10px;min-width:0}.ddak-tf .ddak-tf-f dt{font-weight:600;flex-shrink:0}.ddak-tf .ddak-tf-f dd{overflow-wrap:anywhere;word-break:keep-all}.ddak-tf .ddak-tf-addr{flex-basis:100%}
 @media(max-width:800px){.ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:minmax(0,1fr);gap:32px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:minmax(0,1fr);gap:16px}.ddak-tf:not(.ddak-pc) .ddak-tf-ch{gap:8px 24px}.ddak-tf:not(.ddak-pc) .ddak-tf-top{font-size:13px}.ddak-footer.ddak-tf:not(.ddak-pc){padding-top:32px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{gap:10px 24px}}
 @media(max-width:640px){.ddak-footer.ddak-tf:not(.ddak-pc){padding-bottom:120px}}
-@media(max-width:480px){.ddak-tf:not(.ddak-pc) .ddak-tf-top{flex-direction:column;gap:4px}.ddak-tf:not(.ddak-pc) .ddak-tf-top p:last-child{display:none}.ddak-tf:not(.ddak-pc) .ddak-tf-main{padding:32px 0 40px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{display:grid;grid-template-columns:minmax(0,1fr)}.ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:12px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dt{width:92px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dd{flex:1;min-width:0}.ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:15px}.ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:clamp(20px,6vw,25px)}.ddak-tf:not(.ddak-pc) .ddak-tf-biz{padding-top:24px}}
+@media(max-width:480px){.ddak-tf:not(.ddak-pc) .ddak-tf-top{flex-direction:column;gap:4px}.ddak-tf:not(.ddak-pc) .ddak-tf-top p:last-child{display:none}.ddak-tf:not(.ddak-pc) .ddak-tf-main{padding:32px 0 40px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{display:grid;grid-template-columns:minmax(0,1fr)}.ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:12px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dt{width:92px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dd{flex:1;min-width:0}.ddak-tf:not(.ddak-pc) .ddak-tf-ch{grid-template-columns:minmax(0,1fr);gap:0}.ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:15px}.ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:clamp(20px,6vw,25px)}.ddak-tf:not(.ddak-pc) .ddak-tf-biz{padding-top:24px}}
 @media(prefers-reduced-motion:reduce){.ddak-tf .ddak-tf-dot,.ddak-tf .ddak-tf-ch span,.ddak-tf .ddak-tf-rule{transform:none!important}.ddak-tf .ddak-tf-ch span{transition:opacity 120ms ease-out}.ddak-tf .ddak-tf-ch a:hover span{opacity:1}}
 /* Imweb tablet view scales body by .85; keep touch targets >=44px after scaling. */
 @media(min-width:641px) and (max-width:1199px){.ddak-tf:not(.ddak-pc) a{min-height:52px}}
@@ -187,7 +187,7 @@
 .ddak-n2j-reviews .ddak-rv-ftrack{width:max-content;will-change:transform;backface-visibility:hidden}
 .ddak-n2j-reviews .ddak-rv-fgroup .ddak-rv-card{flex:none;width:var(--ddak-rv-card);transition:border-color .32s ease}
 @media(hover:hover) and (pointer:fine){.ddak-n2j-reviews .ddak-rv-fgroup .ddak-rv-card:hover{border-color:var(--ddak-rv-accent)}.ddak-n2j-reviews .ddak-rv-flow[data-flow="on"] .ddak-rv-stage{cursor:grab}.ddak-n2j-reviews .ddak-rv-flow[data-dragging] .ddak-rv-stage{cursor:grabbing}}
-@media(min-width:641px) and (max-width:1199px){.ddak-n2j-reviews .ddak-rv-fctl button{min-height:54px;min-width:54px}}
+@media(min-width:641px) and (max-width:1199px){.ddak-n2j-reviews:not(.ddak-pc) .ddak-rv-fctl button{min-height:54px;min-width:54px}}
 .ddak-n2j-reviews .ddak-rv-flow a:focus-visible,.ddak-n2j-reviews .ddak-rv-flow button:focus-visible{outline:3px solid #66713a!important;outline-offset:3px!important}
 .ddak-n2j-reviews .ddak-rv-flow[data-flow="static"] .ddak-rv-fbar{display:none}
 .ddak-n2j-reviews .ddak-rv-flow[data-flow="static"] .ddak-rv-stage{margin-left:0;margin-right:0;touch-action:auto;user-select:auto;-webkit-user-select:auto}
@@ -196,45 +196,7 @@
 .ddak-n2j-reviews .ddak-rv-flow[data-flow="static"] .ddak-rv-fgroup{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
 .ddak-n2j-reviews .ddak-rv-flow[data-flow="static"] .ddak-rv-fgroup .ddak-rv-card{width:auto}
 
-/* 0.1.6 footer: phones and tablets keep the PC composition (owner 2026-11-09 20:50 "반응형에서는 pc버전이랑 동일하게").
-   Same order and columns as 1440 (top line both sides, contact | channels, business label | fields); sizes scale with width. */
-@media(max-width:800px){
-  .ddak-tf:not(.ddak-pc) .ddak-tf-top{flex-direction:row;justify-content:space-between;gap:12px;font-size:clamp(11px,3.2vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-top p:last-child{display:block}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px);padding:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px) 0 clamp(16px,calc(5.56cqw * var(--ddak-cqk,1)),64px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:clamp(13px,calc(3.25cqw * var(--ddak-cqk,1)),38px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-phone{font-size:clamp(13px,3.6vw,18px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px clamp(12px,2.6vw,32px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:clamp(11px,3.1vw,16px);padding:10px 0}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch span{font-size:clamp(14px,3.6vw,20px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:clamp(60px,15vw,180px) minmax(0,1fr);gap:clamp(10px,3vw,24px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{display:flex;flex-wrap:wrap;gap:6px clamp(12px,3.4vw,32px);font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:clamp(6px,1.6vw,10px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-f dt{width:auto}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-f dd{flex:0 1 auto}
-}
-/* 0.1.9 phones (owner 2026-11-10 "PC와 동일한 디자인과 애니메이션", "똑같이"): one composition, scaled with the width.
-   393px is the reference phone; every size below is its 393 value in vw, so 320-600 is the same picture scaled (business info,
-   labels and the top line stop at 11px, the phone number at 12px, for legibility; no other per-width tweaks: the 0.1.8 12px arrow, -.02em letter-spacing, 1.3 line height and 10.5px text at <=340 are gone). PC ratios restored:
-   arrow 1.25x the channel text, text-arrow gap .5em, line height 1.5. Touch targets stay px (min-height 44px, not scaled).
-   Kept from 0.1.8 because PC column widths cannot hold '네이버 블로그' on one line at phone widths: contact column = e-mail width. */
-@media(max-width:600px){
-  .ddak-footer.ddak-tf:not(.ddak-pc){padding-top:min(8.14vw,32px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-top{font-size:clamp(11px,3.2vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:max-content minmax(0,1fr);gap:3.2vw;padding:min(7.12vw,48px) 0 min(9.16vw,64px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-contact h2,.ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-contact h2{margin-bottom:3.05vw}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:min(3.75vw,38px);overflow-wrap:anywhere;max-width:100%}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-phone{font-size:clamp(12px,3.6vw,18px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch{grid-template-columns:repeat(2,minmax(max-content,1fr));gap:.5vw 2vw}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:min(3.1vw,16px);line-height:1.5;padding:2.54vw 0;gap:.5em;letter-spacing:normal;white-space:nowrap}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-ch span{font-size:1.25em}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:max(60px,15.27vw) minmax(0,1fr);gap:3.05vw;padding-top:6.1vw}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{white-space:nowrap}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{gap:1.53vw 3.4vw;font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:1.6vw}
-}
+/* 0.1.11 (owner 11-10 "푸터는 레퍼런스 사이트에 반응형을 보고 동일하게"): phones/tablets use the sian r2 reference responsive above (<=800/640/480); 0.1.6/0.1.9 PC-composition blocks removed */
 
 /* 0.1.10 pure scale (owner 11-10 "적용시켜"): <=1199px = 1440x900 PC layout scaled to the width; tokens = live PC values */
 .ddak-pcs{position:relative;box-sizing:content-box}
@@ -251,14 +213,18 @@
 .ddak-pcs-on>.ddak-pcs-in .about-facts-row{margin-top:72px}
 .ddak-pcs-on>.ddak-pcs-in .about-facts{grid-template-columns:repeat(3,1fr);gap:36px}
 .ddak-pcs-on>.ddak-pcs-in .contact-actions{flex-direction:row;align-items:normal}
-.ddak-pcs-on>.ddak-pcs-in .site-footer.ddak-tf{margin-top:90px;gap:48px}
 .ddak-pcs-on>.ddak-pcs-in .works-list.ddak-wf{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}
 .ddak-pcs-host.chapter--about{padding-bottom:0}
 .ddak-pcs-on.ddak-pcs-about>.ddak-pcs-in{padding-bottom:var(--section-pad)}
 .ddak-pcs-host.contact{padding:0;min-height:0}
+/* 0.1.11 portfolio head + list box: section padding inside */
+.ddak-pcs-host.chapter--plans{padding:0}
+.ddak-pcs-on.ddak-pcs-plans>.ddak-pcs-in{padding:var(--section-pad) var(--gutter)}
+.ddak-pcs-on>.ddak-pcs-in>.section-head{margin-bottom:72px}
 .ddak-pcs-on.ddak-pcs-contact>.ddak-pcs-in{display:flex;flex-direction:column;justify-content:center;gap:0;min-height:792px;padding:var(--section-pad-lg) var(--gutter) 0;text-align:center}
 /* room for the unscaled fixed inquiry buttons (JS, measured) */
-.ddak-pcs-on>.ddak-pcs-in .ddak-footer.ddak-tf.ddak-pc{padding-bottom:calc(36px + var(--ddak-pcs-fpad,0px))}
+.ddak-pcs-host>.ddak-footer.ddak-tf{margin-top:0;padding-bottom:calc(36px + var(--ddak-pcs-fpad,0px))}
+.ddak-pcs-on.ddak-pcs-contact>.ddak-pcs-in{min-height:0;padding-bottom:90px}
 /* tablet zoom .85: the pinned film covered 85% of the screen; vz = 1/zoom */
 .ddak-pcs-film[data-bg-canvas]{width:calc(100vw * var(--ddak-vz,1))!important;height:calc(100vh * var(--ddak-vz,1))!important}
 .ddak-pcs-film.about-film-pin{width:calc(100vw * var(--ddak-vz,1))!important;max-width:none!important;height:calc(100svh * var(--ddak-vz,1))!important;max-height:none!important;min-height:calc(100svh * var(--ddak-vz,1))}
