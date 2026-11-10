@@ -264,7 +264,9 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     }
     function dust() {
       const c = document.createElement('canvas'); c.className = 'ddak-tf-dust'; c.setAttribute('aria-hidden', 'true');
-      const fr = footer.getBoundingClientRect(), rr = rule.getBoundingClientRect();
+      // 0.1.10: rects / scale = footer px
+      const k0 = footer.getBoundingClientRect(), k = (k0.width / (footer.offsetWidth || k0.width || 1)) || 1, sc = (r) => ({ left: r.left / k, top: r.top / k, width: r.width / k });
+      const fr = sc(k0), rr = sc(rule.getBoundingClientRect());
       const W = Math.round(fr.width), H = Math.round(rr.top - fr.top + 24), dpr = Math.min(devicePixelRatio || 1, 2);
       const ctx = c.getContext && c.getContext('2d'); if (!ctx || W < 1 || H < 1) return;
       c.width = W * dpr; c.height = H * dpr; c.style.height = H + 'px';
@@ -300,7 +302,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     footer.classList.add('ddak-footer', 'ddak-tf');
     footer.replaceChildren(t.content.cloneNode(true));
     footer.dataset.ddakReviewFooter = 'true';
-    const fin = footer.querySelector('.ddak-tf-in'), fix = () => { footer.style.setProperty('--ddak-cqk', String(ns.cqk(fin))); footer.style.setProperty('--ddak-vz', String(ns.vz())); };
+    const fin = footer.querySelector('.ddak-tf-in'), fix = () => { footer.style.setProperty('--ddak-cqk', String(ns.cqk(fin))); footer.style.setProperty('--ddak-vz', String(footer.closest('.ddak-pcs-on') ? 1 : ns.vz())); };
     fix(); addEventListener('resize', fix, { passive: true });
     window.__ddak.reviewFooterMotion = motion(footer);
     window.__ddak.reviewController?.refresh();
@@ -541,13 +543,14 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       if (v && !st.visible && built && !entered) { entered = true; if (entrance && !isStatic()) entrance(); }
       st.visible = v; if (!v) stop(); sync();
     }, { threshold: 0 });
-    const ro = new ResizeObserver(() => { const w = (section || host).getBoundingClientRect().width; if (Math.abs(w - lastW) < 2) return; lastW = w; build(); });
+    const key = () => (section || host).getBoundingClientRect().width + host.offsetWidth * 1000;
+    const ro = new ResizeObserver(() => { const w = key(); if (Math.abs(w - lastW) < 2) return; lastW = w; build(); });
     // already on screen at mount -> no entrance (avoid a pop-in under the reader's eyes)
     const r0 = host.getBoundingClientRect(); if (r0.top < innerHeight && r0.bottom > 0) entered = true;
     host.querySelectorAll('img').forEach(fade);
     build();
-    lastW = (section || host).getBoundingClientRect().width;
-    io.observe(stage); ro.observe(section || host); off.push(() => { io.disconnect(); ro.disconnect(); });
+    lastW = key();
+    io.observe(stage); ro.observe(section || host); if (section) ro.observe(host); off.push(() => { io.disconnect(); ro.disconnect(); });
     return {
       get state() { return { ...st, drag: !!st.drag, running: host.dataset.running === 'true' }; },
       get offset() { return s; }, get factor() { return f; }, get width() { return main.W; }, get zoom() { return zoom; },
@@ -638,7 +641,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
         if (c0) { const w = parseFloat(getComputedStyle(c0).width) || 0, g = parseFloat(getComputedStyle(parts.group).columnGap) || 0; if (w > 0) rhythm = (w + g) / 13.76; }
         list.querySelectorAll('[data-act]').forEach((c) => c.removeAttribute('data-act'));
         if (c0) list.style.setProperty('--ddak-cqk', String((ns.cqk || (() => 1))(c0)));
-        list.style.setProperty('--ddak-vz', String((ns.vz || (() => 1))()));
+        list.style.setProperty('--ddak-vz', String(list.closest('.ddak-pcs-on') ? 1 : (ns.vz || (() => 1))()));
         if (!fine && list.dataset.flow === 'on') cards.forEach((c) => act.observe(c));
         cards.forEach((c) => (list.dataset.flow === 'static' ? still : lazy).observe(c));
       },
@@ -686,6 +689,69 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   ns.worksFlow = Object.freeze({ apply, WORKS });
 })();
 
+/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. */
+(function () {
+  'use strict';
+  const ns = window.__ddak = window.__ddak || {};
+  if (ns.pcScale) return;
+  const W0 = 1440, GUT = 72, boxes = [];
+  let on = false, raf = 0, built = false, bound = false, pin = null, txt = null;
+  const wrap = (nodes, cls, w, ref, host) => {
+    const o = document.createElement('div'), i = document.createElement('div');
+    o.className = 'ddak-pcs ' + cls; i.className = 'ddak-pcs-in';
+    nodes[0].before(o); o.append(i); i.append(...nodes);
+    o.style.setProperty('--ddak-pcs-w', w + 'px');
+    boxes.push({ o, i, w, ref, host });
+  };
+  function build() {
+    built = true;
+    const A = document.getElementById('about'), C = document.getElementById('contact'), L = document.querySelector('[data-works-list]');
+    const ap = A ? [...A.querySelectorAll(':scope > .about-people, :scope > .about-facts-row')] : [];
+    if (ap.length) wrap(ap, 'ddak-pcs-about', W0, A, A);
+    if (C && C.children.length) wrap([...C.children], 'ddak-pcs-contact', W0, C, C);
+    if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
+    pin = A?.querySelector('[data-about-pin]') || null; txt = A?.querySelector('[data-about-inner]') || null;
+    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => queue()); boxes.forEach((b) => ro.observe(b.i)); }
+  }
+  function fit() {
+    raf = 0; let moved = false;
+    for (const b of boxes) {
+      b.o.classList.toggle('ddak-pcs-on', on); b.host?.classList.toggle('ddak-pcs-host', on);
+      b.i.querySelectorAll('footer.ddak-tf,[data-works-list].ddak-wf').forEach((n) => { n.classList.toggle('ddak-pc', on); n.style.setProperty('--ddak-vz', String(on ? 1 : (ns.vz || (() => 1))())); });
+      const s = on ? (b.ref.clientWidth || W0) / W0 : 1;
+      b.o.style.setProperty('--ddak-pcs-s', String(s));
+      b.o.style.width = on ? b.w * s + 'px' : '';
+      const ft = b.i.querySelector('footer.ddak-tf');
+      if (ft) {
+        const q = document.querySelector('.fixed-inquiry'), r = q && on ? q.getBoundingClientRect() : null, fr = ft.getBoundingClientRect(), k = (fr.width / (ft.offsetWidth || 1)) || 1;
+        ft.style.setProperty('--ddak-pcs-fpad', r && r.height ? Math.ceil((innerHeight - r.top + 12) / k) + 'px' : '0px');
+      }
+      const h = on ? Math.ceil(b.i.offsetHeight * s) + 'px' : '';
+      if (b.o.style.height !== h) { b.o.style.height = h; moved = true; }
+    }
+    if (pin) {
+      const vz = (ns.vz || (() => 1))(), f = on && vz !== 1;
+      if (pin.classList.contains('ddak-pcs-film') !== f) { pin.classList.toggle('ddak-pcs-film', f); moved = true; }
+      pin.style.setProperty('--ddak-vz', String(vz));
+      const bg = document.querySelector('[data-bg-canvas]'); if (bg) { bg.classList.toggle('ddak-pcs-film', f); bg.style.setProperty('--ddak-vz', String(vz)); }
+    }
+    if (txt && pin) { txt.classList.toggle('ddak-pcs-txt', on); txt.style.setProperty('--ddak-pcs-s', String(on ? (pin.clientWidth || W0) / W0 : 1)); }
+    if (moved) ns.reviewController?.refresh?.();
+  }
+  function queue() { if (!raf) raf = requestAnimationFrame(fit); }
+  function apply() {
+    if (bound || typeof matchMedia !== 'function') return false;
+    bound = true;
+    const mq = matchMedia('(max-width: 1199px)');
+    const go = () => { on = mq.matches; if (on && !built) build(); if (built) queue(); };
+    mq.addEventListener?.('change', go);
+    addEventListener('resize', () => { if (built) queue(); }, { passive: true });
+    go();
+    return true;
+  }
+  ns.pcScale = Object.freeze({ apply, get on() { return on; }, get boxes() { return boxes.length; } });
+})();
+
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
@@ -717,7 +783,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
       .filter(root => ['home','intro'].includes(root.dataset.ddakReviewMode) && !root.dataset.ddakReviewBound);
     if (!roots.length) return [];
     return roots.map(root => ns.reviewController.mount({root, mode:root.dataset.ddakReviewMode,
-      renderer, timeoutMs, authorsURL, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') { try { (ns.worksFlow || ns.worksLabel)?.apply(); } catch (_) { try { ns.worksLabel?.apply(); } catch (_) { /* best effort */ } } ns.reviewFooter.apply(); } })})).filter(Boolean);
+      renderer, timeoutMs, authorsURL, ready:() => ready().then(() => { if (root.dataset.ddakReviewMode === 'home') { try { (ns.worksFlow || ns.worksLabel)?.apply(); } catch (_) { try { ns.worksLabel?.apply(); } catch (_) { /* best effort */ } } ns.reviewFooter.apply(); try { ns.pcScale?.apply(); } catch (_) { /* PC layout stays as 0.1.9 */ } } })})).filter(Boolean);
   }
   ns.reviewBoot = Object.freeze({start, stylesheet});
   // Final .6 helper binding is supplied verbatim only after its handoff is verified.

@@ -12,7 +12,7 @@
 
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4
    N2J TRINI footer r2 (sian jobs/n2jtrini_footer_reference_20261104). Scoped by ddak namespace. */
-.ddak-footer.ddak-tf{--ddak-tf-olive:#1b1d16;--ddak-tf-cream:#f2eed7;--ddak-tf-rule:#77796c;--ddak-tf-gutter:clamp(16px,calc(5vw * var(--ddak-vz,1)),80px);display:block;box-sizing:border-box;width:100%;max-width:none;padding:48px var(--ddak-tf-gutter) 36px;border-top:0;background:var(--ddak-tf-olive);color:var(--ddak-tf-cream);font-family:Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;font-weight:400;letter-spacing:normal;line-height:1.6;text-align:left;text-transform:none}
+.ddak-footer.ddak-tf{--ddak-tf-olive:#1b1d16;--ddak-tf-cream:#f2eed7;--ddak-tf-rule:#77796c;--ddak-tf-gutter:clamp(16px,calc(calc(5 * var(--ddak-vw,1vw)) * var(--ddak-vz,1)),80px);display:block;box-sizing:border-box;width:100%;max-width:none;padding:48px var(--ddak-tf-gutter) 36px;border-top:0;background:var(--ddak-tf-olive);color:var(--ddak-tf-cream);font-family:Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;font-weight:400;letter-spacing:normal;line-height:1.6;text-align:left;text-transform:none}
 .ddak-tf *{box-sizing:border-box}
 .ddak-tf .ddak-tf-in{max-width:1760px;margin:0 auto;container-type:inline-size}
 .ddak-tf p,.ddak-tf h2,.ddak-tf dl,.ddak-tf dd{margin:0}
@@ -27,7 +27,7 @@
 .ddak-tf .ddak-tf-rule{position:absolute;inset:0 0 auto;display:block;height:1px;background:var(--ddak-tf-rule);transform-origin:left center}
 .ddak-tf h2{font-size:13px;font-weight:400;line-height:1.6;letter-spacing:normal}
 .ddak-tf .ddak-tf-contact h2{margin-bottom:12px}
-.ddak-tf .ddak-tf-email{font-size:clamp(20px,2.6vw,38px);line-height:1.5;letter-spacing:-.035em;width:fit-content}
+.ddak-tf .ddak-tf-email{font-size:clamp(20px,calc(2.6 * var(--ddak-vw,1vw)),38px);line-height:1.5;letter-spacing:-.035em;width:fit-content}
 .ddak-tf .ddak-tf-phone{font-size:18px;line-height:1.6;width:fit-content}
 .ddak-tf .ddak-tf-ch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px 32px}
 .ddak-tf .ddak-tf-ch a{font-size:16px;line-height:1.5;justify-content:space-between;border-bottom:1px solid var(--ddak-tf-rule);padding:12px 0;white-space:nowrap;gap:8px}
@@ -37,12 +37,12 @@
 .ddak-tf .ddak-tf-biz{border-top:1px solid var(--ddak-tf-rule);padding-top:28px;display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px}
 .ddak-tf .ddak-tf-biz dl{display:flex;flex-wrap:wrap;gap:12px 32px;font-size:13px;line-height:1.8}
 .ddak-tf .ddak-tf-f{display:flex;gap:10px;min-width:0}.ddak-tf .ddak-tf-f dt{font-weight:600;flex-shrink:0}.ddak-tf .ddak-tf-f dd{overflow-wrap:anywhere;word-break:keep-all}.ddak-tf .ddak-tf-addr{flex-basis:100%}
-@media(max-width:800px){.ddak-tf .ddak-tf-main{grid-template-columns:minmax(0,1fr);gap:32px}.ddak-tf .ddak-tf-biz{grid-template-columns:minmax(0,1fr);gap:16px}.ddak-tf .ddak-tf-ch{gap:8px 24px}.ddak-tf .ddak-tf-top{font-size:13px}.ddak-footer.ddak-tf{padding-top:32px}.ddak-tf .ddak-tf-biz dl{gap:10px 24px}}
-@media(max-width:640px){.ddak-footer.ddak-tf{padding-bottom:120px}}
-@media(max-width:480px){.ddak-tf .ddak-tf-top{flex-direction:column;gap:4px}.ddak-tf .ddak-tf-top p:last-child{display:none}.ddak-tf .ddak-tf-main{padding:32px 0 40px}.ddak-tf .ddak-tf-biz dl{display:grid;grid-template-columns:minmax(0,1fr)}.ddak-tf .ddak-tf-f{gap:12px}.ddak-tf .ddak-tf-f dt{width:92px}.ddak-tf .ddak-tf-f dd{flex:1;min-width:0}.ddak-tf .ddak-tf-ch a{font-size:15px}.ddak-tf .ddak-tf-email{font-size:clamp(20px,6vw,25px)}.ddak-tf .ddak-tf-biz{padding-top:24px}}
+@media(max-width:800px){.ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:minmax(0,1fr);gap:32px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:minmax(0,1fr);gap:16px}.ddak-tf:not(.ddak-pc) .ddak-tf-ch{gap:8px 24px}.ddak-tf:not(.ddak-pc) .ddak-tf-top{font-size:13px}.ddak-footer.ddak-tf:not(.ddak-pc){padding-top:32px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{gap:10px 24px}}
+@media(max-width:640px){.ddak-footer.ddak-tf:not(.ddak-pc){padding-bottom:120px}}
+@media(max-width:480px){.ddak-tf:not(.ddak-pc) .ddak-tf-top{flex-direction:column;gap:4px}.ddak-tf:not(.ddak-pc) .ddak-tf-top p:last-child{display:none}.ddak-tf:not(.ddak-pc) .ddak-tf-main{padding:32px 0 40px}.ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{display:grid;grid-template-columns:minmax(0,1fr)}.ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:12px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dt{width:92px}.ddak-tf:not(.ddak-pc) .ddak-tf-f dd{flex:1;min-width:0}.ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:15px}.ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:clamp(20px,6vw,25px)}.ddak-tf:not(.ddak-pc) .ddak-tf-biz{padding-top:24px}}
 @media(prefers-reduced-motion:reduce){.ddak-tf .ddak-tf-dot,.ddak-tf .ddak-tf-ch span,.ddak-tf .ddak-tf-rule{transform:none!important}.ddak-tf .ddak-tf-ch span{transition:opacity 120ms ease-out}.ddak-tf .ddak-tf-ch a:hover span{opacity:1}}
 /* Imweb tablet view scales body by .85; keep touch targets >=44px after scaling. */
-@media(min-width:641px) and (max-width:1199px){.ddak-tf a{min-height:52px}}
+@media(min-width:641px) and (max-width:1199px){.ddak-tf:not(.ddak-pc) a{min-height:52px}}
 /* 0.1.5 review background field (sian n2jtrini_motion_20261109 reviews.css :5-6) */
 .ddak-n2j-reviews{position:relative;isolation:isolate;overflow:hidden}
 .ddak-n2j-reviews .ddak-rv-bg{position:absolute;inset:0;z-index:-1;width:100%;height:100%;min-height:0;padding:0;border:0;pointer-events:none}
@@ -56,7 +56,7 @@
 @media(prefers-reduced-motion:reduce){.ddak-tf.ddak-tf-pre .ddak-tf-mark,.ddak-tf.ddak-tf-pre .ddak-tf-ch a{clip-path:none}.ddak-tf.ddak-tf-pre .ddak-tf-rule{transform:none;opacity:.35}.ddak-tf.ddak-tf-pre .ddak-tf-dot{transform:none}.ddak-tf .ddak-tf-dust{display:none}}
 
 /* 0.1.6 portfolio flowing grid (sian portfolio-r2). Colors and fonts = live home tokens (light/dark runtime vars). */
-[data-works-list].ddak-wf{display:block;position:relative;max-width:1280px;margin:0 auto;--ddak-wf-card:clamp(300px,36vw,560px);--ddak-wf-gap:calc(var(--ddak-wf-card) * .0612);--ddak-wf-ink:var(--text,#1b1d16);--ddak-wf-soft:var(--text-soft,#626653);--ddak-wf-rule:var(--rule,rgba(27,29,22,.16));--ddak-wf-paper:var(--surface,#fff);--ddak-wf-point:var(--point,#798645);--ddak-wf-deep:var(--point-deep,#66713a);--ddak-wf-sub:var(--sub,#f2eed7);--ddak-wf-serif:var(--font-editorial,Eulyoo1945,Georgia,serif);color:var(--ddak-wf-ink)}
+[data-works-list].ddak-wf{display:block;position:relative;max-width:1280px;margin:0 auto;--ddak-wf-card:clamp(300px,calc(36 * var(--ddak-vw,1vw)),560px);--ddak-wf-gap:calc(var(--ddak-wf-card) * .0612);--ddak-wf-ink:var(--text,#1b1d16);--ddak-wf-soft:var(--text-soft,#626653);--ddak-wf-rule:var(--rule,rgba(27,29,22,.16));--ddak-wf-paper:var(--surface,#fff);--ddak-wf-point:var(--point,#798645);--ddak-wf-deep:var(--point-deep,#66713a);--ddak-wf-sub:var(--sub,#f2eed7);--ddak-wf-serif:var(--font-editorial,Eulyoo1945,Georgia,serif);color:var(--ddak-wf-ink)}
 .ddak-wf *,.ddak-wf *::before,.ddak-wf *::after{box-sizing:border-box}
 .ddak-wf .ddak-wf-bar{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px 20px;margin:0 0 22px}
 .ddak-wf .ddak-wf-hint{flex:1 1 auto;min-width:0;margin:0;font-size:13px;line-height:1.6;color:var(--ddak-wf-soft)}
@@ -117,11 +117,11 @@
 .ddak-wf[data-dragging] .ddak-wf-card{border-color:var(--ddak-wf-point)}
 
 /* kinetic names band (decorative, aria-hidden), flows against the cards */
-.ddak-wf .ddak-wf-names{overflow:hidden;margin-top:clamp(8px,min(4vh,2.5vw),48px);padding:4px 0;pointer-events:none}
+.ddak-wf .ddak-wf-names{overflow:hidden;margin-top:clamp(8px,min(calc(4 * var(--ddak-vh,1vh)),calc(2.5 * var(--ddak-vw,1vw))),48px);padding:4px 0;pointer-events:none}
 .ddak-wf .ddak-wf-ngroup{display:flex;align-items:center;white-space:nowrap}
-.ddak-wf .ddak-wf-ngroup span{font-family:var(--ddak-wf-serif);font-size:clamp(16px,calc(7.5vw * var(--ddak-vz,1)),120px);line-height:1.1;letter-spacing:-.01em;padding:0 .28em;color:var(--ddak-wf-ink)}
+.ddak-wf .ddak-wf-ngroup span{font-family:var(--ddak-wf-serif);font-size:clamp(16px,calc(calc(7.5 * var(--ddak-vw,1vw)) * var(--ddak-vz,1)),120px);line-height:1.1;letter-spacing:-.01em;padding:0 .28em;color:var(--ddak-wf-ink)}
 .ddak-wf .ddak-wf-ngroup span:nth-of-type(3n+2){color:transparent;-webkit-text-stroke:1px var(--ddak-wf-ink)}
-.ddak-wf .ddak-wf-ngroup b{display:block;flex:none;width:clamp(4px,calc(1.1vw * var(--ddak-vz,1)),15px);aspect-ratio:1;background:var(--ddak-wf-point);transform:rotate(45deg);margin:0 .2em}
+.ddak-wf .ddak-wf-ngroup b{display:block;flex:none;width:clamp(4px,calc(calc(1.1 * var(--ddak-vw,1vw)) * var(--ddak-vz,1)),15px);aspect-ratio:1;background:var(--ddak-wf-point);transform:rotate(45deg);margin:0 .2em}
 
 /* cursor label (fine pointer only) */
 .ddak-wf .ddak-wf-cursor{position:absolute;left:0;top:0;z-index:5;width:0;height:0;pointer-events:none}
@@ -129,14 +129,14 @@
 @media(hover:none),(pointer:coarse){.ddak-wf .ddak-wf-cursor{display:none}}
 
 @media(max-width:767px){
-  [data-works-list].ddak-wf{--ddak-wf-card:min(80vw,330px)}
-  .ddak-wf[data-flow="static"]{--ddak-wf-gap:14px}
-  .ddak-wf .ddak-wf-bar{gap:12px}
+  [data-works-list].ddak-wf:not(.ddak-pc){--ddak-wf-card:min(80vw,330px)}
+  .ddak-wf:not(.ddak-pc)[data-flow="static"]{--ddak-wf-gap:14px}
+  .ddak-wf:not(.ddak-pc) .ddak-wf-bar{gap:12px}
 }
 /* 0.1.9 narrow phones: the PC bar (hint left, controls right) stays on one line; buttons keep 44px touch size */
-@media(max-width:400px){.ddak-wf .ddak-wf-ctl{gap:8px}.ddak-wf button{min-height:44px;min-width:44px;padding:8px 12px}}
+@media(max-width:400px){.ddak-wf:not(.ddak-pc) .ddak-wf-ctl{gap:8px}.ddak-wf:not(.ddak-pc) button{min-height:44px;min-width:44px;padding:8px 12px}}
 /* Imweb tablet zoom .85: 54px x .85 = 45.9px measured (D264) */
-@media(min-width:641px) and (max-width:1199px){.ddak-wf button{min-height:54px;min-width:54px}.ddak-wf .ddak-wf-link{min-height:54px}}
+@media(min-width:641px) and (max-width:1199px){.ddak-wf:not(.ddak-pc) button{min-height:54px;min-width:54px}.ddak-wf:not(.ddak-pc) .ddak-wf-link{min-height:54px}}
 
 /* reduced motion: a still grid, no flow, no copies, no buttons; state changes are opacity only */
 .ddak-wf[data-flow="static"] .ddak-wf-ctl,.ddak-wf[data-flow="static"] .ddak-wf-hint-flow,.ddak-wf[data-flow="static"] .ddak-wf-cursor{display:none}
@@ -148,16 +148,16 @@
 .ddak-wf[data-flow="static"] .ddak-wf-group{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
 .ddak-wf[data-flow="static"] .ddak-wf-card{width:auto}
 /* static grid (reduced motion) keeps the 0.1.8 px sizes: its cards are grid cells, not the PC flow card */
-.ddak-wf[data-flow="static"]{--ddak-wf-gap:clamp(16px,2.2vw,32px)}
+.ddak-wf[data-flow="static"]{--ddak-wf-gap:clamp(16px,calc(2.2 * var(--ddak-vw,1vw)),32px)}
 .ddak-wf[data-flow="static"] .ddak-wf-chrome{height:28px;gap:6px;padding:0 12px;font-size:11px}
 .ddak-wf[data-flow="static"] .ddak-wf-chrome i{width:7px;height:7px}
 .ddak-wf[data-flow="static"] .ddak-wf-chrome span{margin-left:8px}
 .ddak-wf[data-flow="static"] .ddak-wf-phone{border-width:4px;border-radius:16px;box-shadow:0 16px 36px rgba(27,29,22,.24)}
 .ddak-wf[data-flow="static"] .ddak-wf-info{padding:clamp(16px,2vw,24px)}
-.ddak-wf[data-flow="static"] .ddak-wf-title{font-size:clamp(1.25rem,2vw,1.7rem)}
+.ddak-wf[data-flow="static"] .ddak-wf-title{font-size:clamp(1.25rem,calc(2 * var(--ddak-vw,1vw)),1.7rem)}
 .ddak-wf[data-flow="static"] .ddak-wf-ntrack{transform:none!important;width:auto;will-change:auto}
 .ddak-wf[data-flow="static"] .ddak-wf-ngroup{flex-wrap:wrap;white-space:normal}
-.ddak-wf[data-flow="static"] .ddak-wf-ngroup span{font-size:clamp(32px,5vw,72px)}
+.ddak-wf[data-flow="static"] .ddak-wf-ngroup span{font-size:clamp(32px,calc(5 * var(--ddak-vw,1vw)),72px)}
 @media(prefers-reduced-motion:reduce){
   .ddak-wf .ddak-wf-shot img,.ddak-wf .ddak-wf-phone img{transition:opacity .15s linear;transform:none!important;animation:none!important}
   .ddak-wf .ddak-wf-phone{transform:none!important;opacity:1!important;transition:none!important}
@@ -166,7 +166,7 @@
 }
 /* a cover that fails to load falls back to a type plate in the same frame (the work's name), no invented imagery */
 .ddak-wf .ddak-wf-type{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8%;text-align:center;background:radial-gradient(120% 90% at 30% 20%,#2a2d22 0,#1b1d16 70%);color:#f2eed7}
-.ddak-wf .ddak-wf-type b{font-family:var(--ddak-wf-serif);font-weight:400;font-size:clamp(26px,3.2vw,46px);line-height:1.15;letter-spacing:.02em;overflow-wrap:anywhere;transition:letter-spacing .9s cubic-bezier(.16,1,.3,1)}
+.ddak-wf .ddak-wf-type b{font-family:var(--ddak-wf-serif);font-weight:400;font-size:clamp(26px,calc(3.2 * var(--ddak-vw,1vw)),46px);line-height:1.15;letter-spacing:.02em;overflow-wrap:anywhere;transition:letter-spacing .9s cubic-bezier(.16,1,.3,1)}
 .ddak-wf .ddak-wf-type small{font-size:12px;letter-spacing:.12em;color:rgba(242,238,215,.72)}
 @media(hover:hover) and (pointer:fine){.ddak-wf .ddak-wf-card:hover .ddak-wf-type b{letter-spacing:.08em}}
 @media(prefers-reduced-motion:reduce){.ddak-wf .ddak-wf-type b{transition:none}}
@@ -199,20 +199,20 @@
 /* 0.1.6 footer: phones and tablets keep the PC composition (owner 2026-11-09 20:50 "반응형에서는 pc버전이랑 동일하게").
    Same order and columns as 1440 (top line both sides, contact | channels, business label | fields); sizes scale with width. */
 @media(max-width:800px){
-  .ddak-tf .ddak-tf-top{flex-direction:row;justify-content:space-between;gap:12px;font-size:clamp(11px,3.2vw,13px)}
-  .ddak-tf .ddak-tf-top p:last-child{display:block}
-  .ddak-tf .ddak-tf-main{grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px);padding:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px) 0 clamp(16px,calc(5.56cqw * var(--ddak-cqk,1)),64px)}
-  .ddak-tf .ddak-tf-email{font-size:clamp(13px,calc(3.25cqw * var(--ddak-cqk,1)),38px)}
-  .ddak-tf .ddak-tf-phone{font-size:clamp(13px,3.6vw,18px)}
-  .ddak-tf .ddak-tf-ch{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px clamp(12px,2.6vw,32px)}
-  .ddak-tf .ddak-tf-ch a{font-size:clamp(11px,3.1vw,16px);padding:10px 0}
-  .ddak-tf .ddak-tf-ch span{font-size:clamp(14px,3.6vw,20px)}
-  .ddak-tf .ddak-tf-biz{grid-template-columns:clamp(60px,15vw,180px) minmax(0,1fr);gap:clamp(10px,3vw,24px)}
-  .ddak-tf .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf .ddak-tf-biz dl{display:flex;flex-wrap:wrap;gap:6px clamp(12px,3.4vw,32px);font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf .ddak-tf-f{gap:clamp(6px,1.6vw,10px)}
-  .ddak-tf .ddak-tf-f dt{width:auto}
-  .ddak-tf .ddak-tf-f dd{flex:0 1 auto}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-top{flex-direction:row;justify-content:space-between;gap:12px;font-size:clamp(11px,3.2vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-top p:last-child{display:block}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px);padding:clamp(12px,calc(4.17cqw * var(--ddak-cqk,1)),48px) 0 clamp(16px,calc(5.56cqw * var(--ddak-cqk,1)),64px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:clamp(13px,calc(3.25cqw * var(--ddak-cqk,1)),38px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-phone{font-size:clamp(13px,3.6vw,18px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px clamp(12px,2.6vw,32px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:clamp(11px,3.1vw,16px);padding:10px 0}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch span{font-size:clamp(14px,3.6vw,20px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:clamp(60px,15vw,180px) minmax(0,1fr);gap:clamp(10px,3vw,24px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{display:flex;flex-wrap:wrap;gap:6px clamp(12px,3.4vw,32px);font-size:clamp(11px,3.1vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:clamp(6px,1.6vw,10px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-f dt{width:auto}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-f dd{flex:0 1 auto}
 }
 /* 0.1.9 phones (owner 2026-11-10 "PC와 동일한 디자인과 애니메이션", "똑같이"): one composition, scaled with the width.
    393px is the reference phone; every size below is its 393 value in vw, so 320-600 is the same picture scaled (business info,
@@ -220,18 +220,45 @@
    arrow 1.25x the channel text, text-arrow gap .5em, line height 1.5. Touch targets stay px (min-height 44px, not scaled).
    Kept from 0.1.8 because PC column widths cannot hold '네이버 블로그' on one line at phone widths: contact column = e-mail width. */
 @media(max-width:600px){
-  .ddak-footer.ddak-tf{padding-top:min(8.14vw,32px)}
-  .ddak-tf .ddak-tf-top{font-size:clamp(11px,3.2vw,13px)}
-  .ddak-tf .ddak-tf-main{grid-template-columns:max-content minmax(0,1fr);gap:3.2vw;padding:min(7.12vw,48px) 0 min(9.16vw,64px)}
-  .ddak-tf .ddak-tf-contact h2,.ddak-tf .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf .ddak-tf-contact h2{margin-bottom:3.05vw}
-  .ddak-tf .ddak-tf-email{font-size:min(3.75vw,38px);overflow-wrap:anywhere;max-width:100%}
-  .ddak-tf .ddak-tf-phone{font-size:clamp(12px,3.6vw,18px)}
-  .ddak-tf .ddak-tf-ch{grid-template-columns:repeat(2,minmax(max-content,1fr));gap:.5vw 2vw}
-  .ddak-tf .ddak-tf-ch a{font-size:min(3.1vw,16px);line-height:1.5;padding:2.54vw 0;gap:.5em;letter-spacing:normal;white-space:nowrap}
-  .ddak-tf .ddak-tf-ch span{font-size:1.25em}
-  .ddak-tf .ddak-tf-biz{grid-template-columns:max(60px,15.27vw) minmax(0,1fr);gap:3.05vw;padding-top:6.1vw}
-  .ddak-tf .ddak-tf-biz h2{white-space:nowrap}
-  .ddak-tf .ddak-tf-biz dl{gap:1.53vw 3.4vw;font-size:clamp(11px,3.1vw,13px)}
-  .ddak-tf .ddak-tf-f{gap:1.6vw}
+  .ddak-footer.ddak-tf:not(.ddak-pc){padding-top:min(8.14vw,32px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-top{font-size:clamp(11px,3.2vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-main{grid-template-columns:max-content minmax(0,1fr);gap:3.2vw;padding:min(7.12vw,48px) 0 min(9.16vw,64px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-contact h2,.ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{font-size:clamp(11px,3.1vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-contact h2{margin-bottom:3.05vw}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-email{font-size:min(3.75vw,38px);overflow-wrap:anywhere;max-width:100%}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-phone{font-size:clamp(12px,3.6vw,18px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch{grid-template-columns:repeat(2,minmax(max-content,1fr));gap:.5vw 2vw}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch a{font-size:min(3.1vw,16px);line-height:1.5;padding:2.54vw 0;gap:.5em;letter-spacing:normal;white-space:nowrap}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-ch span{font-size:1.25em}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz{grid-template-columns:max(60px,15.27vw) minmax(0,1fr);gap:3.05vw;padding-top:6.1vw}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz h2{white-space:nowrap}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-biz dl{gap:1.53vw 3.4vw;font-size:clamp(11px,3.1vw,13px)}
+  .ddak-tf:not(.ddak-pc) .ddak-tf-f{gap:1.6vw}
 }
+
+/* 0.1.10 pure scale (owner 11-10 "적용시켜"): <=1199px = 1440x900 PC layout scaled to the width; tokens = live PC values */
+.ddak-pcs{position:relative;box-sizing:content-box}
+/* >1199px: wrappers leave the layout */
+.ddak-pcs:not(.ddak-pcs-on),.ddak-pcs:not(.ddak-pcs-on)>.ddak-pcs-in{display:contents}
+.ddak-pcs.ddak-pcs-on{margin-left:auto;margin-right:auto;padding:0}
+.ddak-pcs.ddak-pcs-on>.ddak-pcs-in{display:flow-root;box-sizing:border-box;width:var(--ddak-pcs-w);transform:scale(var(--ddak-pcs-s,1));transform-origin:0 0}
+.ddak-pcs.ddak-pcs-on>.ddak-pcs-in,.ddak-pcs-txt{--gutter:72px;--section-pad:153px;--section-pad-lg:180px;--copy-size:14px;--ddak-vw:14.4px;--ddak-vh:9px;--ddak-vz:1}
+.ddak-pcs-txt{transform:scale(var(--ddak-pcs-s,1))}
+.ddak-pcs-on>.ddak-pcs-in .section-display,.ddak-pcs-on>.ddak-pcs-in .contact-display,.ddak-pcs-txt .section-display{font-size:3.214em}
+.ddak-pcs-on>.ddak-pcs-in .about-person__name{font-size:2.571em}
+.ddak-pcs-on>.ddak-pcs-in .about-people{grid-template-columns:repeat(2,minmax(0,1fr));gap:56px;margin-top:90px}
+.ddak-pcs-on>.ddak-pcs-in .about-person__body{padding:28px}
+.ddak-pcs-on>.ddak-pcs-in .about-facts-row{margin-top:72px}
+.ddak-pcs-on>.ddak-pcs-in .about-facts{grid-template-columns:repeat(3,1fr);gap:36px}
+.ddak-pcs-on>.ddak-pcs-in .contact-actions{flex-direction:row;align-items:normal}
+.ddak-pcs-on>.ddak-pcs-in .site-footer.ddak-tf{margin-top:90px;gap:48px}
+.ddak-pcs-on>.ddak-pcs-in .works-list.ddak-wf{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}
+.ddak-pcs-host.chapter--about{padding-bottom:0}
+.ddak-pcs-on.ddak-pcs-about>.ddak-pcs-in{padding-bottom:var(--section-pad)}
+.ddak-pcs-host.contact{padding:0;min-height:0}
+.ddak-pcs-on.ddak-pcs-contact>.ddak-pcs-in{display:flex;flex-direction:column;justify-content:center;gap:0;min-height:792px;padding:var(--section-pad-lg) var(--gutter) 0;text-align:center}
+/* room for the unscaled fixed inquiry buttons (JS, measured) */
+.ddak-pcs-on>.ddak-pcs-in .ddak-footer.ddak-tf.ddak-pc{padding-bottom:calc(36px + var(--ddak-pcs-fpad,0px))}
+/* tablet zoom .85: the pinned film covered 85% of the screen; vz = 1/zoom */
+.ddak-pcs-film[data-bg-canvas]{width:calc(100vw * var(--ddak-vz,1))!important;height:calc(100vh * var(--ddak-vz,1))!important}
+.ddak-pcs-film.about-film-pin{width:calc(100vw * var(--ddak-vz,1))!important;max-width:none!important;height:calc(100svh * var(--ddak-vz,1))!important;max-height:none!important;min-height:calc(100svh * var(--ddak-vz,1))}
