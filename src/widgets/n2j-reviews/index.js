@@ -336,12 +336,15 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
    flowEngine: one shared offset drives every row (cards left, counter rows right); drag/swipe follows the finger and
    releases with inertia, hover slows to a stop, pause button, focus brings a card into view, off-screen/hidden tab stop.
    Every position change is continuous (eased speed, ease-in-out nudge, decaying inertia): no one-frame jumps (D69).
-   Reduced motion = static grid (host[data-flow="static"]): no copies, no buttons, no movement. */
+   Reduced motion = static grid (host[data-flow="static"]): no copies, no buttons, no movement.
+   0.1.13 owner override (11-10 "pc처럼 그리드가 흘러가는 모습으로 나와야하는데", his iPhone has Reduce Motion on): at <=1199px the
+   rows keep flowing under reduced motion, gentler (60% speed, no skew, no scroll-coupled band, no entrance) with the visible
+   pause button (WCAG 2.2.2). >=1200px keeps the static grid. */
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
   if (ns.flowEngine || typeof matchMedia !== 'function' || typeof IntersectionObserver !== 'function') return;
-  const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)'), fineMQ = matchMedia('(hover: hover) and (pointer: fine)');
+  const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)'), fineMQ = matchMedia('(hover: hover) and (pointer: fine)'), narrowMQ = matchMedia('(max-width: 1199px)');
   const mod = (a, b) => b > 0 ? ((a % b) + b) % b : 0;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const SPRING = 2 / .09; // critically damped drag spring (rad/s): follows a steady finger with a 90ms lag
@@ -366,7 +369,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     let s = 0, f = 0, vel = 0, dv = 0, rel = 0, lag = 0, tween = null, raf = 0, last = 0, zoom = 1, skew = 0, deco = 0, scrollV = 0, lastY = scrollY, disposed = false, built = false, lastW = -1, justDragged = 0, entered = false;
     const off = [];
     const on = (t, e, fn, o) => { t.addEventListener(e, fn, o); off.push(() => t.removeEventListener(e, fn, o)); };
-    const isStatic = () => reduceMQ.matches;
+    const isStatic = () => reduceMQ.matches && !narrowMQ.matches, gentle = () => reduceMQ.matches;
     const main = rows[0];
 
     function clones(r) {
@@ -433,13 +436,13 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
         if (lag) { const d = lag * (1 - Math.exp(-dt / .09)); s += d; lag -= d; if (Math.abs(lag) < .05) { s += lag; lag = 0; } }
         // release glide: constant friction (speed falls in a straight line to 0 within 0.45s), so the slowdown never lingers near zero
         if (vel) { const v0 = vel; vel -= Math.sign(v0) * Math.max(Math.abs(rel), 300) / .45 * dt; if (Math.sign(vel) !== Math.sign(v0)) vel = 0; s += (v0 + vel) / 2 * dt; }
-        s += speed() * f * dt;
+        s += speed() * f * dt * (gentle() ? .6 : 1);
       }
       const ds = s - s0, manualV = (st.drag || vel || lag) ? ds / dt : 0;
-      const goalSkew = clamp(-manualV * .0035, -5, 5);
+      const goalSkew = gentle() ? 0 : clamp(-manualV * .0035, -5, 5);
       skew += (goalSkew - skew) * (1 - Math.exp(-dt / .12)); if (Math.abs(skew) < .01 && !goalSkew) skew = 0;
       const y = scrollY, sv = Math.min(Math.abs(y - lastY) / dt, 3000); lastY = y;
-      scrollV += ((st.manual ? 0 : sv * .08) - scrollV) * (1 - Math.exp(-dt / .25)); if (scrollV < .3) scrollV = 0;
+      scrollV += ((st.manual || gentle() ? 0 : sv * .08) - scrollV) * (1 - Math.exp(-dt / .25)); if (scrollV < .3) scrollV = 0;
       deco += Math.min(scrollV, 220) * dt;
       render();
       const idle = f === 0 && goal === 0 && !st.drag && !tween && !vel && !lag && !skew && !scrollV;
@@ -520,7 +523,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     on(document, 'visibilitychange', () => { st.hidden = document.hidden; if (st.hidden) stop(); sync(); });
     if (rows.some((r) => r.deco)) on(window, 'scroll', () => { if (st.visible && !st.manual) kick(); }, { passive: true });
     const onMQ = () => build();
-    reduceMQ.addEventListener?.('change', onMQ); off.push(() => reduceMQ.removeEventListener?.('change', onMQ));
+    [reduceMQ, narrowMQ].forEach((q) => { q.addEventListener?.('change', onMQ); off.push(() => q.removeEventListener?.('change', onMQ)); });
 
     // cursor label (fine pointer, motion on), positioned inside the host
     let cx = 0, cy = 0, tx = 0, ty = 0, craf = 0, shown = false;
@@ -545,7 +548,7 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
 
     const io = new IntersectionObserver((es) => {
       const v = es.some((x) => x.isIntersecting);
-      if (v && !st.visible && built && !entered) { entered = true; if (entrance && !isStatic()) entrance(); }
+      if (v && !st.visible && built && !entered) { entered = true; if (entrance && !gentle()) entrance(); }
       st.visible = v; if (!v) stop(); sync();
     }, { threshold: 0 });
     const key = () => (section || host).getBoundingClientRect().width + host.offsetWidth * 1000;
@@ -621,6 +624,8 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
     const parts = { stage: $('.ddak-wf-stage'), row: $('.ddak-wf-row'), track: $('.ddak-wf-track'), group: $('.ddak-wf-group'), names: $('.ddak-wf-names'), ntrack: $('.ddak-wf-ntrack'), ngroup: $('.ddak-wf-ngroup'), pause: $('.ddak-wf-pause'), cursor: $('.ddak-wf-cursor'), navs: [...frag.querySelectorAll('.ddak-wf-nav')] };
     list.classList.add('ddak-wf');
     list.replaceChildren(frag);
+    // 0.1.13: the tablet card width uses --ddak-vz, so set it before the first build measures the rows (rhythm, wrap width)
+    list.style.setProperty('--ddak-vz', String(list.closest('.ddak-pcs-on') ? 1 : (ns.vz || (() => 1))()));
     // 0.1.8 covers load per card, only near the screen (0.1.7 fetched all 16 on the first visit: the copies were eager).
     // Covers carry data-src so no browser preloads them on its own. Flow: the section within 800px (vertical) and the card within
     // a quarter of the row width of the visible strip (horizontal, copies included). Static grid (reduced motion): card within 600px.
@@ -694,71 +699,45 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
   ns.worksFlow = Object.freeze({ apply, WORKS });
 })();
 
-/* 0.1.10 pure scale (owner 11-10 "적용시켜", "#about 반응형 바뀐게없어"): <=1199px = 1440 PC layout scaled to the width. 0.1.11: + reviews. */
+/* 0.1.13 readable responsive (owner 11-10 20:4x "가독성이 안좋게 보이고 … 근본적인 원인을찾고, 완벽하게 해결해서 구축해"): the
+   0.1.10-0.1.12 pure scale (the 1440 PC layout shrunk to the width: 3px text on phones) is removed. <=1199px keeps the PC
+   structure and order with readable type (style.css .ddak-rsp). This module keeps the tablet-zoom film fix, the --ddak-vz
+   factor (1 / Imweb tablet zoom) and the measured room for the fixed inquiry buttons under the footer. */
 (function () {
   'use strict';
   const ns = window.__ddak = window.__ddak || {};
   if (ns.pcScale) return;
-  const W0 = 1440, GUT = 72, boxes = [];
-  let on = false, raf = 0, built = false, bound = false, pin = null, txt = null;
-  const wrap = (nodes, cls, w, ref, host) => {
-    const o = document.createElement('div'), i = document.createElement('div');
-    o.className = 'ddak-pcs ' + cls; i.className = 'ddak-pcs-in';
-    nodes[0].before(o); o.append(i); i.append(...nodes);
-    o.style.setProperty('--ddak-pcs-w', w + 'px');
-    boxes.push({ o, i, w, ref, host });
-  };
-  function build() {
-    built = true;
-    const A = document.getElementById('about'), C = document.getElementById('contact'), L = document.querySelector('[data-works-list]');
-    const ap = A ? [...A.querySelectorAll(':scope > .about-people, :scope > .about-facts-row')] : [];
-    if (ap.length) wrap(ap, 'ddak-pcs-about', W0, A, A);
-    const cc = C ? [...C.children].filter((n) => !n.matches('footer')) : []; // 0.1.11: footer = reference responsive, not scaled
-    if (cc.length) wrap(cc, 'ddak-pcs-contact', W0, C, C);
-    // 0.1.12: list only (a scaled head made the chapter too short for the home's 68% theme line: dark background behind the list)
-    if (L?.parentElement) wrap([L], 'ddak-pcs-works', W0 - 2 * GUT, L.closest('section') || L.parentElement.parentElement, null);
-    const RV = document.querySelector('[data-ddak-slot="n2j-reviews"][data-ddak-review-mode="home"]');
-    if (RV?.parentElement) wrap([RV], 'ddak-pcs-reviews', W0, RV.parentElement, null);
-    pin = A?.querySelector('[data-about-pin]') || null; txt = A?.querySelector('[data-about-inner]') || null;
-    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => queue()); boxes.forEach((b) => ro.observe(b.i)); }
-  }
+  let on = false, raf = 0, bound = false;
   function fit() {
     raf = 0; let moved = false;
-    for (const b of boxes) {
-      b.o.classList.toggle('ddak-pcs-on', on); b.host?.classList.toggle('ddak-pcs-host', on);
-      b.i.querySelectorAll('footer.ddak-tf,[data-works-list].ddak-wf,.ddak-n2j-reviews').forEach((n) => { n.classList.toggle('ddak-pc', on); n.style.setProperty('--ddak-vz', String(on ? 1 : (ns.vz || (() => 1))())); });
-      const s = on ? (b.ref.clientWidth || W0) / W0 : 1;
-      b.o.style.setProperty('--ddak-pcs-s', String(s));
-      b.o.style.width = on ? b.w * s + 'px' : '';
-      const h = on ? Math.ceil(b.i.offsetHeight * s) + 'px' : '';
-      if (b.o.style.height !== h) { b.o.style.height = h; moved = true; }
-    }
+    const vz = (ns.vz || (() => 1))(), A = document.getElementById('about'), C = document.getElementById('contact'), pin = A?.querySelector('[data-about-pin]');
+    [A, C].forEach((h) => h?.classList.toggle('ddak-rsp', on));
+    // inherited by the review chapter (re-rendered after this runs) and every box below without its own value
+    if (on) document.documentElement.style.setProperty('--ddak-vz', String(vz)); else document.documentElement.style.removeProperty('--ddak-vz');
     const ft = document.querySelector('footer.ddak-tf');
     if (ft) { // room for the fixed inquiry buttons under the footer (measured)
       const q = document.querySelector('.fixed-inquiry'), r = q && on ? q.getBoundingClientRect() : null, fr = ft.getBoundingClientRect(), k = (fr.width / (ft.offsetWidth || 1)) || 1;
       ft.style.setProperty('--ddak-pcs-fpad', r && r.height ? Math.ceil((innerHeight - r.top + 12) / k) + 'px' : '0px');
     }
-    if (pin) {
-      const vz = (ns.vz || (() => 1))(), f = on && vz !== 1;
+    if (pin) { // tablet zoom .85: the pinned film covered 85% of the screen
+      const f = on && vz !== 1;
       if (pin.classList.contains('ddak-pcs-film') !== f) { pin.classList.toggle('ddak-pcs-film', f); moved = true; }
       pin.style.setProperty('--ddak-vz', String(vz));
       const bg = document.querySelector('[data-bg-canvas]'); if (bg) { bg.classList.toggle('ddak-pcs-film', f); bg.style.setProperty('--ddak-vz', String(vz)); }
     }
-    if (txt && pin) { txt.classList.toggle('ddak-pcs-txt', on); txt.style.setProperty('--ddak-pcs-s', String(on ? (pin.clientWidth || W0) / W0 : 1)); }
     if (moved) ns.reviewController?.refresh?.();
   }
-  function queue() { if (!raf) raf = requestAnimationFrame(fit); }
+  const queue = () => { if (!raf) raf = requestAnimationFrame(fit); };
   function apply() {
     if (bound || typeof matchMedia !== 'function') return false;
     bound = true;
-    const mq = matchMedia('(max-width: 1199px)');
-    const go = () => { on = mq.matches; if (on && !built) build(); if (built) queue(); };
+    const mq = matchMedia('(max-width: 1199px)'), go = () => { on = mq.matches; queue(); };
     mq.addEventListener?.('change', go);
-    addEventListener('resize', () => { if (built) queue(); }, { passive: true });
+    addEventListener('resize', queue, { passive: true });
     go();
     return true;
   }
-  ns.pcScale = Object.freeze({ apply, get on() { return on; }, get boxes() { return boxes.length; } });
+  ns.pcScale = Object.freeze({ apply, get on() { return on; } });
 })();
 
 (function () {
