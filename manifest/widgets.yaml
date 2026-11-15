@@ -46,12 +46,14 @@ widgets:
       type: slot
       slot: cta-contact
   - widget_id: n2j-reviews
-    version: 0.1.13
+    version: 0.1.14
     enabled: true
     site: n2jtrini
     match:
       path_glob:
         - /
+        - /index
+        - /index/
         - /27
         - /27/
     mount:
