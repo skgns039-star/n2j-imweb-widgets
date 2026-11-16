@@ -110,7 +110,7 @@ window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba
     const chars = Array.from(value.normalize('NFC').replace(/[\u0000-\u001F\u007F​-‍⁠﻿]/g, '').replace(/\s+/g, ''));
     // 한 글자는 가려도 전체가 드러나므로 표시하지 않는다(작성자 비공개).
     if (chars.length < 2 || chars.length > 40 || hidden(chars[0])) return '';
-    return chars[0] + MASK.repeat(chars.length - 1);
+    return chars[0] + MASK + MASK;
   }
   // authors.json = {"authors":{"<게시글 idx>":"고**"}}. 가린 값만 담지만, 위젯이 한 번 더 가려 전체 이름이 실수로 들어가도 화면에 나오지 않는다.
   async function authors(url, signal) {
@@ -190,11 +190,13 @@ window.__ddak.reviewField=function(canvas,{host=canvas.parentElement,color='rgba
         const value = text(body);
         const normalized = (text(title) + '\n' + value).normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'');
         if (!value || value.length > 12000 || qa.test(value) || pii.test(normalized)) continue;
-        reviews.push({id,body:value,verified:true});
+        // 0.1.15: authors.json에 없는 글은 목록 작성자 칸의 성만 써 성**
+        const listName = text(row.querySelector('li.name') || document.createElement('i')).replace(/\s+/g, '');
+        reviews.push({id,body:value,verified:true,listName:listName === '관리자' ? '' : maskName(listName)});
       }
       const masked = reviews.length ? await names : {};
       return Object.freeze({state: reviews.length ? 'success' : 'empty',
-        reviews:Object.freeze(reviews.map(r => Object.freeze(masked[r.id] ? {...r, displayName:masked[r.id]} : r)))});
+        reviews:Object.freeze(reviews.map(r => Object.freeze((masked[r.id] || r.listName) ? {...r, displayName:masked[r.id] || r.listName} : r)))});
     } finally {
       clearTimeout(timer); signal?.removeEventListener('abort', abort);
     }
@@ -580,7 +582,8 @@ window.__ddak.reviewController=Object.freeze({mount,refresh});
      코너플라워·세화 use the address written in the Imweb portfolio (same business numbers as the old addresses, both 200);
      N2J 홍보 랜딩·브라이트마인드 removed. '실제 운영 중' only where the live site is a running business. */
   // [id, name, category, URL, '실제 운영 중', desktop capture height, phone capture height] (capture widths 900 / 300)
-  const COVERS = 'https://cdn.jsdelivr.net/gh/skgns039-star/n2j-trini-assets@covers-0.1.7-r2/assets/works/scroll/';
+  // 0.1.15: jsDelivr gh 404/503 → GitHub Pages
+  const COVERS = 'https://skgns039-star.github.io/n2j-trini-assets/assets/works/scroll/';
   const WORKS = [
     ['arthurnco', 'ARTHUR & CO.', 'BRAND DISTRIBUTION', 'https://arthurnco.imweb.me/', 1, 1488, 1639],
     ['duckfeet', 'DUCKFEET', 'WEBSITE', 'https://duckfeet11.imweb.me/', 1, 874, 669],
